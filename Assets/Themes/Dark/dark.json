@@ -1,0 +1,11 @@
+{
+  "Colors": {
+    "main": "#2A2A2A"
+  },
+  "Buttons": {
+    "new" : "new_light.png",
+    "save" : "save-disc.png",
+    "settings": "settings.png",
+    "run": "play_light.png"
+  }
+}
