@@ -1,31 +1,68 @@
 import os
 import cv2
-import json
+import logging
 import numpy as np
-import onnxruntime as ort
 import numpy.typing as npt
+import onnxruntime as ort
+from typing import List, Tuple
 from scipy.special import softmax
+from BudaOCR.Config import COLOR_DICT
+from BudaOCR.Data import (
+    OpStatus,
+    TPSMode,
+    LineData,
+    OCRModelConfig,
+    OCResult,
+    LineDetectionConfig,
+    LayoutDetectionConfig,
+)
+
 from pyctcdecode import build_ctcdecoder
 from BudaOCR.Utils import (
-    pad_image,
-    patch_image,
-    sigmoid,
-    normalize,
-    unpatch_image,
-    resize_to_width,
-    resize_to_height,
-    post_process_prediction,
-    filter_contours,
-    generate_line_preview,
+    apply_global_tps,
     build_line_data,
-    sort_lines_by_threshold,
-    extract_line,
+    create_dir,
+    extract_line_images,
+    get_line_images_via_local_tps,
+    optimize_countour,
+    preprocess_image,
     binarize,
-    prepare_ocr_line, calculate_steps, calculate_paddings, generate_patches, pad_to_width, pad_to_height,
+    normalize,
+    sort_lines_by_threshold2,
+    stitch_predictions,
+    tile_image,
+    sigmoid,
+    pad_to_height,
+    pad_to_width,
+    read_ocr_model_config,
+    build_raw_line_data,
+    filter_line_contours,
+    check_for_tps
 )
 
 
-from BudaOCR.Data import OpStatus, LineDetectionConfig, LayoutDetectionConfig
+class CTCDecoder:
+    def __init__(self, charset: str | List[str]):
+
+        if isinstance(charset, str):
+            self.charset = [x for x in charset]
+
+        elif isinstance(charset, List):
+            self.charset = charset
+
+        self.ctc_vocab = self.charset.copy()
+        # self.ctc_vocab.insert(0, " ")
+        self.ctc_decoder = build_ctcdecoder(self.ctc_vocab)
+
+    def encode(self, label: str):
+        return [self.charset.index(x) + 1 for x in label]
+
+    def decode(self, inputs: List[int]) -> str:
+        return "".join(self.charset[x - 1] for x in inputs)
+
+    def ctc_decode(self, logits):
+        return self.ctc_decoder.decode(logits).replace(" ", "")
+
 
 class Detection:
     def __init__(self, config: LineDetectionConfig | LayoutDetectionConfig):
@@ -38,53 +75,17 @@ class Detection:
             self._onnx_model_file, providers=self._execution_providers
         )
 
-    def _prepare_image(
-        self,
-        image: npt.NDArray,
-        patch_size: int = 512,
-        resize: bool = True,
-        fix_height: bool = False,
-    ):
-        if resize:
-            if not fix_height:
-                if image.shape[0] > 1.5 * patch_size:
-                    target_height = 2 * patch_size
-                else:
-                    target_height = patch_size
-            else:
-                target_height = patch_size
+    def _preprocess_image(self, image: npt.NDArray, patch_size: int = 512, denoise: bool = True):
+        padded_img, pad_x, pad_y = preprocess_image(image, patch_size)
+        tiles, y_steps = tile_image(padded_img, patch_size)
+        tiles = [binarize(x, denoise=denoise) for x in tiles]
+        tiles = [normalize(x) for x in tiles]
+        tiles = np.array(tiles)
 
-            image, _ = resize_to_height(image, target_height=target_height)
+        return padded_img, tiles, y_steps, pad_x, pad_y
 
-        steps_x, steps_y = calculate_steps(image, patch_size)
-
-        pad_x, pad_y = calculate_paddings(image, steps_x, steps_y, patch_size)
-        padded_img = pad_image(image, pad_x, pad_y)
-        print(f"Paded img: {padded_img.shape}")
-
-        image_patches = generate_patches(padded_img, steps_x, steps_y, patch_size)
-        image_patches = [binarize(x) for x in image_patches]
-
-        image_patches = [normalize(x) for x in image_patches]
-        image_patches = np.array(image_patches)
-
-        return padded_img, image_patches, steps_y, steps_x, pad_x, pad_y
-
-    def _unpatch_image(self, pred_batch: npt.NDArray, y_steps: int):
-        # TODO: add some dimenions range and sequence checking so that things don't blow up when the input is not BxHxWxC
-        dimensional_split = np.split(pred_batch, y_steps, axis=0)
-        x_stacks = []
-
-        for _, x_row in enumerate(dimensional_split):
-            x_stack = np.hstack(x_row)
-            x_stacks.append(x_stack)
-
-        concat_out = np.vstack(x_stacks)
-
-        return concat_out
-
-    def _adjust_prediction(
-        self, image: npt.NDArray, prediction: npt.NDArray, x_pad: int, y_pad: int
+    def _crop_prediction(
+            self, image: npt.NDArray, prediction: npt.NDArray, x_pad: int, y_pad: int
     ) -> npt.NDArray:
         x_lim = prediction.shape[1] - x_pad
         y_lim = prediction.shape[0] - y_pad
@@ -93,12 +94,6 @@ class Detection:
         prediction = cv2.resize(prediction, dsize=(image.shape[1], image.shape[0]))
 
         return prediction
-
-    def _post_process(self, image: npt.NDArray) -> npt.NDArray:
-        image = image.astype(np.uint8)
-        image *= 255
-
-        return image
 
     def _predict(self, image_batch: npt.NDArray):
         image_batch = np.transpose(image_batch, axes=[0, 3, 1, 2])
@@ -110,98 +105,138 @@ class Detection:
 
         return prediction
 
-    def predict(
-        self, image: npt.NDArray, class_threshold: float = 0.8, fix_height: bool = True
-    ) -> npt.NDArray:
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.8, denoise: bool = False) -> npt.NDArray:
         pass
+
 
 class LineDetection(Detection):
     def __init__(self, config: LineDetectionConfig) -> None:
         super().__init__(config)
 
-    def predict(
-        self, image: npt.NDArray, class_threshold: float = 0.8, fix_height: bool = True
-    ) -> npt.NDArray:
-
-        _, image_patches, y_steps, x_steps, pad_x, pad_y = self._prepare_image(
-            image, patch_size=self._patch_size, fix_height=fix_height
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.9, denoise: bool = False) -> npt.NDArray:
+        _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(
+            image, patch_size=self._patch_size, denoise=denoise
         )
-        prediction = self._predict(image_patches)
+        prediction = self._predict(tiles)
         prediction = np.squeeze(prediction, axis=1)
         prediction = sigmoid(prediction)
         prediction = np.where(prediction > class_threshold, 1.0, 0.0)
-        merged_image = self._unpatch_image(prediction, y_steps=y_steps)
-        merged_image = self._adjust_prediction(image, merged_image, pad_x, pad_y)
-        merged_image = self._post_process(merged_image)
+        merged_image = stitch_predictions(prediction, y_steps=y_steps)
+        merged_image = self._crop_prediction(image, merged_image, pad_x, pad_y)
+        merged_image = merged_image.astype(np.uint8)
+        merged_image *= 255
+
         return merged_image
 
 
 class LayoutDetection(Detection):
-    def __init__(self, config: LayoutDetectionConfig) -> None:
+    def __init__(self, config: LayoutDetectionConfig, debug: bool = False) -> None:
         super().__init__(config)
         self._classes = config.classes
+        self._debug = debug
         print(f"Layout Classes: {self._classes}")
 
-    def predict(
-        self, image: npt.NDArray, class_threshold: float = 0.8, fix_height: bool = False
-    ) -> npt.NDArray:
-        _, image_patches, y_steps, x_steps, pad_x, pad_y = self._prepare_image(
-            image, patch_size=self._patch_size, fix_height=fix_height
-        )
-        prediction = self._predict(image_patches)
+    def _get_contours(self, prediction: npt.NDArray, optimize: bool = True, size_tresh: int = 200) -> list:
+        prediction = np.where(prediction > 200, 255, 0)
+        prediction = prediction.astype(np.uint8)
+
+        if np.sum(prediction) > 0:
+            contours, _ = cv2.findContours(
+                prediction, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            )
+
+            if optimize:
+                contours = [optimize_countour(x) for x in contours]
+                contours = [x for x in contours if cv2.contourArea(x) > size_tresh]
+            return contours
+        else:
+            print("Returning []")
+            return []
+
+    def create_preview_image(self,
+                             image: npt.NDArray,
+                             prediction: npt.NDArray,
+                             alpha: float = 0.4,
+                             ) -> npt.NDArray:
+
+        if image is None:
+            return None
+
+        image_predictions = self._get_contours(prediction[:, :, 1])
+        line_predictions = self._get_contours(prediction[:, :, 2])
+        caption_predictions = self._get_contours(prediction[:, :, 3])
+        margin_predictions = self._get_contours(prediction[:, :, 4])
+
+        mask = np.zeros(image.shape, dtype=np.uint8)
+
+        if len(image_predictions) > 0:
+            color = tuple([int(x) for x in COLOR_DICT["image"].split(",")])
+
+            for idx, _ in enumerate(image_predictions):
+                cv2.drawContours(
+                    mask, image_predictions, contourIdx=idx, color=color, thickness=-1
+                )
+
+        if len(line_predictions) > 0:
+            color = tuple([int(x) for x in COLOR_DICT["line"].split(",")])
+
+            for idx, _ in enumerate(line_predictions):
+                cv2.drawContours(
+                    mask, line_predictions, contourIdx=idx, color=color, thickness=-1
+                )
+
+        if len(caption_predictions) > 0:
+            color = tuple([int(x) for x in COLOR_DICT["caption"].split(",")])
+
+            for idx, _ in enumerate(caption_predictions):
+                cv2.drawContours(
+                    mask, caption_predictions, contourIdx=idx, color=color, thickness=-1
+                )
+
+        if len(margin_predictions) > 0:
+            color = tuple([int(x) for x in COLOR_DICT["margin"].split(",")])
+
+            for idx, _ in enumerate(margin_predictions):
+                cv2.drawContours(
+                    mask, margin_predictions, contourIdx=idx, color=color, thickness=-1
+                )
+
+        cv2.addWeighted(mask, alpha, image, 1 - alpha, 0, image)
+
+        return image
+
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.8, denoise: bool = False) -> npt.NDArray:
+        _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(
+            image, patch_size=self._patch_size, denoise=denoise)
+        prediction = self._predict(tiles)
         prediction = np.transpose(prediction, axes=[0, 2, 3, 1])
         prediction = softmax(prediction, axis=-1)
         prediction = np.where(prediction > class_threshold, 1.0, 0)
-        merged_image = self._unpatch_image(prediction, y_steps)
-        merged_image = self._adjust_prediction(image, merged_image, pad_x, pad_y)
-        merged_image = self._post_process(merged_image)
+        merged_image = stitch_predictions(prediction, y_steps=y_steps)
+        merged_image = self._crop_prediction(image, merged_image, pad_x, pad_y)
+        merged_image = merged_image.astype(np.uint8)
+        merged_image *= 255
 
         return merged_image
 
 
-
 class OCRInference:
-    def __init__(self, config_file, mode: str = "cuda") -> None:
-        self.config = config_file
-        self._onnx_model_file = None
-        self._input_width = 2000
-        self._input_height = 80
-        self._characters = []
-        self._ctcdecoder = None
-        self._can_run = False
-        self.ocr_session = None
-        self.mode = mode
-        self._init()
-
-    def _init(self) -> None:
-        _model_dir = os.path.dirname(self.config)
-        _file = open(self.config, encoding="utf-8")
-        json_content = json.loads(_file.read())
-        self._onnx_model_file = f"{_model_dir}/{json_content['onnx-model']}"
-
-        self._input_width = json_content["input_width"]
-        self._input_height = json_content["input_height"]
-        self._input_layer = json_content["input_layer"]
-        self._output_layer = json_content["output_layer"]
-        self._squeeze_channel_dim = (
-            True if json_content["squeeze_channel_dim"] == "yes" else False
-        )
-        self._swap_hw = True if json_content["swap_hw"] == "yes" else False
-        self._characters = self.get_charset(json_content["charset"])
-        self._ctcdecoder = build_ctcdecoder(self._characters)
-
-        if self.mode == "cuda":
-            execution_providers = ["CUDAExecutionProvider"]
-        else:
-            execution_providers = ["CPUExecutionProvider"]
+    def __init__(self, ocr_config: OCRModelConfig) -> None:
+        self.config = ocr_config
+        self._onnx_model_file = ocr_config.model_file
+        self._input_width = ocr_config.input_width
+        self._input_height = ocr_config.input_height
+        self._input_layer = ocr_config.input_layer
+        self._output_layer = ocr_config.output_layer
+        self._characters = ocr_config.charset
+        self._squeeze_channel_dim = ocr_config.squeeze_channel
+        self._swap_hw = ocr_config.swap_hw
+        self._execution_providers = ["CUDAExecutionProvider", "CoreMLExecutionProvider", "CPUExecutionProvider"]
         self.ocr_session = ort.InferenceSession(
-            self._onnx_model_file, providers=execution_providers
+            self._onnx_model_file, providers=self._execution_providers
         )
 
-    def get_charset(self, charset: str) -> list[str]:
-        charset = f"ß{charset}"
-        charset = [x for x in charset]
-        return charset
+        self.decoder = CTCDecoder(self._characters)
 
     def _pad_ocr_line(
             self,
@@ -228,14 +263,29 @@ class OCRInference:
 
     def _prepare_ocr_line(self, image: npt.NDArray) -> npt.NDArray:
         line_image = self._pad_ocr_line(image)
-        line_image = cv2.cvtColor(line_image, cv2.COLOR_BGR2GRAY)
+        line_image = binarize(line_image)
+
+        if len(line_image.shape) == 3:
+            line_image = cv2.cvtColor(line_image, cv2.COLOR_RGB2GRAY)
+
         line_image = line_image.reshape((1, self._input_height, self._input_width))
         line_image = (line_image / 127.5) - 1.0
         line_image = line_image.astype(np.float32)
 
         return line_image
 
-    def _predict(self, image_batch: np.array):
+    def _pre_pad(self, image: npt.NDArray):
+        """
+        Adds a small white patch of size HxH to the left and right of the line
+        """
+        h, _, c = image.shape
+        patch = np.ones(shape=(h, h, c), dtype=np.uint8)
+        patch *= 255
+        out_img = np.hstack(tup=[patch, image, patch])
+        return out_img
+
+    def _predict(self, image_batch: npt.NDArray) -> npt.NDArray:
+        image_batch = image_batch.astype(np.float32)
         ort_batch = ort.OrtValue.ortvalue_from_numpy(image_batch)
         ocr_results = self.ocr_session.run_with_ort_values(
             [self._output_layer], {self._input_layer: ort_batch}
@@ -246,86 +296,151 @@ class OCRInference:
 
         return logits
 
-    def _decode(self, logits: np.array) -> str:
-        text = self._ctcdecoder.decode(logits)
-        text = text.replace(" ", "")
-        text = text.replace("§", " ")
+    def _decode(self, logits: npt.NDArray) -> str:
+
+        if logits.shape[0] == len(self._characters):
+            logits = np.transpose(
+                logits, axes=[1, 0]
+            )  # adjust logits to have shape time, vocab
+
+        text = self.decoder.ctc_decode(logits)
 
         return text
 
-    def run(self, line_image: np.array):
+    def run(self, line_image: npt.NDArray, pre_pad: bool = False) -> str:
+
+        if pre_pad:
+            line_image = self._pre_pad(line_image)
+        line_image = self._prepare_ocr_line(line_image)
 
         if self._swap_hw:
             line_image = np.transpose(line_image, axes=[0, 2, 1])
 
-        logits = self._predict(line_image)
-
-        # This flag basically takes into account the different
-        # ordering of the channels for CRNN and EASTER models. Maybe rename this variable or make this process
-        # more explicit
-        if not self._swap_hw:
-            logits = np.transpose(logits, axes=[1, 0, 2])
-
-        text = self._decode(logits)
-
-        return text, logits
-
-    def run_batch(self, line_images: list[np.array]):
-        line_images = [self._prepare_ocr_line(x) for x in line_images]
-        img_batch = np.array(line_images, np.float32)
-        img_batch = np.squeeze(img_batch)
-
-        if self._swap_hw:
-            img_batch = np.transpose(img_batch, axes=[0, 2, 1])
-
-        print(f"ImageBatch: {img_batch.shape}")
-        logits = self._predict(img_batch)
-
-        predicted_text = []
-
-        for idx in range(logits.shape[0]):
-            _logits = logits[idx, :, :]
-            text = self._decode(_logits)
-            predicted_text.append(text)
-
-        return predicted_text
-
-
-        """
-        if self._swap_hw:
-            line_image = np.transpose(img_batch, axes=[0, 2, 1])
-
         if not self._squeeze_channel_dim:
             line_image = np.expand_dims(line_image, axis=1)
 
-       
+        logits = self._predict(line_image)
         text = self._decode(logits)
 
-        img_batch = np.array(line_images, np.float32)
+        return text
 
-        if self._squeeze_channel_dim:
-            img_batch = np.squeeze(img_batch, axis=1)
 
-        if self._swap_hw:
-            img_batch = np.transpose(img_batch, axes=[0, 2, 1])
+class OCRPipeline:
+    """
+    Note: The handling of line model vs. layout model is kind of provisional here and totally depends on the way you want to run this.
+    You could also pass both configs to the the pipeline, run both models and merge the (partially) overlapping output before extracting the line images to compensate for the strengths/weaknesses
+    of either model. So that is basically up to you.
 
-        logits = self._predict(img_batch)
+    """
 
-        predicted_text = []
+    def __init__(
+            self,
+            ocr_config: OCRModelConfig,
+            line_config: LineDetectionConfig | LayoutDetectionConfig
+    ):
+        self.ready = False
+        self.ocr_model_config = ocr_config
+        self.line_config = line_config
+        self.ocr_inference = OCRInference(self.ocr_model_config)
 
-        for idx in range(logits.shape[0]):
-            _logits = logits[idx, :, :]
-            text = self._decode(_logits)
+        if isinstance(self.line_config, LineDetectionConfig):
+            print("Running OCR in Line Mode")
+            self.line_inference = LineDetection(self.line_config)
+            self.ready = True
+        elif isinstance(self.line_config, LayoutDetectionConfig):
+            print("Running OCR in Layout Mode")
+            self.line_inference = LayoutDetection(self.line_config)
+            self.ready = True
+        else:
+            self.line_inference = None
+            self.ready = False
 
-            if len(text) > 0:
-                text = text.replace(" ", "")
-                text = text.replace("§", " ")
-                predicted_text.append(text)
+    def run_ocr(self,
+                image: npt.NDArray,
+                image_name: str,
+                k_factor: float = 1.7,
+                bbox_tolerance: float = 2.5,
+                merge_lines: bool = True,
+                use_tps: bool = False,
+                tps_mode: TPSMode = TPSMode.GLOBAL,
+                tps_threshold: float = 0.25) -> Tuple[OpStatus, OCResult | None]:
 
-            if len(text) > 0:
-                text = text.replace(" ", "")
-                text = text.replace("§")
-                predicted_text.append(text)
-
-        return predicted_text
         """
+        TODO: Reintegrate proper data structures into this
+        """
+
+        if isinstance(self.line_config, LineDetectionConfig):
+            line_mask = self.line_inference.predict(image)
+
+        else:
+            layout_mask = self.line_inference.predict(image)
+            line_mask = layout_mask[:, :, 2]
+
+        rot_img, rot_mask, line_contours, page_angle = build_raw_line_data(image, line_mask)
+
+        if len(line_contours) == 0:
+            return OpStatus.FAILED, None
+
+        filtered_contours = filter_line_contours(rot_mask, line_contours)
+
+        if len(filtered_contours) == 0:
+            return OpStatus.FAILED, None
+
+        if use_tps:
+            ratio, tps_line_data = check_for_tps(rot_img, filtered_contours)
+
+            if ratio > tps_threshold:
+                if tps_mode == TPSMode.GLOBAL:
+                    dewarped_img, dewarped_mask = apply_global_tps(rot_img, rot_mask, tps_line_data)
+
+                    if len(dewarped_mask.shape) == 3:
+                        dewarped_mask = cv2.cvtColor(dewarped_mask, cv2.COLOR_RGB2GRAY)
+
+                    # get new raw line information, rotation angle etc. from the dewarped page
+                    dew_rot_img, dew_rot_mask, line_contours, page_angle = build_raw_line_data(dewarped_img,
+                                                                                               dewarped_mask)
+                    filtered_contours = filter_line_contours(dew_rot_mask, line_contours)
+
+                    line_data = [build_line_data(x) for x in filtered_contours]
+                    sorted_lines, _ = sort_lines_by_threshold2(rot_mask, line_data, group_lines=merge_lines)
+
+                    line_images = extract_line_images(dew_rot_img, sorted_lines, k_factor, bbox_tolerance)
+
+                else:
+                    # print("Running local tps")
+                    line_images = get_line_images_via_local_tps(rot_img, tps_line_data)
+
+            else:
+                # print("Run without TPS, fallback to normal mode")
+                line_data = [build_line_data(x) for x in filtered_contours]
+                sorted_lines, _ = sort_lines_by_threshold2(rot_mask, line_data, group_lines=merge_lines)
+                line_images = extract_line_images(rot_img, sorted_lines, k_factor, bbox_tolerance)
+        else:
+            # print("Running in Normal Mode")
+            line_data = [build_line_data(x) for x in filtered_contours]
+
+            sorted_lines, _ = sort_lines_by_threshold2(
+                rot_mask, line_data, group_lines=merge_lines
+            )
+
+            line_images = extract_line_images(rot_img, sorted_lines, k_factor, bbox_tolerance)
+
+        if line_images is not None and len(line_images) > 0:
+            page_text = []
+
+            for line_img, line_info in zip(line_images, sorted_lines):
+                pred = self.ocr_inference.run(line_img)
+                pred = pred.strip()
+                pred = pred.replace("§", " ")
+                page_text.append(pred)
+
+            ocr_result = OCResult(
+                page_text,
+                sorted_lines,
+                line_images,
+                page_angle
+            )
+
+            return OpStatus.SUCCESS, ocr_result
+        else:
+            return OpStatus.FAILED, None

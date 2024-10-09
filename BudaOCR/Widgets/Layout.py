@@ -1,8 +1,7 @@
-import os
 import pyewts
 from uuid import UUID
-from BudaOCR import Config
 from BudaOCR.Data import Encoding
+from typing import List
 
 from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF
 from PySide6.QtGui import (
@@ -16,10 +15,11 @@ from PySide6.QtGui import (
     QImage,
     QPainterPath,
     QFont,
-    QIntValidator,
+    QIntValidator
 )
 
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QComboBox,
     QScrollBar,
     QWidget,
@@ -37,10 +37,9 @@ from PySide6.QtWidgets import (
     QListView
 )
 
-from BudaOCR.Data import BudaOCRData
-from BudaOCR.Controller import ImageController
+from BudaOCR.Data import BudaOCRData, OCRModel
 from BudaOCR.Utils import get_filename
-from BudaOCR.MVVM.viewmodel import BudaViewModel
+from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
 from BudaOCR.Widgets.Buttons import HeaderButton
 from BudaOCR.Widgets.Dialogs import ImportFilesDialog
 from BudaOCR.Widgets.GraphicItems import ImagePreview
@@ -48,26 +47,31 @@ from BudaOCR.Widgets.GraphicItems import ImagePreview
 
 class HeaderTools(QWidget):
 
-    def __init__(self, icon_size: int = 48):
+    def __init__(self, data_view: BudaDataViewModel, settings_view: BudaSettingsViewModel, icon_size: int = 48):
         super().__init__()
-
-        self.toolbox = ToolBox(ocr_models=["Modern", "Woodblock"], icon_size=icon_size)
+        self.data_view = data_view
+        self.settings_view = settings_view
+        self.toolbox = ToolBox(ocr_models=self.settings_view.get_ocr_models(), icon_size=icon_size)
         self.page_switcher = PageSwitcher(icon_size=icon_size)
+
+        # bind signals
+        self.data_view.dataSelected.connect(self.set_page_index)
 
         # build layout
         self.spacer = QLabel()
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.toolbox)
         self.layout.addWidget(self.page_switcher)
-        #self.layout.addWidget(self.ocr_tools)
         self.layout.addWidget(self.spacer)
         self.setLayout(self.layout)
 
     def update_page_count(self, amount: int):
+        print(f"PageSwitcher -> update_page_count: {amount}")
         self.page_switcher.max_pages = amount
 
-    def set_page_index(self, index: int):
-        self.page_switcher.update_page(index)
+    def set_page_index(self, data: BudaOCRData):
+        _index = self.data_view.get_data_index(data.guid)
+        self.page_switcher.update_page(_index)
 
 
 class ToolBox(QFrame):
@@ -78,15 +82,15 @@ class ToolBox(QFrame):
     sign_run_all = Signal()
     sign_settings = Signal()
     sign_update_page = Signal(int)
-    sign_on_select_model = Signal(str)
+    sign_on_select_model = Signal(OCRModel)
 
-    def __init__(self, ocr_models: list[str], icon_size: int = 64):
+    def __init__(self, ocr_models: List[OCRModel] | None, icon_size: int = 64):
         super().__init__()
+        self.setObjectName("ToolBox")
         self.ocr_models = ocr_models
 
-        self.setFixedWidth(460)
         self.setFixedHeight(74)
-        self.setContentsMargins(0, 0, 0, 0)
+        self.setMinimumWidth(640)
         self.icon_size = icon_size
 
         self.new_btn_icon = QIcon("Assets/Themes/Dark/new_light.png")
@@ -102,7 +106,7 @@ class ToolBox(QFrame):
         self.run_btn_icon_hover = QIcon("Assets/Themes/Dark/play_light_hover.png")
 
         self.run_all_btn_icon = QIcon("Assets/Themes/Dark/play_all_light.png")
-        self.run_all_btn_icon_hover = QIcon("Assets/Themes/Dark/play_all_light.png") # TODO: Create an Icon for that
+        self.run_all_btn_icon_hover = QIcon("Assets/Themes/Dark/play_all_light.png")
 
         self.settings_btn_icon = QIcon("Assets/Themes/Dark/settings.png")
         self.settings_btn_icon_hover = QIcon("Assets/Themes/Dark/settings_hover.png")
@@ -151,10 +155,17 @@ class ToolBox(QFrame):
 
         # model selection
         self.model_selection = QComboBox()
-        self.model_selection.setFixedWidth(140)
 
-        for model in self.ocr_models:
-            self.model_selection.addItem(model)
+        self.model_selection.setStyleSheet("""
+                background: #434343;
+                border: 2px solid #ced4da;
+                border-radius: 4px;
+            """)
+
+        if self.ocr_models is not None and len(self.ocr_models) > 0:
+            for model in self.ocr_models:
+                self.model_selection.addItem(model.name)
+                print(f"Added OCR Model to Selection: {model.name}")
 
         # self.model_selection.activated.connect(self.on_select_ocr_model)
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
@@ -169,16 +180,17 @@ class ToolBox(QFrame):
         self.layout.addWidget(self.btn_run_all)
         self.layout.addWidget(self.btn_settings)
         self.layout.addWidget(self.model_selection)
-        self.layout.addWidget(self.spacer)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
         # TODO: move this to global style definition
         self.setStyleSheet(
             """
-                    color: #ffffff;
-                    background-color: #100F0F;
-                    border: 2px solid #100F0F; 
-                    border-radius: 8px;
+                color: #ffffff;
+                background-color: #100F0F;
+                border: 2px solid #100F0F; 
+                border-radius: 8px;
+                    
         """
         )
 
@@ -194,7 +206,6 @@ class ToolBox(QFrame):
         self.sign_new.emit()
 
     def load_image(self):
-
         dialog = ImportFilesDialog(self)
         if dialog.exec():
             _file_paths = dialog.selectedFiles()
@@ -218,7 +229,6 @@ class ToolBox(QFrame):
         self.sign_update_page.emit(index)
 
     def on_select_ocr_model(self, index: int):
-        print(f"Selecting OCR Model : {index}")
         self.sign_on_select_model.emit(self.ocr_models[index])
 
 
@@ -228,8 +238,8 @@ class PageSwitcher(QFrame):
     def __init__(self, pages: int = 0, icon_size: int = 40):
         super().__init__()
         self.icon_size = icon_size
-        self.setFixedHeight(60)
-        self.setMaximumSize(240, 60)
+        self.setFixedHeight(74)
+        self.setMaximumSize(264, 74)
         self.setContentsMargins(0, 0, 0, 0)
         self.max_pages = pages
         self.current_index = 0
@@ -283,101 +293,21 @@ class PageSwitcher(QFrame):
 
     def update_page(self, index: int):
         self.current_index = index
-        print(f"Updating current page text: {index}")
-        self.current_page.setText(str(self.current_index))
+        self.current_page.setText(str(self.current_index+1))
 
     def prev(self):
         next_index = self.current_index - 1
-        if not next_index - 1 < 0:
+
+        if next_index >= 0:
             self.update_page(next_index)
             self.sign_on_page_changed.emit(next_index)
-        else:
-            print("Beginning of dataset reached")
 
     def next(self):
-        print(f"Current Index: {self.current_index}")
         next_index = self.current_index + 1
-        if not next_index > self.max_pages:
-            print(f"Selecting next index: {next_index}")
+
+        if not next_index > self.max_pages-1:
             self.update_page(next_index)
             self.sign_on_page_changed.emit(next_index)
-        else:
-            print("End of dataset reached")
-
-
-class OCRTools(QFrame):
-    sign_on_select_model = Signal(str)
-
-    def __init__(self, ocr_models: list[str]):
-        super().__init__()
-        self.setFixedHeight(60)
-        self.setMinimumWidth(600)
-
-        self.ocr_models = ocr_models
-
-        self.layout = QHBoxLayout()
-        self.model_selection = QComboBox()
-        self.model_selection.setFixedWidth(180)
-
-        for model in self.ocr_models:
-            self.model_selection.addItem(model)
-
-        # self.model_selection.activated.connect(self.on_select_ocr_model)
-        self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
-
-        self.kernel_size_label = QLabel("Kernel Size")
-        self.kernel_size_value = QLineEdit()
-        self.kernel_size_value.setValidator(QIntValidator(3, 30))
-        self.kernel_size_value.setText("20")
-
-        self.kernel_iterations_label = QLabel("Kernel Iterations")
-        self.kernel_iterations_value = QLineEdit()
-        self.kernel_iterations_value.setValidator(QIntValidator(1, 10))
-        self.kernel_iterations_value.setText("2")
-
-        self.spacer = QLabel()
-
-        self.layout.addWidget(self.model_selection)
-        #self.layout.addWidget(self.kernel_size_label)
-        #self.layout.addWidget(self.kernel_size_value)
-        #self.layout.addWidget(self.kernel_iterations_label)
-        #self.layout.addWidget(self.kernel_iterations_value)
-        self.layout.addWidget(self.spacer)
-        self.setLayout(self.layout)
-
-        self.init()
-
-        self.setStyleSheet(
-            """
-            color: #ffffff;
-            background-color: #100F0F;
-            border: 2px solid #100F0F; 
-            border-radius: 8px;
-        """
-        )
-
-    def init(self):
-        print(f"Default PhotiPath: {Config.DEFAULT_PHOTI_LOCAL_PATH}")
-        Config.init_models()
-
-    def on_select_ocr_model(self, index: int):
-        print(f"Selecting OCR Model : {index}")
-        self.sign_on_select_model.emit(self.ocr_models[index])
-
-
-class Footer(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.layout = QHBoxLayout()
-        self.label = QLabel()
-        self.app_dir = QLabel()
-        self.app_dir.setText(os.getcwd())
-        self.label.setText(Config.get_default_model())
-
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.app_dir)
-
-        self.setLayout(self.layout)
 
 
 class PTGraphicsView(QGraphicsView):
@@ -387,11 +317,11 @@ class PTGraphicsView(QGraphicsView):
         self.setScene(self.scene)
         self.setMinimumHeight(200)
 
-        self.zoom_in_factor = 1.25
+        self.zoom_in_factor = 0.8
         self.zoom_clamp = False
-        self.zoom = 10
-        self.zoom_step = 1
-        self.zoom_range = [0, 10]
+        self.default_zoom_step = 10
+        self.current_zoom_step = 10
+        self.zoom_range = [0, 20]
 
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
@@ -411,7 +341,7 @@ class PTGraphicsView(QGraphicsView):
 
         self.v_scrollbar.setStyleSheet(
             """
-                QScrollBar:vertical {
+            QScrollBar:vertical {
                 border: none;
                 background: rgb(45, 45, 68);
                 width: 25px;
@@ -478,8 +408,6 @@ class PTGraphicsView(QGraphicsView):
             {
                 background: none;
             }
-        
-        
         """
         )
 
@@ -497,26 +425,22 @@ class PTGraphicsView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(self.default_scrollbar_policy)
         self.setVerticalScrollBarPolicy(self.default_scrollbar_policy)
 
-    def wheelEvent(self, event):
-        q_pointf = event.globalPosition()
-        #print(f"Wheel Event position: {q_pointf}")
-        # store mouse scene position
-        event_pos = event.globalPosition()
-        old_pos = self.mapToScene(int(event_pos.x()), int(event_pos.y()))
-        # print(f"Wheel Event position: {old_pos}")
-        # TODO: Use this position for zooming
-        zoom_out_factor = 1 / self.zoom_in_factor
-        zoom_factor = self.zoom_in_factor
+    def reset_scaling(self):
+        self.resetTransform()
+        self.current_zoom_step = self.default_zoom_step
 
+    def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
-            zoom_factor = self.zoom_in_factor
-            self.zoom = self.zoom_step
+            if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
+                zoom_factor = self.zoom_in_factor
+                self.current_zoom_step += 1
+                self.scale(zoom_factor, zoom_factor)
 
         else:
-            zoom_factor = zoom_out_factor
-            self.zoom = self.zoom_step
-
-        self.scale(zoom_factor, zoom_factor)
+            if self.zoom_range[0] < self.current_zoom_step <= self.zoom_range[-1]:
+                zoom_factor = 1 / self.zoom_in_factor
+                self.current_zoom_step -= 1
+                self.scale(zoom_factor, zoom_factor)
 
 
 class PTGraphicsScene(QGraphicsScene):
@@ -548,7 +472,8 @@ class PTGraphicsScene(QGraphicsScene):
 
     def add_item(self, item: QGraphicsItem, z_order: int):
         item.setZValue(z_order)
-
+        print(f"Adding Item to Scene with bRect: {item.boundingRect()}")
+        item.setScale(0.16)
         self.addItem(item)
         print(f"ItemAdded, Current SceneRect: {self.sceneRect()}")
 
@@ -583,6 +508,7 @@ class Canvas(QFrame):
 
         self.current_width = self.default_width
         self.current_height = self.default_height
+        self.current_item_pos = QPointF(0.0, 0.0)
 
         self.gr_scene = PTGraphicsScene(
             self, width=self.current_width, height=self.current_height
@@ -617,7 +543,10 @@ class Canvas(QFrame):
             )
 
     def set_preview(self, data: BudaOCRData):
-        print(f"Canvas -> set preview")
+        self.view.reset_scaling()
+        scene_rect = self.view.sceneRect()
+        print(f"Canvas -> set preview in scene rect: {scene_rect}")
+
         _last_pos = self.gr_scene.get_current_item_pos()
         print(f"placing preview at pos: {_last_pos}")
         self.gr_scene.clear()
@@ -634,6 +563,7 @@ class Canvas(QFrame):
         )
         self.gr_scene.add_item(gt_item, 0)
         """
+
 
 class ImageList(QListWidget):
     sign_on_selected_item = Signal(UUID)
@@ -653,9 +583,10 @@ class ImageList(QListWidget):
         self.h_scrollbar = QScrollBar(self)
         self.v_scrollbar.setStyleSheet(
             """
-                QScrollBar:vertical {
+            
+            QScrollBar:vertical {
                 border: none;
-                background: rgb(45, 45, 68);
+                background: #2d2d46;
                 width: 25px;
                 margin: 10px 5px 15px 10px;
                 border-radius: 0px;
@@ -688,8 +619,39 @@ class ImageList(QListWidget):
             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 background: none;
             }
-            
             """
+        )
+
+        self.h_scrollbar.setStyleSheet(
+            """
+            QScrollBar:horizontal {
+                border: none;
+                background: #2d2d46;
+                height: 30px;
+                margin: 10px 10px 10px 10px;
+                border-radius: 0px;
+            }
+            QScrollBar::handle:horizontal {
+                border: 2px solid #A40021;
+                background-color: #A40021;
+                min-width: 30px;
+                border-radius: 3px;
+            }
+            QScrollBar::add-line:horizontal {
+                width: 0px;
+            }
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+            QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal
+            {
+                background: none;
+            }
+            QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
+            {
+                background: none;
+            }
+        """
         )
 
         self.setAutoScrollMargin(20)
@@ -699,19 +661,16 @@ class ImageList(QListWidget):
         self.setVerticalScrollBar(self.v_scrollbar)
         self.setHorizontalScrollBar(self.h_scrollbar)
         # self.itemEntered.connect(self.on_hover_item)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setStyleSheet(
             """
-            background-color: #100F0F;
-            border: 2px solid #100F0F;
-            border-radius: 8px;
-           
+                background-color: #100f0f;
             """
         )
 
     def on_item_clicked(self, item: QListWidgetItem):
-        _list_item_widget = self.itemWidget(
-            item
-        )  # returns an instance of CanvasHierarchyEntry
+        _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
 
         if isinstance(_list_item_widget, ImageListWidget):
             self.sign_on_selected_item.emit(_list_item_widget.guid)
@@ -729,15 +688,17 @@ class ImageList(QListWidget):
 
     def event(self, event):
         if event.type() == QEvent.Type.HoverEnter:
-            print("Qframe->enter")
+            #print("QFrame->enter")
+            pass
         elif event.type() == QEvent.Type.HoverLeave:
-            print("QFrame->leave")
+            #print("QFrame->leave")
+            pass
 
         return super().event(event)
 
 
 class ImageThumb(QFrame):
-    def __init__(self, image_path: str, max_height: int = 140, parent=None):
+    def __init__(self, image_path: str, max_height: int = 140):
         super().__init__()
         # TODO: Setting this does actually not work
         self.image_path = image_path
@@ -751,7 +712,7 @@ class ImageThumb(QFrame):
         self.pixmap = QPixmap(image_path)
         self.brush = QBrush(self.pixmap)
 
-        self._pen_hover = QPen(QColor("#00ffdd"))
+        self._pen_hover = QPen(QColor("#fce08d"))
         self._pen_hover.setWidth(6)
 
         self._pen_select = QPen(QColor("#ffad00"))
@@ -764,7 +725,6 @@ class ImageThumb(QFrame):
         self.dest_img.fill(Qt.GlobalColor.transparent)
 
         self.clip_path = QPainterPath()
-        print(f"Thumb rect: {self.source_img.rect()}")
         self.clip_path.addRoundedRect(
             self.source_img.rect().adjusted(
                 self.round_rect_margin,
@@ -792,8 +752,7 @@ class ImageThumb(QFrame):
         self.is_selected = False
 
     def resize_thumb(self, new_width: int):
-        print(f"ImageThumb -> resize_thumb: {new_width}")
-        self.current_width = new_width - 20
+        self.current_width = new_width
         self.source_img = QImage(
             self.current_width, self.max_height, QImage.Format.Format_ARGB32
         )
@@ -805,7 +764,7 @@ class ImageThumb(QFrame):
         self.dest_img.fill(Qt.GlobalColor.transparent)
 
         self.clip_path = QPainterPath()
-        print(f"Thumb rect: {self.source_img.rect()}")
+
         self.clip_path.addRoundedRect(
             self.source_img.rect().adjusted(
                 self.round_rect_margin,
@@ -877,14 +836,17 @@ class ImageThumb(QFrame):
 
 
 class ImageListWidget(QWidget):
-    def __init__(self, guid: UUID, image_path: str, image_name: str = "image"):
+    def __init__(self, guid: UUID, image_path: str, width: int, height: int):
         super().__init__()
         self.guid = guid
         self.image_path = image_path
         self.file_name = get_filename(image_path)
+        self.base_width = width
+        self.base_height = height
         self.thumb = ImageThumb(image_path)
         self.label = QLabel()
         self.label.setText(self.file_name)
+        self.setBaseSize(self.base_width, self.base_height)
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.thumb)
@@ -894,8 +856,9 @@ class ImageListWidget(QWidget):
 
     def resizeEvent(self, event):
         if isinstance(event, QResizeEvent):
-            print(f"QListWidget -> Resize: {event.size()}")
-            self.thumb.resize_thumb(event.size().width())
+            self.thumb.resize_thumb(event.size().width()-20)
+            # TODO: scale down the entire List..?
+            #self.resize()
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
@@ -903,6 +866,7 @@ class ImageListWidget(QWidget):
             self.thumb.is_hovered = True
             self.thumb.is_selected = False
             self.thumb.update()
+
         elif event.type() == QEvent.Type.Leave:
             self.thumb.is_hovered = False
 
@@ -921,17 +885,15 @@ class ImageListWidget(QWidget):
 
 
 class ImageGallery(QFrame):
-    def __init__(self, viewmodel: BudaViewModel, controller: ImageController):
+    def __init__(self, viewmodel: BudaDataViewModel):
         super().__init__()
         self.view_model = viewmodel
-        self.controller = controller
-
         self.setObjectName("ImageGallery")
         self.setMinimumHeight(600)
-        self.setMinimumWidth(280)
-        self.setMaximumWidth(420)
-        # self.setContentsMargins(20, 20, 20, 20)
-        self.setContentsMargins(10, 10, 10, 10)
+        # self.setMinimumWidth(280)
+        self.setMaximumWidth(456)
+        self.setContentsMargins(20, 20, 20, 20)
+        self.setContentsMargins(0, 0, 0, 0)
         # build layout
         self.image_label = QLabel(self)
         self.image_pixmap = QPixmap("Assets/Themes/Dark/BDRC_Logo.png").scaled(
@@ -940,7 +902,7 @@ class ImageGallery(QFrame):
         self.image_label.setPixmap(self.image_pixmap)
 
         self.layout = QVBoxLayout()
-        self.spacer = QSpacerItem(280, 20)
+        self.spacer = QSpacerItem(320, 10)
         self.image_list = ImageList(self)
         self.layout.addWidget(self.image_label)
         self.layout.addItem(self.spacer)
@@ -949,15 +911,36 @@ class ImageGallery(QFrame):
 
         self.setStyleSheet(
             """
-                    background-color: #1d1c1c;
-                """
+                background-color: #1d1c1c;
+                
+            """
         )
 
-        self.current_width = 280
+        self.image_list.setStyleSheet(
+            """
+            background-color: #100f0f;
+            border: 4px solid #100f0f;
+            border-radius: 8px;
+                       
+            QListWidget {
+                color: #ffffff;
+                background-color: #100f0f; 
+                border: 4px solid #100f0f; 
+                border-radius: 8px;
+            }
+            
+            QListWidget::item:selected {
+                background: #2d2d46;
+            }
+            """
+        )
+
+        self.current_width = 320
 
         # connect signals
         self.view_model.dataChanged.connect(self.add_data)
         self.view_model.dataCleared.connect(self.clear_data)
+        self.view_model.dataAutoSelected.connect(self.focus_page)
         self.image_list.sign_on_selected_item.connect(self.handle_item_selection)
 
     def resizeEvent(self, event):
@@ -987,14 +970,30 @@ class ImageGallery(QFrame):
                 if isinstance(item_widget, ImageListWidget):
                     item_widget.is_active = False
 
+    def focus_page(self, data: BudaOCRData):
+        for idx in range(self.image_list.count()):
+            item = self.image_list.item(idx)
+            item_widget = self.image_list.itemWidget(item)
+
+            if isinstance(item_widget, ImageListWidget):
+                if item_widget.guid == data.guid:
+                    item.setSelected(True)
+                    self.image_list.scrollToItem(item, QAbstractItemView.ScrollHint.PositionAtCenter)
+                else:
+                    item.setSelected(False)
+
     def add_data(self, data: list[BudaOCRData]):
+        _sizeHint = self.sizeHint()
+        _targetWidth = _sizeHint.width()-80
+        print(f"ImageGallery sizeHint: {_sizeHint.width()}")
         for _data in data:
             image_item = QListWidgetItem()
-            image_item.setSizeHint(QSize(280, 160))
+            image_item.setSizeHint(QSize(_targetWidth, 160))
             image_widget = ImageListWidget(
                 _data.guid,
                 _data.image_path,
-                _data.image_name,
+                width=_targetWidth,
+                height=160
             )
 
             self.image_list.addItem(image_item)
@@ -1022,9 +1021,9 @@ class TextWidgetList(QListWidget):
 
         self.setStyleSheet(
             """
-                QScrollBar:vertical {
+            QScrollBar:vertical {
                 border: none;
-                background: rgb(45, 45, 68);
+                background: #2d2d46;
                 width: 25px;
                 margin: 10px 5px 15px 10px;
                 border-radius: 0px;
@@ -1083,7 +1082,7 @@ class TextWidgetList(QListWidget):
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
-            print("Qframe->enter")
+            print("QFrame->enter")
         elif event.type() == QEvent.Type.Leave:
             print("QFrame->leave")
 

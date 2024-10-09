@@ -162,6 +162,8 @@ cython_debug/
 .idea/
 
 # custom
+.DS_Store
 main.build
 main.dist
 Models
+download_models.py

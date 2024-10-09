@@ -1,10 +1,12 @@
+import os
 import cv2
-
-from BudaOCR.Data import LineData, LineDataResult, OCRResult, LineMode, BudaOCRData
+from uuid import UUID
+from typing import Dict, List
+from BudaOCR.Data import LineData, LineDataResult, OCResult, LineMode, BudaOCRData
 from PySide6.QtCore import QObject, Signal, QRunnable
 
 from BudaOCR.Inference import LineDetection, LayoutDetection, OCRInference
-from BudaOCR.Utils import binarize, get_line_data, extract_line
+from BudaOCR.Utils import binarize, get_line_data, extract_line, get_filename, generate_guid
 
 
 class RunnerSignals(QObject):
@@ -12,7 +14,34 @@ class RunnerSignals(QObject):
     error = Signal(str)
     finished = Signal()
     line_result = Signal(LineDataResult)
-    ocr_result = Signal(OCRResult)
+    ocr_result = Signal(OCResult)
+    ocr_data = Signal(Dict[UUID, BudaOCRData])
+
+
+class FileImportRunner(QRunnable):
+    def __init__(self, files: List[str]):
+        self.file_list = files
+        self.signals = RunnerSignals()
+        super(FileImportRunner, self).__init__()
+
+    def run(self):
+        imported_data = {}
+        for idx, file_path in enumerate(self.file_list):
+            if os.path.isfile(file_path):
+                file_name = get_filename(file_path)
+                guid = generate_guid(idx)
+                ocr_data = BudaOCRData(
+                    guid=guid,
+                    image_path=file_path,
+                    image_name=file_name,
+                    ocr_text=[],
+                    line_data=None,
+                    preview=None
+                )
+                imported_data[guid] = ocr_data
+
+        self.signals.ocr_data.emit(imported_data)
+
 
 class OCRunner(QRunnable):
     def __init__(

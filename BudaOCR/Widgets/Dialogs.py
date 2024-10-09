@@ -1,14 +1,17 @@
+import os
 import uuid
 from uuid import UUID
+from typing import List
+from PySide6.QtCore import Qt, QThreadPool, Signal
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog, QLabel, QVBoxLayout, QHBoxLayout, \
+    QProgressDialog, QPushButton, QListWidget, QListView, QListWidgetItem, QWidget, QTabWidget, QFormLayout, \
+    QRadioButton, QCheckBox
 
-from huggingface_hub import HfApi
-from PySide6.QtCore import Qt, QThreadPool, Signal, QSize
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog, QLabel, QVBoxLayout, QHBoxLayout, QDialogButtonBox, \
-    QProgressDialog, QPushButton, QListWidget, QListView, QListWidgetItem, QWidget
-
-from BudaOCR.Data import BudaOCRData, LineMode, OCRResult, LineDataResult
+from BudaOCR.Data import BudaOCRData, OCResult, LineDataResult, OCRModel, Theme, AppSettings, OCRSettings, \
+    ExportFormat
 from BudaOCR.Inference import LayoutDetection, LineDetection
 from BudaOCR.Runner import OCRunner
+from BudaOCR.Utils import import_local_models
 
 
 class ImportFilesDialog(QFileDialog):
@@ -22,7 +25,64 @@ class ImportFilesDialog(QFileDialog):
 class ImportDirDialog(QFileDialog):
     def __init__(self, parent=None):
         super(ImportDirDialog, self).__init__(parent)
-    #dir_ = QFileDialog.getExistingDirectory(None, options=QFileDialog.Option.ShowDirsOnly)
+        self.setFileMode(QFileDialog.FileMode.Directory)
+
+
+class ConfirmationDialog(QMessageBox):
+    def __init__(self, title: str, message: str, show_cancel: bool = True):
+        super().__init__()
+        self.setObjectName("ConfirmWindow")
+        self.setWindowTitle(title)
+        self.setMinimumWidth(600)
+        self.setMinimumHeight(440)
+        self.setIcon(QMessageBox.Icon.Information)
+        self.setText(message)
+
+        self.ok_btn = QPushButton("Ok")
+        self.cancel_btn = QPushButton("Cancel")
+
+        self.ok_btn.clicked.connect(self.accept)
+        self.cancel_btn.clicked.connect(self.reject)
+
+        self.ok_btn.setStyleSheet("""
+                color: #000000;
+                font: bold 12px;
+                width: 240px;
+                height: 32px;
+                background-color: #ffad00;
+                border: 2px solid #ffad00;
+                border-radius: 4px;
+
+                QPushButton::hover { 
+                    color: #ff0000;
+                }
+
+            """)
+
+        self.cancel_btn.setStyleSheet("""
+                color: #000000;
+                font: bold 12px; 
+                width: 240px;
+                height: 32px;
+                background-color: #ffad00;
+                border: 2px solid #ffad00;
+                border-radius: 4px;
+
+                QPushButton::hover {
+                    color: #ff0000;
+                }
+            """)
+
+        if show_cancel:
+            self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
+            self.addButton(self.cancel_btn, QMessageBox.ButtonRole.NoRole)
+        else:
+            self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
+
+        self.setStyleSheet("""
+                background-color: #292951;
+                color: #ffffff;
+        """)
 
 
 class NotificationDialog(QMessageBox):
@@ -34,17 +94,20 @@ class NotificationDialog(QMessageBox):
         self.setMinimumHeight(440)
         self.setIcon(QMessageBox.Icon.Information)
         self.setStandardButtons(QMessageBox.Ok)
+        self.setText(message)
 
         self.setStyleSheet("""
-
+                    color: #ffffff;
                     QPushButton {
                         width: 200px;
                         padding: 5px;
                         background-color: #4d4d4d;
                     }
                 """)
+
+
 class ModelListWidget(QWidget):
-    def __init__(self, guid: UUID, title: str, parent=None):
+    def __init__(self, guid: UUID, title: str):
         super().__init__()
         self.guid = guid
         self.title = str(title)
@@ -61,7 +124,9 @@ class ModelListWidget(QWidget):
 
         self.setStyleSheet("""
             color: #ffffff;
+            width: 80%;
         """)
+
 
 class ModelList(QListWidget):
     sign_on_selected_item = Signal(UUID)
@@ -74,6 +139,13 @@ class ModelList(QListWidget):
         self.setMouseTracking(True)
         self.itemClicked.connect(self.on_item_clicked)
 
+        self.setStyleSheet(
+            """
+            background-color: #172832;
+            border-radius: 4px;
+
+            """)
+
     def on_item_clicked(self, item: QListWidgetItem):
         _list_item_widget = self.itemWidget(
             item
@@ -84,31 +156,116 @@ class ModelList(QListWidget):
             self.sign_on_selected_item.emit(_list_item_widget.guid)
 
 
-class SettingsWindow(QDialog):
-    def __init__(self, hf_api: HfApi):
+class SettingsDialog(QDialog):
+    def __init__(self, app_settings: AppSettings, ocr_settings: OCRSettings, ocr_models: List[OCRModel]):
         super().__init__()
-        self.setWindowTitle("BudaOCR Settings")
-        self.setFixedHeight(400)
-        self.setFixedWidth(600)
-        self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.label = QLabel("BudaOCR Settings")
-        self.btn_refresh = QPushButton("Refresh")
-
-        self.hf_api = hf_api
-        self.online_label = QLabel()
-        self.spacer = QLabel()
-        self.label.setFixedHeight(32)
+        self.app_settings = app_settings
+        self.ocr_settings = ocr_settings
+        self.ocr_models = ocr_models
         self.model_list = ModelList(self)
 
+        self.selected_theme = Theme.Dark
+        self.selected_exporters = []
+
+        # Settings
+        # Theme
+        self.dark_theme_btn = QRadioButton("Dark")
+        self.light_theme_btn = QRadioButton("Light")
+
+        if self.app_settings.theme == Theme.Dark:
+            self.dark_theme_btn.setChecked(True)
+            self.light_theme_btn.setChecked(False)
+        else:
+            self.dark_theme_btn.setChecked(False)
+            self.light_theme_btn.setChecked(True)
+
+        self.import_models_btn = QPushButton("Import Models")
+        self.import_models_btn.clicked.connect(self.handle_model_import)
+
+        # Exports
+        self.export_xml = QCheckBox("XML")
+        self.export_json = QCheckBox("Json")
+        self.export_text = QCheckBox("Text")
+
+        for export_format in self.app_settings.export_formats:
+            if export_format == ExportFormat.XML:
+                self.export_xml.setChecked(True)
+            if export_format == ExportFormat.JSON:
+                self.export_json.setChecked(True)
+            if export_format == ExportFormat.Text:
+                self.export_text.setChecked(True)
+
+        self.setWindowTitle("BudaOCR Settings")
+        self.setMinimumHeight(400)
+        self.setMinimumWidth(600)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+
         # define layout
-        self.top_v_layout = QVBoxLayout()
-        self.top_v_layout.addWidget(self.label)
-        self.top_v_layout.addWidget(self.btn_refresh)
+        self.settings_tabs = QTabWidget()
+        self.settings_tabs.setContentsMargins(0, 0, 0, 0)
+
+        self.settings_tabs.setStyleSheet(
+            """
+                QTabWidget::pane {
+                    border: None;
+                    padding-top: 20px;
+                }
+        """)
+
+        self.general_settings_tab = QWidget()
+        layout = QFormLayout()
+        ui_theme = QHBoxLayout()
+        ui_theme.addWidget(self.dark_theme_btn)
+        ui_theme.addWidget(self.light_theme_btn)
+
+        language = QHBoxLayout()
+        language.addWidget(QRadioButton("English"))
+        language.addWidget(QRadioButton("German"))
+        language.addWidget(QRadioButton("French"))
+        language.addWidget(QRadioButton("Tibetan"))
+        language.addWidget(QRadioButton("Chinese"))
+
+        layout.addRow(QLabel("UI Theme"), ui_theme)
+        layout.addRow(QLabel("Language"), language)
+        self.general_settings_tab.setLayout(layout)
+
+        self.ocr_models_tab = QWidget()
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(QLabel("Available OCR Models"))
+        h_layout.addWidget(self.import_models_btn)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout)
+        v_layout.addWidget(self.model_list)
+        self.ocr_models_tab.setLayout(v_layout)
+
+        self.ocr_settings_tab = QWidget()
+        form_layout = QFormLayout()
+        encoding_layout = QHBoxLayout()
+        encoding_layout.addWidget(QRadioButton("Unicode"))
+        encoding_layout.addWidget(QRadioButton("Wylie"))
+
+        dewarping_layout = QHBoxLayout()
+        dewarping_layout.addWidget(QRadioButton("yes"))
+        dewarping_layout.addWidget(QRadioButton("no"))
+
+        export_layout = QHBoxLayout()
+        export_layout.addWidget(self.export_xml)
+        export_layout.addWidget(self.export_json)
+        export_layout.addWidget(self.export_text)
+
+        form_layout.addRow(QLabel("Encoding"), encoding_layout)
+        form_layout.addRow(QLabel("Dewarping"), dewarping_layout)
+        form_layout.addRow(QLabel("Export Formats"), export_layout)
+
+        self.ocr_settings_tab.setLayout(form_layout)
+
+        self.settings_tabs.addTab(self.general_settings_tab, "General")
+        self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
+        self.settings_tabs.addTab(self.ocr_settings_tab, "OCR Settings")
 
         self.main_v_layout = QVBoxLayout()
-        self.main_v_layout.addLayout(self.top_v_layout)
-        self.main_v_layout.addWidget(self.spacer)
-        self.main_v_layout.addWidget(self.model_list)
+        self.main_v_layout.addWidget(self.settings_tabs)
 
         self.button_h_layout = QHBoxLayout()
         self.ok_btn = QPushButton("Ok")
@@ -123,8 +280,49 @@ class SettingsWindow(QDialog):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
-        self.setStyleSheet("""
-        
+        self.import_models_btn.setStyleSheet("""
+            QPushButton {
+                    color: #A40021;
+                    background-color: #fce08d;
+                    border-radius: 4px;
+                    height: 18;
+                }
+                
+            QPushButton::hover {
+                    color: #ffad00;
+                }
+                
+        """)
+        self.ok_btn.setStyleSheet(
+            """
+                QPushButton {
+                    margin-top: 15px;
+                    background-color: #A40021;
+                    border-radius: 4px;
+                    height: 24;
+                }
+
+                QPushButton::hover {
+                    color: #ffad00;
+                }
+            """)
+
+        self.cancel_btn.setStyleSheet(
+            """
+                QPushButton {
+                    margin-top: 15px;
+                    background-color: #A40021;
+                    border-radius: 4px;
+                    height: 24;
+                }
+
+                QPushButton::hover {
+                    color: #ffad00;
+                }
+            """)
+
+        self.setStyleSheet(
+            """
             background-color: #1d1c1c;
             color: #ffffff;
         
@@ -139,14 +337,9 @@ class SettingsWindow(QDialog):
                 height: 32px;
                 width: 64px;
             }
-        """)
+            """)
 
-        try:
-            self.models = self.hf_api.list_models(author="BDRC")
-            self.online_label = f"Available Models:"
-            self.build_model_overview()
-        except ConnectionError as e:
-            self.online_label = f"No internet connection: {e}. Please load models locally."
+        self.build_model_overview()
 
     def handle_accept(self):
         self.accept()
@@ -154,56 +347,77 @@ class SettingsWindow(QDialog):
     def handle_reject(self):
         self.reject()
 
-    def refresh_models(self):
-        try:
-            self.models = self.hf_api.list_models(author="BDRC")
-            self.build_model_overview()
-        except ConnectionError as e:
-            self.online_label = f"No internet connection: {e}. Please load models locally."
-
-        finally:
-            self.online_label = f"Available Models:"
-
     def build_model_overview(self):
         self.model_list.clear()
         print(f"Building model overview...")
 
-        for model in self.models:
-            print(f"Model: {model.id}")
+        for model in self.ocr_models:
+            print(f"Model: {model.name}")
             model_item = QListWidgetItem(self.model_list)
             model_widget = ModelListWidget(
                 guid=uuid.uuid1(),
-                title=model.id
+                title=model.name
             )
 
             model_item.setSizeHint(model_widget.sizeHint())
-
             self.model_list.addItem(model_item)
             self.model_list.setItemWidget(model_item, model_widget)
 
     def clear_models(self):
         self.model_list.clear()
 
+    def handle_model_import(self):
+        _dialog = ImportDirDialog()
+        selected_dir = _dialog.exec()
+
+        if selected_dir == 1:
+            _selected_dir = _dialog.selectedFiles()[0]
+
+            if os.path.isdir(_selected_dir):
+                try:
+                    imported_models = import_local_models(_selected_dir)
+                    confirm_dialog = ConfirmationDialog(
+                        title="Confirm Model Import",
+                        message="Do you want to import the new models and replace the old ones?"
+                    )
+                    confirm_dialog.exec()
+                    result = confirm_dialog.result()
+
+                    if result == 2:
+                        print(f"Result: {result}")
+                        self.ocr_models = imported_models
+                        self.build_model_overview()
+                    else:
+                        print("Skipping import of new models")
+
+                except BaseException as e:
+                    error_dialog = NotificationDialog("Model import failed", f"Importing Models Failed: {e}")
+                    error_dialog.exec()
+
+    def exec(self):
+        super().exec()
+        return self.app_settings, self.ocr_settings
+
+
 class OCRBatchProgress(QProgressDialog):
     sign_line_result = Signal(LineDataResult)
-    sign_ocr_result = Signal(OCRResult)
+    sign_ocr_result = Signal(OCResult)
 
-    def __init__(self, data: list[BudaOCRData], line_detection: LineDetection, layout_detection: LayoutDetection, mode: LineMode, pool: QThreadPool, parent=None):
+    def __init__(self, data: list[BudaOCRData], pool: QThreadPool, parent=None):
         super(OCRBatchProgress, self).__init__(parent)
         self.setObjectName("OCRDialog")
-        self.setMinimumWidth(300)
+        self.setMinimumWidth(500)
         self.setWindowTitle("OCR Progress")
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setMinimum(0)
         self.setMaximum(0)
 
         self.data = data
-        self.line_detection = line_detection
-        self.layout_detection = layout_detection
-        self.line_mode = mode
         self.pool = pool
 
+        self.start_btn = QPushButton("Start")
         self.cancel_btn = QPushButton("Cancel")
+
         self.cancel_btn.setStyleSheet("""
 
                 QPushButton {
@@ -218,7 +432,6 @@ class OCRBatchProgress(QProgressDialog):
             """)
 
         self.setCancelButton(self.cancel_btn)
-
         self.setStyleSheet("""
 
             background-color: #08081f;
@@ -239,6 +452,7 @@ class OCRBatchProgress(QProgressDialog):
         self.show()
 
     def exec(self):
+        """
         runner = OCRunner(self.data, self.line_detection, self.layout_detection, self.line_mode)
         runner.signals.sample.connect(self.handle_update_progress)
         runner.signals.error.connect(self.close)
@@ -246,6 +460,7 @@ class OCRBatchProgress(QProgressDialog):
         runner.signals.ocr_result.connect(self.handle_ocr_result)
         runner.signals.finished.connect(self.thread_complete)
         self.pool.start(runner)
+        """
 
     def handle_update_progress(self, value: int):
         print(f"Processing sample: {value}")
@@ -253,7 +468,7 @@ class OCRBatchProgress(QProgressDialog):
     def handle_error(self, error: str):
         print(f"Encountered Error: {error}")
 
-    def handle_ocr_result(self, result: OCRResult):
+    def handle_ocr_result(self, result: OCResult):
         #self.sign_sam_result.emit(result)
         pass
 
