@@ -4,7 +4,10 @@
 - build for macss: nuitka --standalone --plugin-enable=pyside6 --macos-create-app-bundle --macos-app-icon=logo.icns main.py
 """
 import sys
+import platform
 from PySide6.QtCore import QPoint
+
+from BudaOCR.Data import Language
 from BudaOCR.MVVM.view import AppView
 from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
 from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
@@ -14,10 +17,9 @@ from PySide6.QtWidgets import QApplication
 
 
 if __name__ == "__main__":
+    platform = platform.platform()
     app = QApplication()
-
     app_settings, ocr_settings = read_settings()
-    print(f"Application Settings: {app_settings}")
 
     data_model = BudaOCRDataModel()
     settings_model = BudaSettingsModel(app_settings, ocr_settings)
@@ -33,6 +35,7 @@ if __name__ == "__main__":
         screen_data.max_width,
         screen_data.max_height
     )
+
     app_view.resize(screen_data.start_width, screen_data.start_height)
     app_view.move(QPoint(0, 0))
     app_view.move(QPoint(screen_data.start_x, screen_data.start_y))

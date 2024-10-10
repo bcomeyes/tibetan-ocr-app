@@ -10,7 +10,6 @@ from BudaOCR.Config import COLOR_DICT
 from BudaOCR.Data import (
     OpStatus,
     TPSMode,
-    LineData,
     OCRModelConfig,
     OCResult,
     LineDetectionConfig,
@@ -37,7 +36,7 @@ from BudaOCR.Utils import (
     read_ocr_model_config,
     build_raw_line_data,
     filter_line_contours,
-    check_for_tps
+    check_for_tps, generate_guid
 )
 
 
@@ -78,7 +77,7 @@ class Detection:
     def _preprocess_image(self, image: npt.NDArray, patch_size: int = 512, denoise: bool = True):
         padded_img, pad_x, pad_y = preprocess_image(image, patch_size)
         tiles, y_steps = tile_image(padded_img, patch_size)
-        tiles = [binarize(x, denoise=denoise) for x in tiles]
+        tiles = [binarize(x) for x in tiles]
         tiles = [normalize(x) for x in tiles]
         tiles = np.array(tiles)
 
@@ -134,7 +133,6 @@ class LayoutDetection(Detection):
         super().__init__(config)
         self._classes = config.classes
         self._debug = debug
-        print(f"Layout Classes: {self._classes}")
 
     def _get_contours(self, prediction: npt.NDArray, optimize: bool = True, size_tresh: int = 200) -> list:
         prediction = np.where(prediction > 200, 255, 0)
@@ -302,7 +300,6 @@ class OCRInference:
             logits = np.transpose(
                 logits, axes=[1, 0]
             )  # adjust logits to have shape time, vocab
-
         text = self.decoder.ctc_decode(logits)
 
         return text
@@ -355,9 +352,14 @@ class OCRPipeline:
             self.line_inference = None
             self.ready = False
 
+    def update_ocr_model(self, config: OCRModelConfig):
+        self.ocr_model_config = config
+        self.ocr_inference = OCRInference(self.ocr_model_config)
+
+    # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
+    # so that the user get's an information if things go wrong
     def run_ocr(self,
                 image: npt.NDArray,
-                image_name: str,
                 k_factor: float = 1.7,
                 bbox_tolerance: float = 2.5,
                 merge_lines: bool = True,
@@ -435,10 +437,10 @@ class OCRPipeline:
                 page_text.append(pred)
 
             ocr_result = OCResult(
-                page_text,
-                sorted_lines,
-                line_images,
-                page_angle
+                guid=generate_guid(clock_seq=23),
+                mask=rot_mask,
+                lines=line_data,
+                text=page_text
             )
 
             return OpStatus.SUCCESS, ocr_result

@@ -13,7 +13,9 @@ from datetime import datetime
 from PIL import Image, ImageOps
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
-from BudaOCR.Data import ScreenData, BBox, Line, LineData, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
+
+from BudaOCR.Config import OCRARCHITECTURE, CHARSETENCODER
+from BudaOCR.Data import ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
 from PySide6.QtWidgets import QApplication
 
 # TODO: read this from the global Config
@@ -341,12 +343,20 @@ def get_text_bbox(lines: List[Line]):
 
 
 def build_line_data(contour: npt.NDArray) -> Line:
+
+    """center, dimension, angle = cv2.minAreaRect(contour)
+    x, y = center
+    w, h = dimension
+    print(f"cv2MinArea -> X: {x}, Y: {y}, W: {w}, H: {h}")
+    """
+    _, _, angle = cv2.minAreaRect(contour)
     x, y, w, h = cv2.boundingRect(contour)
+    # print(f"cvBoundingRect -> X: {x}, Y: {y}, W: {w}, H: {h}")
     x_center = x + (w // 2)
     y_center = y + (h // 2)
 
     bbox = BBox(x, y, w, h)
-    return Line(contour, bbox, (x_center, y_center))
+    return Line(contour, bbox, (x_center, y_center), angle)
 
 def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     image = image.astype(np.uint8)
@@ -542,7 +552,7 @@ def build_line_data(contour: np.array, optimize: bool = True) -> Line:
     return Line(contour, bbox, (x_center, y_center))
 
 
-def get_line_threshold(line_prediction: np.array, slice_width: int = 20):
+def get_line_threshold(line_prediction: npt.NDArray, slice_width: int = 20):
     """
     This function generates n slices (of n = steps) width the width of slice_width across the bbox of the detected lines.
     The slice with the max. number of contained contours is taken to be the canditate to calculate the bbox center of each contour and
@@ -550,6 +560,9 @@ def get_line_threshold(line_prediction: np.array, slice_width: int = 20):
 
     Note: This approach might turn out to be problematic in case of sparsely spread line segments across a page
     """
+
+    if len(line_prediction.shape) == 3:
+        line_prediction = cv2.cvtColor(line_prediction, cv2.COLOR_BGR2GRAY)
 
     x, y, w, h = cv2.boundingRect(line_prediction)
     x_steps = (w // slice_width) // 2
@@ -574,22 +587,22 @@ def get_line_threshold(line_prediction: np.array, slice_width: int = 20):
         n_contours, contours = reference_slice
 
         if n_contours == 0:
-            logging.warning("number of contours is 0")
-            line_threshold = 0
+            print("number of contours is 0")
+            line_threshold = 0.0
         else:
             for _, contour in enumerate(contours):
                 x, y, w, h = cv2.boundingRect(contour)
                 y_center = y + (h // 2)
                 y_points.append(y_center)
 
-            line_threshold = np.median(y_points) // n_contours
+            line_threshold = float(np.median(y_points) // n_contours)
     else:
-        line_threshold = 0
+        line_threshold = 0.0
 
     return line_threshold
 
 
-def sort_bbox_centers(bbox_centers: list[tuple[int, int]], line_threshold: int = 20):
+def sort_bbox_centers(bbox_centers: List[Tuple[int, int]], line_threshold: int = 20) -> List:
     sorted_bbox_centers = []
     tmp_line = []
 
@@ -632,7 +645,7 @@ def sort_bbox_centers(bbox_centers: list[tuple[int, int]], line_threshold: int =
     return sorted_bbox_centers
 
 
-def group_line_chunks(sorted_bbox_centers, lines: list[Line]):
+def group_line_chunks(sorted_bbox_centers, lines: List[Line], adaptive_grouping: bool = True):
     new_line_data = []
     for bbox_centers in sorted_bbox_centers:
 
@@ -645,10 +658,21 @@ def group_line_chunks(sorted_bbox_centers, lines: list[Line]):
                         contour_stack.append(line_data.contour)
                         break
 
+            if adaptive_grouping:
+                for contour in contour_stack:
+                    x, y, w, h = cv2.boundingRect(contour)
+                    width_offset = int(w * 0.05)
+                    height_offset = int(h * 0.05)
+                    w += width_offset
+                    h += height_offset
+
             stacked_contour = np.vstack(contour_stack)
             stacked_contour = cv2.convexHull(stacked_contour)
-            # TODO: are both calls necessary?
+
+            # TODO: both calls necessary?
             x, y, w, h = cv2.boundingRect(stacked_contour)
+            _, _, angle = cv2.minAreaRect(stacked_contour)
+
             _bbox = BBox(x, y, w, h)
             x_center = _bbox.x + (_bbox.w // 2)
             y_center = _bbox.y + (_bbox.h // 2)
@@ -708,7 +732,7 @@ def sort_lines_by_threshold(
 
 def sort_lines_by_threshold2(
     line_mask: npt.NDArray,
-    lines: list[Line],
+    lines: List[Line],
     threshold: int = 20,
     calculate_threshold: bool = True,
     group_lines: bool = True,
@@ -759,21 +783,6 @@ def build_raw_line_data(image: npt.NDArray, line_mask: npt.NDArray):
     rot_mask = cv2.cvtColor(rot_mask, cv2.COLOR_GRAY2RGB)
 
     return rot_img, rot_mask, line_contours, angle
-
-def get_line_data(image: npt.NDArray, line_mask: npt.NDArray, group_chunks: bool = True) -> LineData:
-    angle = get_rotation_angle_from_lines(line_mask)
-
-    rot_mask = rotate_from_angle(line_mask, angle)
-    rot_img = rotate_from_angle(image, angle)
-
-    line_contours = get_contours(rot_mask)
-    line_data = [build_line_data(x) for x in line_contours]
-    line_data = [x for x in line_data if x.bbox.h > 10]
-    sorted_lines, _ = sort_lines_by_threshold2(rot_mask, line_data, group_lines=group_chunks)
-
-    data = LineData(rot_img, rot_mask, angle, sorted_lines)
-
-    return data
 
 def tile_image(padded_img: npt.NDArray, patch_size: int = 512):
     x_steps = int(padded_img.shape[1] / patch_size)
@@ -852,6 +861,20 @@ def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: f
 
     return masked_line
 
+
+def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,
+                   k_factor: float = 1.2):
+    tmp_k = k_factor
+    line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
+
+    while line_img.shape[0] > bbox_h * bbox_tolerance:
+        tmp_k = tmp_k - 0.1
+        # print(f"Adjusted k_factor to: {tmp_k}")
+        line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
+
+    return line_img, tmp_k
+
+
 def extract_line_images(image: npt.NDArray, line_data: List[npt.NDArray], default_k: float = 1.7, bbox_tolerance: float = 2.5):
     default_k_factor = default_k
     current_k = default_k_factor
@@ -872,6 +895,7 @@ def extract_line_images(image: npt.NDArray, line_data: List[npt.NDArray], defaul
 
     return line_images
 
+# TODO: check if this is the same normalization applied during training
 def normalize(image: npt.NDArray) -> npt.NDArray:
     image = image.astype(np.float32)
     image /= 255.0
@@ -998,11 +1022,12 @@ def read_ocr_model_config(config_file: str):
     json_content = json.loads(file.read())
 
     onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
-
+    architecture = json_content["architecture"]
     input_width = json_content["input_width"]
     input_height = json_content["input_height"]
     input_layer = json_content["input_layer"]
     output_layer = json_content["output_layer"]
+    encoder = json_content["encoder"]
     squeeze_channel_dim = (
         True if json_content["squeeze_channel_dim"] == "yes" else False
     )
@@ -1011,13 +1036,15 @@ def read_ocr_model_config(config_file: str):
 
     config = OCRModelConfig(
         onnx_model_file,
+        OCRARCHITECTURE[architecture],
         input_width,
         input_height,
         input_layer,
         output_layer,
         squeeze_channel_dim,
         swap_hw,
-        characters,
+        encoder=CHARSETENCODER[encoder],
+        charset=characters
     )
 
     return config

@@ -2,11 +2,11 @@ import os
 import cv2
 from uuid import UUID
 from typing import Dict, List
-from BudaOCR.Data import LineData, LineDataResult, OCResult, LineMode, BudaOCRData
+from BudaOCR.Data import OpStatus, LineDataResult, OCResult, LineMode, BudaOCRData, Encoding
 from PySide6.QtCore import QObject, Signal, QRunnable
 
-from BudaOCR.Inference import LineDetection, LayoutDetection, OCRInference
-from BudaOCR.Utils import binarize, get_line_data, extract_line, get_filename, generate_guid
+from BudaOCR.Inference import OCRPipeline
+from BudaOCR.Utils import get_filename, generate_guid
 
 
 class RunnerSignals(QObject):
@@ -15,7 +15,8 @@ class RunnerSignals(QObject):
     finished = Signal()
     line_result = Signal(LineDataResult)
     ocr_result = Signal(OCResult)
-    ocr_data = Signal(Dict[UUID, BudaOCRData])
+    batch_ocr_result = Signal(dict[UUID, OCResult])
+    ocr_data = Signal(dict[UUID, BudaOCRData])
 
 
 class FileImportRunner(QRunnable):
@@ -43,69 +44,44 @@ class FileImportRunner(QRunnable):
         self.signals.ocr_data.emit(imported_data)
 
 
-class OCRunner(QRunnable):
+class OCRBatchRunner(QRunnable):
     def __init__(
             self,
-            line_detection: LineDetection,
-            layout_detection: LayoutDetection,
-            ocr_inference: OCRInference,
-            mode: LineMode,
-            data: list[BudaOCRData],
-            k_factor: float = 1.2):
+            data: List[BudaOCRData],
+            ocr_pipeline: OCRPipeline,
+            output_encoding: Encoding,
+            mode: LineMode = LineMode.Layout,
+            k_factor: float = 1.7):
 
-        super(OCRunner, self).__init__()
+        super(OCRBatchRunner, self).__init__()
         self.signals = RunnerSignals()
-        self.line_detection = LineDetection
-        self.layout_detection = LayoutDetection
-        self.ocr_inference = OCRInference
+        self.data = data
+        self.ocr_pipeline = ocr_pipeline
         self.data = data
         self.mode = mode
         self.k_factor = k_factor
+        self.stop = False
+
+    def kill(self):
+        print(f"OCRunner -> kill")
+        self.stop = True
 
     def run(self):
+        results = {}
+
         for idx, data in enumerate(self.data):
-            image = cv2.imread(data.image_path)
-            image = binarize(image)
+            self.signals.sample.emit(idx)
+            if not self.stop:
+                img = cv2.imread(data.image_path)
+                status, ocr_result = self.ocr_pipeline.run_ocr(img)
 
-            if self.mode == LineMode.Line:
-                line_mask = self.line_detection.predict(image)
-                line_data = get_line_data(image, line_mask)
+                if status == OpStatus.SUCCESS:
+                    results[data.guid] = ocr_result
             else:
-                layout_mask = self.layout_detection.predict(image)
-                line_data = get_line_data(
-                    image, layout_mask[:, :, 2]
-                )  # for the dim, see classes in the layout config file
+                print("Interrupted Process...")
+                self.signals.finished.emit()
 
-            if len(line_data.lines) > 0:
-                line_images = [extract_line(x, line_data.image, self.k_factor) for x in line_data.lines]
-
-                page_text = []
-                filtered_lines = []
-
-                for line_img, line_info in zip(line_images, line_data.lines):
-                    pred = self.ocr_inference.run(line_img)
-                    pred = pred.strip()
-
-                    if pred != "":
-                        page_text.append(pred)
-                        filtered_lines.append(line_info)
-
-                filtered_line_data = LineData(
-                    line_data.image, line_data.prediction, line_data.angle, filtered_lines
-                )
-
-                ocr_result = OCRResult(
-                    data.guid,
-                    page_text
-                )
-
-                line_result = LineDataResult(
-                    data.guid,
-                    filtered_line_data
-                )
-                self.signals.line_result.emit(line_result)
-                self.signals.ocr_result.emit(ocr_result)
-
+        self.signals.batch_ocr_result.emit(results)
         self.signals.finished.emit()
 
 

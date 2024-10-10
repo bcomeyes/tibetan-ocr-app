@@ -2,7 +2,7 @@ from uuid import UUID
 import numpy.typing as npt
 from typing import List, Dict
 from BudaOCR.Utils import import_local_models
-from BudaOCR.Data import BudaOCRData, LineData, AppSettings, OCRSettings, OCRModel
+from BudaOCR.Data import BudaOCRData, Line, AppSettings, OCRSettings, OCRModel
 
 
 class BudaSettingsModel:
@@ -50,8 +50,8 @@ class BudaOCRDataModel:
     def clear_data(self):
         self.data.clear()
 
-    def add_page_data(self, guid: UUID, line_data: LineData, preview_image: npt.NDArray) -> None:
-        self.data[guid].line_data = line_data
+    def add_page_data(self, guid: UUID, lines: List[Line], preview_image: npt.NDArray) -> None:
+        self.data[guid].lines = lines
         self.data[guid].preview = preview_image
 
     def add_ocr_text(self, guid: UUID, text: List[str]):

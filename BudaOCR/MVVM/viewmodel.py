@@ -3,7 +3,7 @@ from typing import List, Dict
 import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal
 from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
-from BudaOCR.Data import BudaOCRData, LineData, OCRModel, AppSettings, OCRSettings
+from BudaOCR.Data import BudaOCRData, Line, OCRModel, AppSettings, OCRSettings
 
 
 class BudaSettingsViewModel(QObject):
@@ -60,7 +60,7 @@ class BudaDataViewModel(QObject):
         super().__init__()
         self._model = model
 
-    def get_data_by_guid(self, guid: UUID):
+    def get_data_by_guid(self, guid: UUID) -> BudaOCRData:
         return self._model.data[guid]
 
     def get_data(self) -> Dict[UUID, BudaOCRData]:
@@ -89,8 +89,8 @@ class BudaDataViewModel(QObject):
         data = self.get_data_by_guid(uuid)
         self.recordChanged.emit(data)
 
-    def update_page_data(self, uuid: UUID, line_data: LineData, preview_image: npt.NDArray):
-        self._model.add_page_data(uuid, line_data, preview_image)
+    def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray):
+        self._model.add_page_data(uuid, lines, preview_image)
         data = self.get_data_by_guid(uuid)
         self.recordChanged.emit(data)
 

@@ -14,6 +14,9 @@ class Encoding(Enum):
     Unicode = 0
     Wylie = 1
 
+class CharsetEncoder(Enum):
+    Wylie = 0
+    Stack = 1
 
 class ExportFormat(Enum):
     Text = 0
@@ -40,6 +43,9 @@ class LineSorting(Enum):
     Threshold = 0
     Peaks = 1
 
+class OCRArchitecture(Enum):
+    Easter2 = 0
+    CRNN = 1
 
 class TPSMode(Enum):
     GLOBAL = 0
@@ -83,15 +89,6 @@ class Line:
     bbox: BBox
     center: Tuple[int, int]
 
-
-@dataclass
-class LineData:
-    image: npt.NDArray
-    prediction: npt.NDArray
-    angle: float
-    lines: List[Line]
-
-
 @dataclass
 class LayoutData:
     image: npt.NDArray
@@ -120,7 +117,7 @@ class BudaOCRData:
     image_path: str
     image_name: str
     ocr_text: List[str]
-    line_data: LineData | None
+    lines: List[Line] | None
     preview: npt.NDArray | None
 
 
@@ -140,25 +137,29 @@ class LayoutDetectionConfig:
 @dataclass
 class OCRModelConfig:
     model_file: str
+    architecture: OCRArchitecture
     input_width: int
     input_height: int
     input_layer: str
     output_layer: str
     squeeze_channel: bool
     swap_hw: bool
+    encoder: CharsetEncoder
     charset: List[str]
 
 
 @dataclass
 class LineDataResult:
     guid: UUID
-    line_data: LineData
+    lines: List[Line]
 
 
 @dataclass
 class OCResult:
     guid: UUID
-    text: list[str]
+    mask: npt.NDArray
+    lines: List[Line]
+    text: List[str]
 
 
 @dataclass
@@ -168,7 +169,6 @@ class OCRModel:
     path: str
     config: OCRModelConfig
 
-
 @dataclass
 class OCRSettings:
     line_mode: LineMode
@@ -177,7 +177,7 @@ class OCRSettings:
     dewarping: bool
     tps_mode: TPSMode
     output_encoding: Encoding
-    exporters: List[ExportFormat]
+    exporter: ExportFormat
 
 @dataclass
 class AppSettings:

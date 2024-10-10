@@ -1,6 +1,6 @@
 {
-    "model_path": "Models/OCR",
-    "language": "en",
-    "encoding": "unicode",
-    "theme": "dark"
+ "model_path": "Models/OCR",
+ "language": "en",
+ "encoding": "unicode",
+ "theme": "dark"
 }

@@ -1,13 +1,15 @@
 import os
 from uuid import UUID
+
+import cv2
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QSplitter
 from PySide6.QtCore import Signal, Qt, QThreadPool
 
 from BudaOCR.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
-from BudaOCR.Data import BudaOCRData, OCRModel
+from BudaOCR.Data import BudaOCRData, OCRModel, OpStatus
 from BudaOCR.Inference import OCRPipeline
 from BudaOCR.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
-from BudaOCR.Widgets.Dialogs import NotificationDialog, SettingsDialog, OCRBatchProgress
+from BudaOCR.Widgets.Dialogs import NotificationDialog, SettingsDialog, OCRBatchProgress, BatchOCRDialog
 from BudaOCR.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
 from BudaOCR.IO import TextExporter
@@ -31,6 +33,7 @@ class MainView(QWidget):
         self.canvas = Canvas()
         self.text_view = TextView()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
+        #self.splitter.setCollapsible(0, False)
 
         # build layout
         self.v_layout = QVBoxLayout()
@@ -66,23 +69,19 @@ class MainView(QWidget):
         """)
 
     def handle_new(self):
-        print("handling new signal")
         self._data_view.clear_data()
 
     def update_data(self, data: list[BudaOCRData]):
         self.header_tools.update_page_count(len(data))
 
     def handle_import(self, files: list[str]):
-        print(f"Handling import: {files}")
         self.sign_handle_import.emit(files)
 
     def handle_file_save(self):
-        print("Handling FileSave")
         self.sign_on_file_save.emit()
 
     def handle_model_selection(self, ocr_model: OCRModel):
-        print(f"Updating OCR Model: {ocr_model.name}")
-        self.settings_view.select_ocr_model(ocr_model)
+        self._settings_view.select_ocr_model(ocr_model)
 
 
     def handle_run(self):
@@ -166,7 +165,14 @@ class AppView(QWidget):
                 background-color: #100F0F;
                 border: 2px solid #100F0F; 
                 border-radius: 8px;
-            }    
+            }
+            
+            QPushButton::DialogButton {
+                margin-top: 15px;
+                background-color: #A40021;
+                border-radius: 4px;
+                height: 24;
+            } 
         """)
 
         self.show()
@@ -183,7 +189,7 @@ class AppView(QWidget):
                     image_path=file_path,
                     image_name=file_name,
                     ocr_text=[],
-                    line_data=None,
+                    lines=None,
                     preview=None
                 )
                 new_data[guid] = palmtree_data
@@ -223,17 +229,21 @@ class AppView(QWidget):
 
         data = self._dataview_model.get_data_by_guid(guid)
         print(f"Run individual OCR for image: {data.image_name}")
-        """
-        image = cv2.imread(data.image_path)
-        line_mask = self.line_detection.predict(image)
-        line_data = get_line_data(image, line_mask)
-        line_images = extract_line_images(line_data, self.ocr_settings.k_factor)
-        ocr_text = self.ocr_inference.run_batch(line_images)
 
-        self._viewmodel.update_ocr_data(guid, ocr_text)
-        self._viewmodel.update_page_data(guid, line_data, line_mask)
-        
-        """
+        if os.path.isfile(data.image_path):
+
+            img = cv2.imread(data.image_path)
+            status, ocr_result = self.ocr_pipeline.run_ocr(img)
+
+            if status == OpStatus.SUCCESS:
+                self._dataview_model.update_ocr_data(guid, ocr_result.text)
+                self._dataview_model.update_page_data(guid, ocr_result.lines, ocr_result.mask)
+            else:
+                dialog = NotificationDialog("Failed Running OCR", "Failed to run OCR on selected image.")
+                dialog.exec()
+        else:
+            dialog = NotificationDialog("Image not found", "The selected image could not be read from disk.")
+            dialog.exec()
 
     def run_batch_ocr(self):
         _data = self._dataview_model.get_data()
@@ -241,9 +251,12 @@ class AppView(QWidget):
 
         if _data is not None and len(_data) > 0:
             print(f"Running batched OCR")
-            batch_dialog = OCRBatchProgress(
+            batch_dialog = BatchOCRDialog(
                 data=_data,
-                pool=self.threadpool
+                ocr_pipeline=self.ocr_pipeline,
+                ocr_models=self._settingsview_model.get_ocr_models(),
+                ocr_settings=self._settingsview_model.get_ocr_settings(),
+                threadpool=self.threadpool
             )
             batch_dialog.exec()
         else:
@@ -251,13 +264,17 @@ class AppView(QWidget):
             dialog.exec()
 
     def handle_settings(self):
-        _models = self._dataview_model.get_ocr_models()
-        settings_dialog = SettingsDialog(self._app_settings, self.ocr_settings, _models)
+        _models = self._settingsview_model.get_ocr_models()
+        _app_settings = self._settingsview_model.get_app_settings()
+        _ocr_settings = self._settingsview_model.get_ocr_settings()
 
+        settings_dialog = SettingsDialog(_app_settings, _ocr_settings, _models)
         app_settings, ocr_settings = settings_dialog.exec()
+
+        # TODO: add ovewrite confirmation or so ?
         save_app_settings(app_settings)
         save_ocr_settings(ocr_settings)
 
     def update_ocr_model(self, ocr_model: OCRModel):
         print(f"Updating OCR Pipeline with OCR model: {ocr_model.name}")
-        self.ocr_pipeline = OCRPipeline(ocr_model.config, self.layout_model_config)
+        self.ocr_pipeline.update_ocr_model(ocr_model.config)

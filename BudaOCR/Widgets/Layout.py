@@ -34,7 +34,7 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView
+    QListView, QPushButton
 )
 
 from BudaOCR.Data import BudaOCRData, OCRModel
@@ -66,7 +66,6 @@ class HeaderTools(QWidget):
         self.setLayout(self.layout)
 
     def update_page_count(self, amount: int):
-        print(f"PageSwitcher -> update_page_count: {amount}")
         self.page_switcher.max_pages = amount
 
     def set_page_index(self, data: BudaOCRData):
@@ -165,7 +164,6 @@ class ToolBox(QFrame):
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
-                print(f"Added OCR Model to Selection: {model.name}")
 
         # self.model_selection.activated.connect(self.on_select_ocr_model)
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
@@ -210,7 +208,6 @@ class ToolBox(QFrame):
         if dialog.exec():
             _file_paths = dialog.selectedFiles()
             if _file_paths and len(_file_paths) > 0:
-                print(f"Loading {len(_file_paths)} Images")
                 self.sign_import_files.emit(_file_paths)
 
     def save(self):
@@ -472,18 +469,14 @@ class PTGraphicsScene(QGraphicsScene):
 
     def add_item(self, item: QGraphicsItem, z_order: int):
         item.setZValue(z_order)
-        print(f"Adding Item to Scene with bRect: {item.boundingRect()}")
-        item.setScale(0.16)
+        item.setScale(0.16) # Why that scale?
         self.addItem(item)
-        print(f"ItemAdded, Current SceneRect: {self.sceneRect()}")
 
     def remove_item(self, item: QGraphicsItem):
         self.removeItem(item)
-        print(f"ItemRemoved, Current SceneRect: {self.sceneRect()}")
 
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:
-            print(f"LeftClick")
             super().mousePressEvent(e)
 
     def get_current_item_pos(self) -> QPointF:
@@ -516,7 +509,35 @@ class Canvas(QFrame):
         self.view = PTGraphicsView(self.gr_scene)
         self.view.setScene(self.gr_scene)
 
+        self.toggle_prev_btn_icon = QIcon("Assets/Themes/Dark/Ui_TogglePreview_BTN.png")
+        self.toggle_prev_hover = QIcon("Assets/Themes/Dark/Ui_TogglePreview_BTN_hover.png")
+
+        self.reset_scale_icon = QIcon("Assets/Themes/Dark/BTN_ResetScale_light.png")
+        self.reset_scale_icon_hover = QIcon("Assets/Themes/Dark/BTN_ResetScale_light.png")
+
+        self.toogle_prev_btn = HeaderButton(
+            normal_icon=self.toggle_prev_btn_icon,
+            hover_icon=self.toggle_prev_hover,
+            width=20,
+            height=20
+        )
+
+        self.reset_scale_btn = HeaderButton(
+            normal_icon=self.reset_scale_icon,
+            hover_icon=self.reset_scale_icon_hover,
+            width=20,
+            height=20
+        )
+
+        self.toogle_prev_btn.clicked.connect(self.handle_preview_toggle)
+        self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
+        self.canvas_tools_layout = QHBoxLayout()
+        self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.canvas_tools_layout.addWidget(self.toogle_prev_btn)
+        self.canvas_tools_layout.addWidget(self.reset_scale_btn)
+
         self.layout = QVBoxLayout()
+        self.layout.addLayout(self.canvas_tools_layout)
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
 
@@ -545,24 +566,20 @@ class Canvas(QFrame):
     def set_preview(self, data: BudaOCRData):
         self.view.reset_scaling()
         scene_rect = self.view.sceneRect()
-        print(f"Canvas -> set preview in scene rect: {scene_rect}")
 
         _last_pos = self.gr_scene.get_current_item_pos()
-        print(f"placing preview at pos: {_last_pos}")
         self.gr_scene.clear()
-        preview_item = ImagePreview(data.image_path, data.line_data)
+        preview_item = ImagePreview(data.image_path, data.lines)
         preview_item.setPos(_last_pos)
         self.gr_scene.add_item(preview_item, 1)
-        """
-        q_image = QImage(data.image_path)
-        q_pix = QPixmap.fromImage(q_image)
-        gt_item = QGraphicsPixmapItem(q_pix)
-        gt_item.setFlags(
-            QGraphicsItem.GraphicsItemFlag.ItemIsMovable
-            | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
-        )
-        self.gr_scene.add_item(gt_item, 0)
-        """
+
+    def handle_preview_toggle(self):
+        for item in self.gr_scene.items():
+            if isinstance(item, ImagePreview):
+                if item.is_in_preview:
+                    item.show_image()
+                else:
+                    item.show_preview()
 
 
 class ImageList(QListWidget):
@@ -1018,8 +1035,12 @@ class TextWidgetList(QListWidget):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         # self.v_scrollbar = QScrollBar(self)
+        self.v_scrollbar = QScrollBar(self)
+        self.h_scrollbar = QScrollBar(self)
+        self.setVerticalScrollBar(self.v_scrollbar)
+        self.setHorizontalScrollBar(self.h_scrollbar)
 
-        self.setStyleSheet(
+        self.v_scrollbar.setStyleSheet(
             """
             QScrollBar:vertical {
                 border: none;
@@ -1060,10 +1081,40 @@ class TextWidgetList(QListWidget):
             """
         )
 
+        self.h_scrollbar.setStyleSheet(
+            """
+            QScrollBar:horizontal {
+                border: none;
+                background: #2d2d46;
+                height: 30px;
+                margin: 10px 10px 10px 10px;
+                border-radius: 0px;
+            }
+            QScrollBar::handle:horizontal {
+                border: 2px solid #A40021;
+                background-color: #A40021;
+                min-width: 30px;
+                border-radius: 3px;
+            }
+            QScrollBar::add-line:horizontal {
+                width: 0px;
+            }
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+            QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal
+            {
+                background: none;
+            }
+            QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
+            {
+                background: none;
+            }
+        """
+        )
+
     def on_item_clicked(self, item: QListWidgetItem):
-        _list_item_widget = self.itemWidget(
-            item
-        )  # returns an instance of CanvasHierarchyEntry
+        _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
 
         if isinstance(_list_item_widget, TextListWidget):
             print("TextWidgetList -> selected Text Widget")
@@ -1082,9 +1133,11 @@ class TextWidgetList(QListWidget):
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
-            print("QFrame->enter")
+            #print("QFrame->enter")
+            pass
         elif event.type() == QEvent.Type.Leave:
-            print("QFrame->leave")
+            #print("QFrame->leave")
+            pass
 
         return super().event(event)
 
@@ -1094,7 +1147,7 @@ class TextListWidget(QWidget):
     Custom widget holding the actual text data
     """
 
-    def __init__(self, text: str, font: str, font_size: int = 20):
+    def __init__(self, text: str, font: str, font_size: int = 24):
         super().__init__()
         self.text = text
         self.font = font
@@ -1129,10 +1182,9 @@ class TextView(QFrame):
         self.default_font = "Assets/Fonts/Monlam/Monlam-bodyig Regular.ttf"
         self.current_font = self.default_font
         self.converter = pyewts.pyewts()
-
-        #self.setFixedHeight(300)
-        self.setMinimumHeight(100)
-        self.setMinimumWidth(600)
+        self.setContentsMargins(10, 0, 10, 0)
+        #self.setMinimumHeight(80)
+        #self.setMinimumWidth(600)
 
         self.text_widget_list = TextWidgetList()
 
@@ -1141,12 +1193,11 @@ class TextView(QFrame):
         self.setLayout(self.layout)
         self.setStyleSheet(
             """
-                    color: #ffffff;
-                    background-color: #100F0F;
-                    border: 2px solid #100F0F; 
-                    border-radius: 8px;
-    
-                """
+                color: #ffffff;
+                background-color: #100F0F;
+                border: 2px solid #100F0F; 
+                border-radius: 4px;
+            """
         )
 
     def update_text(self, text: list[str]):
@@ -1155,7 +1206,7 @@ class TextView(QFrame):
         for text_line in text:
             text_line = self.converter.toUnicode(text_line)
             list_item = QListWidgetItem()
-            list_item.setSizeHint(QSize(800, 80))
+            list_item.setSizeHint(QSize(800, 60))
             text_widget = TextListWidget(text_line, self.current_font, self.font_size)
 
             self.text_widget_list.addItem(list_item)
@@ -1163,7 +1214,7 @@ class TextView(QFrame):
 
         for idx in range(self.text_widget_list.count()):
             if idx % 2 == 0:
-                _qBrush = QBrush(QColor("#100f0f"))
+                _qBrush = QBrush(QColor("#172832"))
             else:
                 _qBrush = QBrush(QColor("#1d1c1c"))
             self.text_widget_list.item(idx).setBackground(_qBrush)

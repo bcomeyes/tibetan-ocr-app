@@ -2,13 +2,16 @@ import os
 import json
 import logging
 from BudaOCR.Data import OpStatus, AppSettings, Encoding, ExportFormat, Language, Theme, OCRSettings, LineMode, \
-    LineMerge, LineSorting, TPSMode
+    LineMerge, LineSorting, TPSMode, CharsetEncoder, OCRArchitecture
 from huggingface_hub import snapshot_download
 
 
 LINES_CONFIG = "Models/Lines/config.json"
 LAYOUT_CONFIG = "Models/Layout/config.json"
 
+"""
+Mappings for each data type
+"""
 
 COLOR_DICT = {
     "background": "0, 0, 0",
@@ -36,6 +39,15 @@ ENCODINGS = {
     "wylie": Encoding.Wylie
 }
 
+CHARSETENCODER = {
+    "wylie": CharsetEncoder.Wylie,
+    "stack": CharsetEncoder.Stack
+}
+
+OCRARCHITECTURE = {
+    "Easter2": OCRArchitecture.Easter2,
+    "CRNN": OCRArchitecture.CRNN
+}
 THEMES = {
     "dark": Theme.Dark,
     "light": Theme.Light
@@ -155,14 +167,13 @@ def read_settings():
 
     file = open("ocr_settings.json", encoding="utf-8")
     ocr_json_settings = json.loads(file.read())
-
     _line_mode = ocr_json_settings["line_mode"]
     _line_merge =  ocr_json_settings["line_merge"]
     _line_sorting = ocr_json_settings["line_sorting"]
     _dewarping = ocr_json_settings["dewarp"]
     _tps = ocr_json_settings["tps"]
     _out_encoding = ocr_json_settings["output_encoding"]
-    _exporters = ocr_json_settings["exporters"]
+    _exporter = ocr_json_settings["exporter"]
 
     ocr_settings = OCRSettings(
         line_mode=LINE_MODES[_line_mode],
@@ -171,7 +182,7 @@ def read_settings():
         dewarping=True if _dewarping == "yes" else False,
         tps_mode=TPS_MODE[_tps],
         output_encoding=ENCODINGS[_out_encoding],
-        exporters=[EXPORTERS[x] for x in _exporters]
+        exporter=EXPORTERS[_exporter]
     )
 
     return app_settings, ocr_settings
@@ -180,13 +191,13 @@ def read_settings():
 def save_app_settings(settings: AppSettings):
     _model_path = settings.model_path
     _language = [x for x in LANGUAGES if LANGUAGES[x] == settings.language][0]
-    _encoding = [x for x in ENCODINGS if ENCODINGS[x] == settings.language][0]
-    _theme = [x for x in THEMES if THEMES[x] == settings.language][0]
+    _encoding = [x for x in ENCODINGS if ENCODINGS[x] == settings.encoding][0]
+    _theme = [x for x in THEMES if THEMES[x] == settings.theme][0]
 
     _settings = {
                 "model_path": _model_path,
                 "language": _language,
-                "encodung": _encoding,
+                "encoding": _encoding,
                 "theme": _theme
             }
     with open("app_settings.json", "w", encoding="utf-8") as f:
@@ -199,7 +210,7 @@ def save_ocr_settings(settings: OCRSettings):
     _line_sorting = [x for x in LINE_SORTING if LINE_SORTING[x] == settings.line_sorting][0]
     _dewarp = "yes" if settings.dewarping else "no"
     _tps = [x for x in TPS_MODE if TPS_MODE[x] == settings.tps_mode][0]
-    _exporters = [x for x in EXPORTERS if EXPORTERS[x] == settings.tps_mode]
+    _exporter = [x for x in EXPORTERS if EXPORTERS[x] == settings.exporter][0]
 
     _settings = {
         "line_mode": _line_mode,
@@ -207,7 +218,8 @@ def save_ocr_settings(settings: OCRSettings):
         "line_sorting": _line_sorting,
         "dewarp": _dewarp,
         "tps": _tps,
-        "exporters": _exporters
+        "output_encoding": "unicode",
+        "exporter": _exporter
     }
 
     with open("ocr_settings.json", "w", encoding="utf-8") as f:
@@ -233,7 +245,7 @@ def create_default_ocr_config():
         "line_sorting": "threshold",
         "dewarp": "yes",
         "tps": "global",
-        "exporters": ["text"]
+        "exporter": "text"
     }
 
     with open("ocr_settings.json", "w", encoding="utf-8") as f:

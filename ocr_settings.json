@@ -1,11 +1,9 @@
 {
-    "line_mode": "line",
-    "line_merge": "merge",
-    "line_sorting": "threshold",
-    "dewarp": "yes",
-    "tps": "global",
-    "output_encoding": "unicode",
-    "exporters": [
-        "text"
-    ]
+ "line_mode": "line",
+ "line_merge": "merge",
+ "line_sorting": "threshold",
+ "dewarp": "yes",
+ "tps": "global",
+ "output_encoding": "unicode",
+ "exporter": "xml"
 }
