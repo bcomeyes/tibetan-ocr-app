@@ -41,6 +41,7 @@ class BudaSettingsViewModel(QObject):
 
     def select_ocr_model(self, ocr_model: OCRModel):
         self._model.set_current_ocr_model(ocr_model)
+        self.ocrModelChanged.emit(ocr_model)
 
 
 class BudaDataViewModel(QObject):

@@ -5,5 +5,5 @@
  "dewarp": "yes",
  "tps": "global",
  "output_encoding": "unicode",
- "exporter": "xml"
+ "exporter": "text"
 }

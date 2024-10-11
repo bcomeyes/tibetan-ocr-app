@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 from PySide6.QtCore import Qt, QThreadPool, Signal
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog, QLabel, QVBoxLayout, QHBoxLayout, \
     QProgressDialog, QPushButton, QListWidget, QListView, QListWidgetItem, QWidget, QTabWidget, QFormLayout, \
-    QRadioButton, QCheckBox, QProgressBar, QButtonGroup, QLineEdit
+    QRadioButton, QCheckBox, QProgressBar, QButtonGroup, QLineEdit, QComboBox
 
 from BudaOCR.Data import BudaOCRData, OCResult, LineDataResult, OCRModel, Theme, AppSettings, OCRSettings, \
     ExportFormat, Language, Encoding
@@ -322,28 +322,63 @@ class SettingsDialog(QDialog):
         self.settings_tabs.setContentsMargins(0, 0, 0, 0)
 
         self.settings_tabs.setStyleSheet(
-            """
+            """              
                 QTabWidget::pane {
-                    border: None;
+                    border: 1 px solid white;
                     padding-top: 20px;
+                }
+                
+                QTabWidget::tab-bar {
+                    height: 36px;
+                    border-radius: 4px;
+                    alignment: center; 
+                }
+                
+                QTabBar::tab {
+                    background-color: #961921;
+                    padding: 6px 6px 6px 6px;
+
+                }
+                QTabBar::tab:selected {
+                    background: #650b11;
+                }
+                
+                QTabBar::tab:!selected:hover {
+                    background: #999;
                 }
         """)
 
         # General Settings Tab
         self.general_settings_tab = QWidget()
+        self.general_settings_tab.setStyleSheet("""
+            background-color: #172832;
+            border-radius: 4px;
+        
+        """)
+
         form_layout = QFormLayout()
+        form_layout.setSpacing(20)
         form_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         ui_theme = QHBoxLayout()
+        ui_theme.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         ui_theme.addWidget(self.dark_theme_btn)
         ui_theme.addWidget(self.light_theme_btn)
 
         language_layout = QHBoxLayout()
+        language_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for btn in self.language_buttons:
             language_layout.addWidget(btn)
 
-        form_layout.addRow(QLabel("UI Theme"), ui_theme)
-        form_layout.addRow(QLabel("Language"), language_layout)
+        theme_label = QLabel("UI Theme")
+        theme_label.setFixedWidth(160)
+
+        language_label = QLabel("Language")
+        language_label.setFixedWidth(160)
+
+        form_layout.addRow(theme_label, ui_theme)
+        form_layout.addRow(language_label, language_layout)
         self.general_settings_tab.setLayout(form_layout)
 
         # OCR Models Tab
@@ -359,26 +394,45 @@ class SettingsDialog(QDialog):
 
         # OCR Settings Tab
         self.ocr_settings_tab = QWidget()
+        self.ocr_settings_tab.setStyleSheet("""
+                    background-color: #172832;
+                    border-radius: 4px;
+
+                """)
+
         form_layout = QFormLayout()
+        form_layout.setSpacing(20)
         form_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         encoding_layout = QHBoxLayout()
+        encoding_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for encoding in self.encoding_buttons:
             encoding_layout.addWidget(encoding)
 
         dewarping_layout = QHBoxLayout()
+        dewarping_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
 
         export_layout = QHBoxLayout()
+        export_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         for btn in self.exporter_buttons:
             export_layout.addWidget(btn)
 
-        form_layout.addRow(QLabel("Encoding"), encoding_layout)
-        form_layout.addRow(QLabel("Dewarping"), dewarping_layout)
-        form_layout.addRow(QLabel("Export Formats"), export_layout)
+        encoding_label = QLabel("Encoding")
+        dewarping_label = QLabel("Dewarping")
+        export_label = QLabel("Export Formats")
+
+        encoding_label.setFixedWidth(160)
+        dewarping_label.setFixedWidth(160)
+        export_label.setFixedWidth(160)
+
+        form_layout.addRow(encoding_label, encoding_layout)
+        form_layout.addRow(dewarping_label, dewarping_layout)
+        form_layout.addRow(export_label, export_layout)
         self.ocr_settings_tab.setLayout(form_layout)
 
 
@@ -557,7 +611,7 @@ class BatchOCRDialog(QDialog):
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(len(self.data))
+        self.progress_bar.setMaximum(len(self.data)-1)
 
         self.start_process_btn = QPushButton("Start")
         self.cancel_process_btn = QPushButton("Cancel")
@@ -596,6 +650,20 @@ class BatchOCRDialog(QDialog):
         self.form_layout = QFormLayout()
         self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
 
+        self.model_selection = QComboBox()
+        self.model_selection.setStyleSheet("""
+                background: #434343;
+                border: 2px solid #ced4da;
+                border-radius: 4px;
+            """)
+
+        if self.ocr_models is not None and len(self.ocr_models) > 0:
+            for model in self.ocr_models:
+                self.model_selection.addItem(model.name)
+
+        self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
+
+
         encoding_layout = QHBoxLayout()
         for btn in self.encoding_buttons:
             encoding_layout.addWidget(btn)
@@ -612,12 +680,18 @@ class BatchOCRDialog(QDialog):
         self.form_layout.addRow(QLabel("Dewarping"), dewarping_layout)
         self.form_layout.addRow(QLabel("Export Formats"), export_layout)
 
+        self.status_layout = QHBoxLayout()
+        self.status_label = QLabel("Status")
+        self.status = QLabel("")
+        self.status_layout.addWidget(self.status_label)
+        self.status_layout.addWidget(self.status)
+
         self.v_layout.addWidget(self.label)
         self.v_layout.addLayout(self.export_dir_layout)
         self.v_layout.addLayout(self.form_layout)
         self.v_layout.addLayout(self.progress_layout)
+        self.v_layout.addLayout(self.status_layout)
         self.v_layout.addLayout(self.button_h_layout)
-
         self.setLayout(self.v_layout)
 
         # bind signals
@@ -626,6 +700,19 @@ class BatchOCRDialog(QDialog):
         self.cancel_process_btn.clicked.connect(self.cancel_process)
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
+
+
+        self.setStyleSheet("""
+            background-color: #1d1c1c;
+            color: #ffffff;
+            
+            QPushButton {
+                color: #ffffff;
+                border-radius: 4px;
+                background-color: #961921; 
+            }
+        
+        """)
 
     def select_export_dir(self):
         dialog = ImportDirDialog()
@@ -640,6 +727,9 @@ class BatchOCRDialog(QDialog):
             note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
             note_dialog.exec()
 
+    def on_select_ocr_model(self, index: int):
+        self.pipeline.update_ocr_model(self.ocr_models[index].config)
+
     def start_process(self):
         encoding_id = self.encodings_group.checkedId()
         encoding = Encoding(encoding_id)
@@ -649,6 +739,7 @@ class BatchOCRDialog(QDialog):
         self.runner.signals.batch_ocr_result.connect(self.handle_ocr_result)
         self.runner.signals.finished.connect(self.finish)
         self.threadpool.start(self.runner)
+        self.status.setText("Running")
 
     def handle_update_progress(self, value: int):
         self.progress_bar.setValue(value)
@@ -659,9 +750,11 @@ class BatchOCRDialog(QDialog):
     def finish(self):
         print(f"Thread Completed")
         self.runner = None
+        self.status.setText("Finished")
 
     def cancel_process(self):
-        self.runner.stop = True
+        if self.runner is not None:
+            self.runner.stop = True
 
 
 class OCRBatchProgress(QProgressDialog):

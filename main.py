@@ -6,18 +6,17 @@
 import sys
 import platform
 from PySide6.QtCore import QPoint
-
-from BudaOCR.Data import Language
 from BudaOCR.MVVM.view import AppView
 from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
 from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
 from BudaOCR.Config import read_settings
-from BudaOCR.Utils import get_screen_center
+from BudaOCR.Utils import get_screen_center, get_platform
 from PySide6.QtWidgets import QApplication
 
 
 if __name__ == "__main__":
-    platform = platform.platform()
+
+    platform = get_platform()
     app = QApplication()
     app_settings, ocr_settings = read_settings()
 
@@ -32,6 +31,7 @@ if __name__ == "__main__":
     app_view = AppView(
         dataview_model,
         settingsview_model,
+        platform,
         screen_data.max_width,
         screen_data.max_height
     )

@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QS
 from PySide6.QtCore import Signal, Qt, QThreadPool
 
 from BudaOCR.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
-from BudaOCR.Data import BudaOCRData, OCRModel, OpStatus
+from BudaOCR.Data import OpStatus, Platform, BudaOCRData, OCRModel
 from BudaOCR.Inference import OCRPipeline
 from BudaOCR.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
 from BudaOCR.Widgets.Dialogs import NotificationDialog, SettingsDialog, OCRBatchProgress, BatchOCRDialog
@@ -107,9 +107,15 @@ class MainView(QWidget):
 
 
 class AppView(QWidget):
-    def __init__(self, dataview_model: BudaDataViewModel, settingsview_model: BudaSettingsViewModel, max_width: int, max_height: int):
+    def __init__(self,
+                 dataview_model: BudaDataViewModel,
+                 settingsview_model: BudaSettingsViewModel,
+                 platform: Platform,
+                 max_width: int,
+                 max_height: int):
         super().__init__()
         self.setObjectName("MainWindow")
+        self.platform = platform
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
         self._settingsview_model = settingsview_model
@@ -154,7 +160,7 @@ class AppView(QWidget):
         _ocr_model = self._settingsview_model.get_current_ocr_model()
 
         print(f"Creating Default OCRPipeline: {_ocr_model.name}")
-        self.ocr_pipeline = OCRPipeline(_ocr_model.config, self.layout_model_config)
+        self.ocr_pipeline = OCRPipeline(self.platform, _ocr_model.config, self.layout_model_config)
 
         self.setStyleSheet("""
             background-color: #1d1c1c;

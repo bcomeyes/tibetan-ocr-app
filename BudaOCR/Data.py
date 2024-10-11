@@ -9,6 +9,11 @@ class OpStatus(Enum):
     SUCCESS = 0
     FAILED = 1
 
+class Platform(Enum):
+    Windows = 0
+    Mac = 1
+    Linux = 2
+
 
 class Encoding(Enum):
     Unicode = 0

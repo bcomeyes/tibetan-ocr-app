@@ -4,8 +4,10 @@ import json
 import math
 import scipy
 import logging
+import platform
 import numpy as np
 import numpy.typing as npt
+import onnxruntime as ort
 from math import ceil
 from uuid import uuid1
 from pathlib import Path
@@ -15,7 +17,7 @@ from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
 
 from BudaOCR.Config import OCRARCHITECTURE, CHARSETENCODER
-from BudaOCR.Data import ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
+from BudaOCR.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
 from PySide6.QtWidgets import QApplication
 
 # TODO: read this from the global Config
@@ -50,6 +52,25 @@ def get_screen_center(app: QApplication, start_size_ratio: float = 0.8) -> Scree
     )
 
     return screen_data
+
+
+def get_platform() -> Platform:
+    _platform_tag = platform.platform()
+    _platform_tag = _platform_tag.split("-")[0]
+
+    if _platform_tag == "Windows":
+        _platform = Platform.Windows
+    elif _platform_tag == "macOS":
+        _platform = Platform.Mac
+    else:
+        _platform = Platform.Linux
+
+    return _platform
+
+def get_execution_providers(platform: Platform) -> List[str]:
+    available_providers = ort.get_available_providers()
+
+    return available_providers
 
 def get_filename(file_path: str) -> str:
     name_segments = os.path.basename(file_path).split(".")[:-1]
@@ -95,9 +116,15 @@ def import_local_models(model_path: str):
         if os.path.isdir(sub_dir):
             _config_file = os.path.join(sub_dir, "model_config.json")
 
+
+            print(f"Model Config: {_config_file}")
+
+
             assert os.path.isfile(_config_file)
 
             _config = read_ocr_model_config(_config_file)
+
+            print(f"{sub_dir.name} -> {len(_config.charset)}")
             _model = OCRModel(
                 guid=generate_guid(tick),
                 name=sub_dir.name,

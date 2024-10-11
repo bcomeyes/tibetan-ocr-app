@@ -13,7 +13,7 @@ from BudaOCR.Data import (
     OCRModelConfig,
     OCResult,
     LineDetectionConfig,
-    LayoutDetectionConfig,
+    LayoutDetectionConfig, Platform,
 )
 
 from pyctcdecode import build_ctcdecoder
@@ -36,7 +36,7 @@ from BudaOCR.Utils import (
     read_ocr_model_config,
     build_raw_line_data,
     filter_line_contours,
-    check_for_tps, generate_guid
+    check_for_tps, generate_guid, get_execution_providers
 )
 
 
@@ -64,12 +64,13 @@ class CTCDecoder:
 
 
 class Detection:
-    def __init__(self, config: LineDetectionConfig | LayoutDetectionConfig):
+    def __init__(self, platform: Platform, config: LineDetectionConfig | LayoutDetectionConfig):
+        self.platform = platform
         self.config = config
         self._config_file = config
         self._onnx_model_file = config.model_file
         self._patch_size = config.patch_size
-        self._execution_providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        self._execution_providers = get_execution_providers(self.platform)
         self._inference = ort.InferenceSession(
             self._onnx_model_file, providers=self._execution_providers
         )
@@ -109,8 +110,8 @@ class Detection:
 
 
 class LineDetection(Detection):
-    def __init__(self, config: LineDetectionConfig) -> None:
-        super().__init__(config)
+    def __init__(self, platform: Platform, config: LineDetectionConfig) -> None:
+        super().__init__(plaform, config)
 
     def predict(self, image: npt.NDArray, class_threshold: float = 0.9, denoise: bool = False) -> npt.NDArray:
         _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(
@@ -129,8 +130,8 @@ class LineDetection(Detection):
 
 
 class LayoutDetection(Detection):
-    def __init__(self, config: LayoutDetectionConfig, debug: bool = False) -> None:
-        super().__init__(config)
+    def __init__(self, platform: Platform, config: LayoutDetectionConfig, debug: bool = False) -> None:
+        super().__init__(platform, config)
         self._classes = config.classes
         self._debug = debug
 
@@ -219,7 +220,8 @@ class LayoutDetection(Detection):
 
 
 class OCRInference:
-    def __init__(self, ocr_config: OCRModelConfig) -> None:
+    def __init__(self, platform: Platform, ocr_config: OCRModelConfig):
+        self.platform = platform
         self.config = ocr_config
         self._onnx_model_file = ocr_config.model_file
         self._input_width = ocr_config.input_width
@@ -229,12 +231,15 @@ class OCRInference:
         self._characters = ocr_config.charset
         self._squeeze_channel_dim = ocr_config.squeeze_channel
         self._swap_hw = ocr_config.swap_hw
-        self._execution_providers = ["CUDAExecutionProvider", "CoreMLExecutionProvider", "CPUExecutionProvider"]
+        self._execution_providers = get_execution_providers(self.platform)
         self.ocr_session = ort.InferenceSession(
             self._onnx_model_file, providers=self._execution_providers
         )
 
         self.decoder = CTCDecoder(self._characters)
+
+        print(f"Characters: {len(self._characters)}")
+        print(f"CTC_Decoder vocab: {len(self.decoder.ctc_vocab)}")
 
     def _pad_ocr_line(
             self,
@@ -317,6 +322,7 @@ class OCRInference:
             line_image = np.expand_dims(line_image, axis=1)
 
         logits = self._predict(line_image)
+        print(f"OCR Logits: {logits.shape}")
         text = self._decode(logits)
 
         return text
@@ -332,29 +338,33 @@ class OCRPipeline:
 
     def __init__(
             self,
+            platform: Platform,
             ocr_config: OCRModelConfig,
             line_config: LineDetectionConfig | LayoutDetectionConfig
     ):
         self.ready = False
+        self.platform = platform
         self.ocr_model_config = ocr_config
         self.line_config = line_config
-        self.ocr_inference = OCRInference(self.ocr_model_config)
+        self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
 
         if isinstance(self.line_config, LineDetectionConfig):
             print("Running OCR in Line Mode")
-            self.line_inference = LineDetection(self.line_config)
+            self.line_inference = LineDetection(self.platform, self.line_config)
             self.ready = True
         elif isinstance(self.line_config, LayoutDetectionConfig):
             print("Running OCR in Layout Mode")
-            self.line_inference = LayoutDetection(self.line_config)
+            self.line_inference = LayoutDetection(self.platform, self.line_config)
             self.ready = True
         else:
             self.line_inference = None
             self.ready = False
 
+
+
     def update_ocr_model(self, config: OCRModelConfig):
         self.ocr_model_config = config
-        self.ocr_inference = OCRInference(self.ocr_model_config)
+        self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
 
     # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
     # so that the user get's an information if things go wrong
