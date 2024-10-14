@@ -1,8 +1,8 @@
 import os
 import cv2
 from uuid import UUID
-from typing import Dict, List
-from BudaOCR.Data import OpStatus, LineDataResult, OCResult, LineMode, BudaOCRData, Encoding
+from typing import List
+from BudaOCR.Data import OpStatus, OCResult, LineMode, BudaOCRData, Encoding, OCRSettings, OCRSample
 from PySide6.QtCore import QObject, Signal, QRunnable
 
 from BudaOCR.Inference import OCRPipeline
@@ -10,12 +10,10 @@ from BudaOCR.Utils import get_filename, generate_guid
 
 
 class RunnerSignals(QObject):
-    sample = Signal(int)
+    sample = Signal(OCRSample)
     error = Signal(str)
     finished = Signal()
-    line_result = Signal(LineDataResult)
     ocr_result = Signal(OCResult)
-    batch_ocr_result = Signal(dict[UUID, OCResult])
     ocr_data = Signal(dict[UUID, BudaOCRData])
 
 
@@ -36,12 +34,41 @@ class FileImportRunner(QRunnable):
                     image_path=file_path,
                     image_name=file_name,
                     ocr_text=[],
-                    line_data=None,
+                    lines=None,
                     preview=None
                 )
                 imported_data[guid] = ocr_data
 
         self.signals.ocr_data.emit(imported_data)
+
+
+class OCRunner(QRunnable):
+    def __init__(self, data: BudaOCRData, ocr_pipeline: OCRPipeline, settings: OCRSettings):
+        super(OCRunner, self).__init__()
+        self.signals = RunnerSignals()
+        self.data = data
+        self.pipeline = ocr_pipeline
+        self.settings = settings
+
+    def run(self):
+        img = cv2.imread(self.data.image_path)
+        status, result = self.pipeline.run_ocr(img)
+
+        if status == OpStatus.SUCCESS:
+            print(f"Runner -> Done")
+            rot_mask, lines, page_text = result
+
+            ocr_result = OCResult(
+                guid=self.data.guid,
+                mask=rot_mask,
+                lines=lines,
+                text=page_text
+            )
+            print(f"Runner->Emitting Signals...")
+            self.signals.ocr_result.emit(ocr_result)
+        else:
+            print(f"Runner -> Failed")
+            self.signals.finished()
 
 
 class OCRBatchRunner(QRunnable):
@@ -70,18 +97,33 @@ class OCRBatchRunner(QRunnable):
         results = {}
 
         for idx, data in enumerate(self.data):
-            self.signals.sample.emit(idx)
+
             if not self.stop:
                 img = cv2.imread(data.image_path)
-                status, ocr_result = self.ocr_pipeline.run_ocr(img)
+                status, result = self.ocr_pipeline.run_ocr(img)
 
                 if status == OpStatus.SUCCESS:
+                    rot_mask, lines, page_text = result
+
+                    ocr_result = OCResult(
+                        guid=data.guid,
+                        mask=rot_mask,
+                        lines=lines,
+                        text=page_text
+                    )
                     results[data.guid] = ocr_result
+                    sample = OCRSample(
+                        cnt=idx,
+                        guid=data.guid,
+                        name=data.image_name,
+                        result=ocr_result
+                    )
+                    self.signals.sample.emit(sample)
+
             else:
                 print("Interrupted Process...")
                 self.signals.finished.emit()
 
-        self.signals.batch_ocr_result.emit(results)
         self.signals.finished.emit()
 
 

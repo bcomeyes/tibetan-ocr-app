@@ -115,16 +115,9 @@ def import_local_models(model_path: str):
     for sub_dir in Path(model_path).iterdir():
         if os.path.isdir(sub_dir):
             _config_file = os.path.join(sub_dir, "model_config.json")
-
-
-            print(f"Model Config: {_config_file}")
-
-
             assert os.path.isfile(_config_file)
 
             _config = read_ocr_model_config(_config_file)
-
-            print(f"{sub_dir.name} -> {len(_config.charset)}")
             _model = OCRModel(
                 guid=generate_guid(tick),
                 name=sub_dir.name,
@@ -189,33 +182,10 @@ def pad_image(
 
     return padded_img
 
-
-def pad_image2(
-    img: np.array, patch_size: int = 64, is_mask=False, pad_value: int = 255
-) -> Tuple[np.array, Tuple[int, int]]:
-    x_pad = (math.ceil(img.shape[1] / patch_size) * patch_size) - img.shape[1]
-    y_pad = (math.ceil(img.shape[0] / patch_size) * patch_size) - img.shape[0]
-
-    if is_mask:
-        pad_y = np.zeros(shape=(y_pad, img.shape[1], 3), dtype=np.uint8)
-        pad_x = np.zeros(shape=(img.shape[0] + y_pad, x_pad, 3), dtype=np.uint8)
-    else:
-        pad_y = np.ones(shape=(y_pad, img.shape[1], 3), dtype=np.uint8)
-        pad_x = np.ones(shape=(img.shape[0] + y_pad, x_pad, 3), dtype=np.uint8)
-        pad_y *= pad_value
-        pad_x *= pad_value
-
-    img = np.vstack((img, pad_y))
-    img = np.hstack((img, pad_x))
-
-    return img, (x_pad, y_pad)
-
-
 def get_contours(image: npt.NDArray) -> Sequence:
     contours, _ = cv2.findContours(image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     return contours
-
 
 def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,
                    k_factor: float = 1.2):
@@ -260,18 +230,11 @@ def run_tps(image: npt.NDArray, input_pts, output_pts, add_corners=True, alpha=0
         input_pts = np.concatenate((input_pts, corners))
         output_pts = np.concatenate((output_pts, corners))
 
-    # Fit the thin plate spline from output to input
     tps = ThinPlateSpline(alpha)
     tps.fit(input_pts, output_pts)
 
-    # Create the 2d meshgrid of indices for output image
     output_indices = np.indices((height, width), dtype=np.float64).transpose(1, 2, 0)  # Shape: (H, W, 2)
-
-    # Transform it into the input indices
     input_indices = tps.transform(output_indices.reshape(-1, 2)).reshape(height, width, 2)
-
-
-    # Interpolate the resulting image
     warped = np.concatenate(
         [
             scipy.ndimage.map_coordinates(image[..., channel], input_indices.transpose(2, 0, 1))[..., None]
@@ -297,7 +260,6 @@ def get_line_images_via_local_tps(image: npt.NDArray, line_data: list, k_factor:
             tmp_mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
             cv2.drawContours(tmp_mask, [line["contour"]], -1, (255, 255, 255), -1)
 
-            # TODO: check channel dim here..
             warped_img = run_tps(image, output_pts, input_pts)
             warped_mask = run_tps(tmp_mask, output_pts, input_pts)
 
@@ -370,20 +332,13 @@ def get_text_bbox(lines: List[Line]):
 
 
 def build_line_data(contour: npt.NDArray) -> Line:
-
-    """center, dimension, angle = cv2.minAreaRect(contour)
-    x, y = center
-    w, h = dimension
-    print(f"cv2MinArea -> X: {x}, Y: {y}, W: {w}, H: {h}")
-    """
-    _, _, angle = cv2.minAreaRect(contour)
     x, y, w, h = cv2.boundingRect(contour)
-    # print(f"cvBoundingRect -> X: {x}, Y: {y}, W: {w}, H: {h}")
+
     x_center = x + (w // 2)
     y_center = y + (h // 2)
 
     bbox = BBox(x, y, w, h)
-    return Line(contour, bbox, (x_center, y_center), angle)
+    return Line(contour, bbox, (x_center, y_center))
 
 def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     image = image.astype(np.uint8)
@@ -401,9 +356,6 @@ def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     )
 
     return image_masked
-
-
-
 
 def calculate_rotation_angle_from_lines(
     line_mask: np.array,
@@ -508,12 +460,10 @@ def rotate_contour(cnt, center, angle):
 
     return cnt_rotated
 
-
 def is_inside_rectangle(point, rect):
     x, y = point
     xmin, ymin, xmax, ymax = rect
     return xmin <= x <= xmax and ymin <= y <= ymax
-
 
 def filter_contours(prediction: np.array, textarea_contour: np.array) -> list[np.array]:
     filtered_contours = []
@@ -725,8 +675,7 @@ def sort_lines_by_threshold(
     lines: list[Line],
     threshold: int = 20,
     calculate_threshold: bool = True,
-    group_lines: bool = True,
-    debug: bool = False,
+    group_lines: bool = True
 ):
     bbox_centers = [x.center for x in lines]
 
@@ -734,9 +683,6 @@ def sort_lines_by_threshold(
         line_treshold = get_line_threshold(line_mask)
     else:
         line_treshold = threshold
-
-    if debug:
-        print(f"Line threshold: {threshold}")
 
     sorted_bbox_centers = sort_bbox_centers(bbox_centers, line_threshold=line_treshold)
 
@@ -762,8 +708,7 @@ def sort_lines_by_threshold2(
     lines: List[Line],
     threshold: int = 20,
     calculate_threshold: bool = True,
-    group_lines: bool = True,
-    debug: bool = False,
+    group_lines: bool = True
 ):
 
     bbox_centers = [x.center for x in lines]
@@ -773,13 +718,7 @@ def sort_lines_by_threshold2(
     else:
         line_treshold = threshold
 
-    if debug:
-        print(f"Line threshold: {threshold}")
-
     sorted_bbox_centers = sort_bbox_centers(bbox_centers, line_threshold=line_treshold)
-
-    if debug:
-        print(sorted_bbox_centers)
 
     if group_lines:
         new_lines = group_line_chunks(sorted_bbox_centers, lines)
@@ -896,7 +835,6 @@ def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tole
 
     while line_img.shape[0] > bbox_h * bbox_tolerance:
         tmp_k = tmp_k - 0.1
-        # print(f"Adjusted k_factor to: {tmp_k}")
         line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
 
     return line_img, tmp_k
@@ -906,7 +844,6 @@ def extract_line_images(image: npt.NDArray, line_data: List[npt.NDArray], defaul
     default_k_factor = default_k
     current_k = default_k_factor
 
-    current_k = default_k_factor
     line_images = []
 
     for _, line in enumerate(line_data):

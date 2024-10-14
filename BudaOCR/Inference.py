@@ -50,7 +50,7 @@ class CTCDecoder:
             self.charset = charset
 
         self.ctc_vocab = self.charset.copy()
-        # self.ctc_vocab.insert(0, " ")
+        self.ctc_vocab.insert(0, " ")
         self.ctc_decoder = build_ctcdecoder(self.ctc_vocab)
 
     def encode(self, label: str):
@@ -300,11 +300,11 @@ class OCRInference:
         return logits
 
     def _decode(self, logits: npt.NDArray) -> str:
-
-        if logits.shape[0] == len(self._characters):
+        if logits.shape[0] == len(self.decoder.ctc_vocab):
             logits = np.transpose(
                 logits, axes=[1, 0]
             )  # adjust logits to have shape time, vocab
+
         text = self.decoder.ctc_decode(logits)
 
         return text
@@ -322,7 +322,6 @@ class OCRInference:
             line_image = np.expand_dims(line_image, axis=1)
 
         logits = self._predict(line_image)
-        print(f"OCR Logits: {logits.shape}")
         text = self._decode(logits)
 
         return text
@@ -360,8 +359,6 @@ class OCRPipeline:
             self.line_inference = None
             self.ready = False
 
-
-
     def update_ocr_model(self, config: OCRModelConfig):
         self.ocr_model_config = config
         self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
@@ -375,7 +372,7 @@ class OCRPipeline:
                 merge_lines: bool = True,
                 use_tps: bool = False,
                 tps_mode: TPSMode = TPSMode.GLOBAL,
-                tps_threshold: float = 0.25) -> Tuple[OpStatus, OCResult | None]:
+                tps_threshold: float = 0.25):
 
         """
         TODO: Reintegrate proper data structures into this
@@ -446,13 +443,6 @@ class OCRPipeline:
                 pred = pred.replace("§", " ")
                 page_text.append(pred)
 
-            ocr_result = OCResult(
-                guid=generate_guid(clock_seq=23),
-                mask=rot_mask,
-                lines=line_data,
-                text=page_text
-            )
-
-            return OpStatus.SUCCESS, ocr_result
+            return OpStatus.SUCCESS, (rot_mask, line_data, page_text)
         else:
             return OpStatus.FAILED, None

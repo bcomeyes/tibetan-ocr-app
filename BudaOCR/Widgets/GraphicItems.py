@@ -15,7 +15,6 @@ class ImagePreview(QGraphicsPixmapItem):
         self.image = Image.open(self.image_path)
         self.lines = lines
         self.guid = uuid.uuid1()
-        #self.current_pos = QPointF(0, 0)
 
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable |
@@ -25,7 +24,6 @@ class ImagePreview(QGraphicsPixmapItem):
         if self.lines is not None and len(self.lines) > 0:
             self.show_preview()
         else:
-            print(f"Showing image on canvas")
             self.show_image()
 
     def show_image(self):
@@ -41,13 +39,14 @@ class ImagePreview(QGraphicsPixmapItem):
 
         color = (255, 100, 0)
 
-        for idx, line in enumerate(self.lines):
-            cv2.drawContours(
-                line_preview, [line.contour], contourIdx=-1, color=color, thickness=4
-            )
-        preview = Image.fromarray(line_preview)
-        q_image = ImageQt(preview)
-        pixmap = QPixmap.fromImage(q_image) # https://pillow.readthedocs.io/en/stable/reference/ImageQt.html
-        self.setPixmap(pixmap)
-        self.is_in_preview = True
-        self.update()
+        if self.lines is not None and len(self.lines) > 0:
+            for idx, line in enumerate(self.lines):
+                cv2.drawContours(
+                    line_preview, [line.contour], contourIdx=-1, color=color, thickness=4
+                )
+            preview = Image.fromarray(line_preview)
+            q_image = ImageQt(preview)
+            pixmap = QPixmap.fromImage(q_image) # https://pillow.readthedocs.io/en/stable/reference/ImageQt.html
+            self.setPixmap(pixmap)
+            self.is_in_preview = True
+            self.update()

@@ -67,6 +67,7 @@ class BudaDataViewModel(QObject):
     def get_data(self) -> Dict[UUID, BudaOCRData]:
         return self._model.data
 
+
     def add_data(self, data: Dict[UUID, BudaOCRData]):
         self.clear_data()
         self._model.add_data(data)
@@ -85,15 +86,19 @@ class BudaDataViewModel(QObject):
         current_data = list(self._model.data.values())
         self.dataAutoSelected.emit(current_data[index])
 
-    def update_ocr_data(self, uuid: UUID, text: List[str]):
+    def update_ocr_data(self, uuid: UUID, text: List[str], silent: bool = False):
         self._model.add_ocr_text(uuid, text)
-        data = self.get_data_by_guid(uuid)
-        self.recordChanged.emit(data)
 
-    def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray):
+        if not silent:
+            data = self.get_data_by_guid(uuid)
+            self.recordChanged.emit(data)
+
+    def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, silent: bool = False):
         self._model.add_page_data(uuid, lines, preview_image)
-        data = self.get_data_by_guid(uuid)
-        self.recordChanged.emit(data)
+
+        if not silent:
+            data = self.get_data_by_guid(uuid)
+            self.recordChanged.emit(data)
 
     def clear_data(self):
         self._model.clear_data()

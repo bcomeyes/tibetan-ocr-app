@@ -9,7 +9,7 @@ class HeaderButton(QPushButton):
             hover_icon: QIcon,
             width: int = 40,
             height: int = 40,
-            object_name: str = "menuButton",
+            object_name: str = "MenuButton",
             parent=None):
 
         super().__init__()

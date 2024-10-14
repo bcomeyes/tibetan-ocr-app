@@ -1,16 +1,19 @@
 import os
-import uuid
+import cv2
 from uuid import UUID
-from typing import Dict, List, Tuple
+from typing import List, Tuple
+
+import pyewts
 from PySide6.QtCore import Qt, QThreadPool, Signal
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog, QLabel, QVBoxLayout, QHBoxLayout, \
     QProgressDialog, QPushButton, QListWidget, QListView, QListWidgetItem, QWidget, QTabWidget, QFormLayout, \
-    QRadioButton, QCheckBox, QProgressBar, QButtonGroup, QLineEdit, QComboBox
+    QRadioButton, QProgressBar, QButtonGroup, QLineEdit, QComboBox
 
-from BudaOCR.Data import BudaOCRData, OCResult, LineDataResult, OCRModel, Theme, AppSettings, OCRSettings, \
-    ExportFormat, Language, Encoding
+from BudaOCR.Data import BudaOCRData, OCResult, OCRModel, Theme, AppSettings, OCRSettings, \
+    ExportFormat, Language, Encoding, OCRSample
+from BudaOCR.Exporter import PageXMLExporter, JsonExporter, TextExporter
 from BudaOCR.Inference import OCRPipeline
-from BudaOCR.Runner import OCRBatchRunner
+from BudaOCR.Runner import OCRBatchRunner, OCRunner
 from BudaOCR.Utils import import_local_models
 
 
@@ -192,6 +195,146 @@ class NotificationDialog(QMessageBox):
                         background-color: #4d4d4d;
                     }
                 """)
+class ExportDialog(QDialog):
+    def __init__(self, ocr_data: List[BudaOCRData], active_exporter: ExportFormat, active_encoding: Encoding):
+        super().__init__()
+        self.ocr_data = ocr_data
+        self.exporter = active_exporter
+        self.encoding = active_encoding
+        self.output_dir = "/"
+        self.main_label = QLabel("Export OCR Data")
+        self.exporter_group, self.exporter_buttons = build_exporter_settings(self.exporter)
+        self.encodings_group, self.encoding_buttons = build_encodings(self.encoding)
+
+        # build layout
+        self.setWindowTitle("BudaOCR Export")
+        self.setMinimumHeight(220)
+        self.setMinimumWidth(600)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+
+        self.export_dir_layout = QHBoxLayout()
+        self.dir_edit = QLineEdit()
+        self.dir_select_btn = QPushButton("Select")
+        self.dir_select_btn.setObjectName("SmallDialogButton")
+        self.export_dir_layout.addWidget(self.dir_edit)
+        self.export_dir_layout.addWidget(self.dir_select_btn)
+
+        encoding_layout = QHBoxLayout()
+        encoding_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        for encoding in self.encoding_buttons:
+            encoding_layout.addWidget(encoding)
+
+        export_layout = QHBoxLayout()
+        export_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        for btn in self.exporter_buttons:
+            export_layout.addWidget(btn)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(len(self.ocr_data) - 1)
+
+        self.button_h_layout = QHBoxLayout()
+        self.ok_btn = QPushButton("Ok")
+        self.ok_btn.setObjectName("DialogButton")
+        self.cancel_btn = QPushButton("Cancel", parent=self)
+        self.cancel_btn.setObjectName("DialogButton")
+
+        self.button_h_layout.addWidget(self.ok_btn)
+        self.button_h_layout.addWidget(self.cancel_btn)
+
+        # bind signals
+        self.ok_btn.clicked.connect(self.export)
+        self.cancel_btn.clicked.connect(self.cancel)
+        self.dir_select_btn.clicked.connect(self.select_export_dir)
+
+        self.v_layout = QVBoxLayout()
+        self.v_layout.addWidget(self.main_label)
+        self.v_layout.addLayout(self.export_dir_layout)
+        self.v_layout.addLayout(encoding_layout)
+        self.v_layout.addLayout(export_layout)
+        self.v_layout.addWidget(self.progress_bar)
+        self.v_layout.addLayout(self.button_h_layout)
+        self.setLayout(self.v_layout)
+
+        self.setStyleSheet(
+            """
+            background-color: #1d1c1c;
+            color: #ffffff;
+
+            QLabel {
+                color: #000000;
+            }
+            """)
+
+    def export(self):
+        if os.path.isdir(self.output_dir):
+            encoding_id = self.encodings_group.checkedId()
+            exporters_id = self.exporter_group.checkedId()
+            #converter = pyewts.pyewts()
+
+            _encoding = Encoding(encoding_id)
+            _exporter = ExportFormat(exporters_id)
+
+            if _exporter == ExportFormat.XML:
+                exporter = PageXMLExporter(self.output_dir)
+
+                for idx, data in self.ocr_data.items():
+                    img = cv2.imread(data.image_path)
+                    exporter.export_lines(
+                        img,
+                        data.image_name,
+                        data.lines,
+                        data.ocr_text
+                    )
+                    self.progress_bar.setValue(idx)
+
+            elif _exporter == ExportFormat.JSON:
+                exporter = JsonExporter(self.output_dir)
+
+                for idx, data in self.ocr_data.items():
+                    img = cv2.imread(data.image_path)
+                    lines = len(data.lines)
+
+                    if len(lines) > 0:
+                        exporter.export_lines(
+                            img,
+                            data.image_name,
+                            data.lines,
+                            data.ocr_text
+                        )
+                    self.progress_bar.setValue(idx)
+            else:
+                exporter = TextExporter(self.output_dir)
+
+                for idx, data in self.ocr_data.items():
+                    exporter.export_text(
+                        data.image_name,
+                        data.ocr_text
+                    )
+                    self.progress_bar.setValue(idx)
+
+        else:
+            dialog = NotificationDialog("Invalid Export Directory", "The selected output directory is not valid.")
+            dialog.exec()
+
+    def cancel(self):
+        self.reject()
+
+    def select_export_dir(self):
+        dialog = ImportDirDialog()
+        selected_dir = dialog.exec()
+
+        if selected_dir == 1:
+            _selected_dir = dialog.selectedFiles()[0]
+
+            if os.path.isdir(_selected_dir):
+                self.dir_edit.setText(_selected_dir)
+                self.output_dir=_selected_dir
+        else:
+            note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
+            note_dialog.exec()
 
 
 class ModelListWidget(QWidget):
@@ -221,6 +364,7 @@ class ModelListWidget(QWidget):
             color: #ffffff;
             width: 80%;
         """)
+
 
 class ModelEntryWidget(QWidget):
     def __init__(self, guid: UUID, title: str, encoder: str, architecture: str):
@@ -397,7 +541,6 @@ class SettingsDialog(QDialog):
         self.ocr_settings_tab.setStyleSheet("""
                     background-color: #172832;
                     border-radius: 4px;
-
                 """)
 
         form_layout = QFormLayout()
@@ -435,7 +578,6 @@ class SettingsDialog(QDialog):
         form_layout.addRow(export_label, export_layout)
         self.ocr_settings_tab.setLayout(form_layout)
 
-
         # build entire Layout
         self.settings_tabs.addTab(self.general_settings_tab, "General")
         self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
@@ -446,7 +588,9 @@ class SettingsDialog(QDialog):
 
         self.button_h_layout = QHBoxLayout()
         self.ok_btn = QPushButton("Ok")
-        self.cancel_btn = QPushButton("Cancel")
+        self.ok_btn.setObjectName("DialogButton")
+        self.cancel_btn = QPushButton("Cancel", parent=self)
+        self.cancel_btn.setObjectName("DialogButton")
 
         self.button_h_layout.addWidget(self.ok_btn)
         self.button_h_layout.addWidget(self.cancel_btn)
@@ -470,33 +614,6 @@ class SettingsDialog(QDialog):
                 }
                 
         """)
-        self.ok_btn.setStyleSheet(
-            """
-                QPushButton {
-                    margin-top: 15px;
-                    background-color: #A40021;
-                    border-radius: 4px;
-                    height: 24;
-                }
-
-                QPushButton::hover {
-                    color: #ffad00;
-                }
-            """)
-
-        self.cancel_btn.setStyleSheet(
-            """
-                QPushButton {
-                    margin-top: 15px;
-                    background-color: #A40021;
-                    border-radius: 4px;
-                    height: 24;
-                }
-
-                QPushButton::hover {
-                    color: #ffad00;
-                }
-            """)
 
         self.setStyleSheet(
             """
@@ -594,19 +711,24 @@ class SettingsDialog(QDialog):
 
         return self.app_settings, self.ocr_settings
 
+
 class BatchOCRDialog(QDialog):
+    sign_ocr_result = Signal(OCResult)
+
     def __init__(self, data: List[BudaOCRData], ocr_pipeline: OCRPipeline, ocr_models: List[OCRModel], ocr_settings: OCRSettings, threadpool: QThreadPool):
         super().__init__()
+        self.setObjectName("BatchOCRDialog")
         self.data = data
         self.pipeline = ocr_pipeline
         self.ocr_models = ocr_models
         self.ocr_settings = ocr_settings
         self.threadpool = threadpool
         self.runner = None
+        self.output_dir = ""
 
         self.setMinimumWidth(600)
         self.setMaximumWidth(1200)
-        self.setFixedHeight(280)
+        self.setFixedHeight(340)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         self.progress_bar = QProgressBar()
@@ -614,7 +736,9 @@ class BatchOCRDialog(QDialog):
         self.progress_bar.setMaximum(len(self.data)-1)
 
         self.start_process_btn = QPushButton("Start")
+        self.start_process_btn.setObjectName("SmallDialogButton")
         self.cancel_process_btn = QPushButton("Cancel")
+        self.cancel_process_btn.setObjectName("SmallDialogButton")
 
         # settings elements
         # Exports
@@ -623,7 +747,6 @@ class BatchOCRDialog(QDialog):
         self.dewarp_group, self.dewarp_buttons = build_binary_selection(self.ocr_settings.dewarping)
 
         # build layout
-
         self.progress_layout = QHBoxLayout()
         self.progress_layout.addWidget(self.progress_bar)
         self.progress_layout.addWidget(self.start_process_btn)
@@ -643,9 +766,10 @@ class BatchOCRDialog(QDialog):
 
         self.export_dir_layout = QHBoxLayout()
         self.dir_edit = QLineEdit()
-        self.dir_select = QPushButton("select")
+        self.dir_select_btn = QPushButton("select")
+        self.dir_select_btn.setObjectName("SmallDialogButton")
         self.export_dir_layout.addWidget(self.dir_edit)
-        self.export_dir_layout.addWidget(self.dir_select)
+        self.export_dir_layout.addWidget(self.dir_select_btn)
 
         self.form_layout = QFormLayout()
         self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -662,7 +786,6 @@ class BatchOCRDialog(QDialog):
                 self.model_selection.addItem(model.name)
 
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
-
 
         encoding_layout = QHBoxLayout()
         for btn in self.encoding_buttons:
@@ -687,6 +810,7 @@ class BatchOCRDialog(QDialog):
         self.status_layout.addWidget(self.status)
 
         self.v_layout.addWidget(self.label)
+        self.v_layout.addWidget(self.model_selection)
         self.v_layout.addLayout(self.export_dir_layout)
         self.v_layout.addLayout(self.form_layout)
         self.v_layout.addLayout(self.progress_layout)
@@ -695,22 +819,15 @@ class BatchOCRDialog(QDialog):
         self.setLayout(self.v_layout)
 
         # bind signals
-        self.dir_select.clicked.connect(self.select_export_dir)
+        self.dir_select_btn.clicked.connect(self.select_export_dir)
         self.start_process_btn.clicked.connect(self.start_process)
         self.cancel_process_btn.clicked.connect(self.cancel_process)
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
-
         self.setStyleSheet("""
             background-color: #1d1c1c;
             color: #ffffff;
-            
-            QPushButton {
-                color: #ffffff;
-                border-radius: 4px;
-                background-color: #961921; 
-            }
         
         """)
 
@@ -723,6 +840,7 @@ class BatchOCRDialog(QDialog):
 
             if os.path.isdir(_selected_dir):
                 self.dir_edit.setText(_selected_dir)
+                self.output_dir=_selected_dir
         else:
             note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
             note_dialog.exec()
@@ -736,16 +854,20 @@ class BatchOCRDialog(QDialog):
 
         self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
         self.runner.signals.sample.connect(self.handle_update_progress)
-        self.runner.signals.batch_ocr_result.connect(self.handle_ocr_result)
         self.runner.signals.finished.connect(self.finish)
         self.threadpool.start(self.runner)
         self.status.setText("Running")
 
-    def handle_update_progress(self, value: int):
-        self.progress_bar.setValue(value)
+    def handle_update_progress(self, sample: OCRSample):
+        self.progress_bar.setValue(sample.cnt)
+        file_name = self.data[sample.cnt].image_name
+        out_file = os.path.join(self.output_dir, f"{file_name}.txt")
 
-    def handle_ocr_result(self, result: Dict[UUID, OCResult]):
-        print(f"Got OCR Result: {result}")
+        with open(out_file, "w", encoding="utf-8") as f:
+            for line in sample.result.text:
+                f.write(f"{line}\n")
+
+        self.sign_ocr_result.emit(sample.result)
 
     def finish(self):
         print(f"Thread Completed")
@@ -756,23 +878,25 @@ class BatchOCRDialog(QDialog):
         if self.runner is not None:
             self.runner.stop = True
 
-
-class OCRBatchProgress(QProgressDialog):
-    sign_line_result = Signal(LineDataResult)
+class OCRDialog(QProgressDialog):
     sign_ocr_result = Signal(OCResult)
 
-    def __init__(self, data: list[BudaOCRData], pool: QThreadPool):
-        super(OCRBatchProgress, self).__init__()
+    def __init__(self, pipeline: OCRPipeline, settings: OCRSettings, data: BudaOCRData, pool: QThreadPool):
+        super(OCRDialog, self).__init__()
         self.setObjectName("OCRDialog")
         self.setMinimumWidth(500)
         self.setWindowTitle("OCR Progress")
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setMinimum(0)
         self.setMaximum(0)
-
+        self.pipeline = pipeline
+        self.settings = settings
         self.data = data
         self.pool = pool
+        self.runner = None
+        self.result = None
 
+        # build layout
         self.start_btn = QPushButton("Start")
         self.cancel_btn = QPushButton("Cancel")
 
@@ -811,29 +935,20 @@ class OCRBatchProgress(QProgressDialog):
         self.show()
 
     def exec(self):
-        """
-        runner = OCRunner(self.data, self.line_detection, self.layout_detection, self.line_mode)
-        runner.signals.sample.connect(self.handle_update_progress)
-        runner.signals.error.connect(self.close)
-        runner.signals.line_result.connect(self.handle_line_result)
+        print(f"Running Async OCR")
+        runner = OCRunner(self.data, self.pipeline, self.settings)
+        runner.signals.error.connect(self.handle_error)
         runner.signals.ocr_result.connect(self.handle_ocr_result)
         runner.signals.finished.connect(self.thread_complete)
         self.pool.start(runner)
-        """
-
-    def handle_update_progress(self, value: int):
-        print(f"Processing sample: {value}")
 
     def handle_error(self, error: str):
         print(f"Encountered Error: {error}")
 
     def handle_ocr_result(self, result: OCResult):
-        #self.sign_sam_result.emit(result)
-        pass
-
-    def handle_line_result(self, result: LineDataResult):
-        #self.sign_batch_result.emit(result)
-        pass
+        print(f"Handling ocr result: {result}")
+        self.sign_ocr_result.emit(result)
 
     def thread_complete(self):
-        self.close()
+        print(f"Thread Complete")
+        #self.close()

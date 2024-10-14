@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from xml.dom import minidom
 import xml.etree.ElementTree as etree
-from BudaOCR.Data import BBox, Line, LineData
+from BudaOCR.Data import BBox, Line
 from BudaOCR.Utils import (
     get_text_bbox,
     get_utc_time,
@@ -22,13 +22,6 @@ class Exporter:
         self.converter = pyewts.pyewts()
         logging.info("Init Exporter")
 
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        return (
-            hasattr(subclass, "export_layout")
-            and callable(subclass.export_layout)
-            or NotImplemented
-        )
 
     @classmethod
     def __subclasshook__(cls, subclass):
@@ -39,14 +32,8 @@ class Exporter:
         )
 
     @abc.abstractmethod
-    def export_layout(
-        self,
-        image: npt.NDArray,
-        image_name: str,
-        layout_data: LayoutData,
-        text_lines: list[str],
-    ):
-        """Builds the characters et for encoding the labels."""
+    def export_text(self, image_name: str, text_lines: List[str]):
+        """ Exports only the text lines """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -54,10 +41,10 @@ class Exporter:
         self,
         image: npt.NDArray,
         image_name: str,
-        line_data: LineData,
-        text_lines: list[str],
+        line_data: List[Line],
+        text_lines: List[str],
     ):
-        """Builds the characters et for encoding the labels."""
+        """ Exports text lines and line informations """
         raise NotImplementedError
 
     @staticmethod
@@ -257,6 +244,34 @@ class PageXMLExporter(Exporter):
 
         with open(out_file, "w", encoding="UTF-8") as f:
             f.write(xml_doc)
+
+class TextExporter(Exporter):
+    def __init__(self, output_dir: str) -> None:
+        super().__init__(output_dir)
+        logging.info("Init Text Exporter")
+
+    def export_lines(
+            self,
+            image: np.array,
+            image_name: str,
+            lines: List[Line],
+            text_lines: list[str],
+            optimize: bool = True,
+            bbox: bool = False,
+            angle: float = 0.0):
+
+        out_file = f"{self.output_dir}/{image_name}.txt"
+
+        with open(out_file, "w", encoding="UTF-8") as f:
+            for _line in text_lines:
+                f.write(f"{_line}\n")
+
+    def export_text(self, image_name: str, lines: List[str]):
+        out_file = f"{self.output_dir}/{image_name}.txt"
+
+        with open(out_file, "w", encoding="UTF-8") as f:
+            for _line in lines:
+                f.write(f"{_line}\n")
 
 
 class JsonExporter(Exporter):

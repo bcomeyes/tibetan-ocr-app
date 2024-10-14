@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QLineEdit,
     QListWidgetItem,
+    QLayout,
     QVBoxLayout,
     QHBoxLayout,
     QGraphicsScene,
@@ -49,6 +50,7 @@ class HeaderTools(QWidget):
 
     def __init__(self, data_view: BudaDataViewModel, settings_view: BudaSettingsViewModel, icon_size: int = 48):
         super().__init__()
+        self.setObjectName("HeaderTools")
         self.data_view = data_view
         self.settings_view = settings_view
         self.toolbox = ToolBox(ocr_models=self.settings_view.get_ocr_models(), icon_size=icon_size)
@@ -60,6 +62,7 @@ class HeaderTools(QWidget):
         # build layout
         self.spacer = QLabel()
         self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.layout.addWidget(self.toolbox)
         self.layout.addWidget(self.page_switcher)
         self.layout.addWidget(self.spacer)
@@ -89,7 +92,7 @@ class ToolBox(QFrame):
         self.ocr_models = ocr_models
 
         self.setFixedHeight(74)
-        self.setMinimumWidth(640)
+        self.setMinimumWidth(720)
         self.icon_size = icon_size
 
         self.new_btn_icon = QIcon("Assets/Themes/Dark/new_light.png")
@@ -154,12 +157,7 @@ class ToolBox(QFrame):
 
         # model selection
         self.model_selection = QComboBox()
-
-        self.model_selection.setStyleSheet("""
-                background: #434343;
-                border: 2px solid #ced4da;
-                border-radius: 4px;
-            """)
+        self.model_selection.setObjectName("ModelSelection")
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -170,7 +168,12 @@ class ToolBox(QFrame):
 
         # build layout
         self.layout = QHBoxLayout()
-        self.spacer = QLabel()
+        self.layout.setSizeConstraint(
+           QLayout.SizeConstraint.SetMinimumSize)
+
+        self.layout.setSpacing(14)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         self.layout.addWidget(self.btn_new)
         self.layout.addWidget(self.btn_import)
         self.layout.addWidget(self.btn_save)
@@ -178,19 +181,8 @@ class ToolBox(QFrame):
         self.layout.addWidget(self.btn_run_all)
         self.layout.addWidget(self.btn_settings)
         self.layout.addWidget(self.model_selection)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.layout)
 
-        # TODO: move this to global style definition
-        self.setStyleSheet(
-            """
-                color: #ffffff;
-                background-color: #100F0F;
-                border: 2px solid #100F0F; 
-                border-radius: 8px;
-                    
-        """
-        )
+        self.setLayout(self.layout)
 
         # hook up button clicks
         self.btn_new.clicked.connect(self.new)
@@ -234,6 +226,7 @@ class PageSwitcher(QFrame):
 
     def __init__(self, pages: int = 0, icon_size: int = 40):
         super().__init__()
+        self.setObjectName("PageSwitcher")
         self.icon_size = icon_size
         self.setFixedHeight(74)
         self.setMaximumSize(264, 74)
@@ -244,13 +237,9 @@ class PageSwitcher(QFrame):
 
         self.current_page = QLineEdit()
         self.current_page.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.current_page.setStyleSheet(
-            """
-            border: 1px solid white;
-        """
-        )
-
+        self.current_page.setObjectName("PageSelector")
         self.current_page.setFixedSize(100, 40)
+
         self.prev_btn_icon = QIcon("Assets/Themes/Dark/prev.png")
         self.prev_btn_icon_hover = QIcon("Assets/Themes/Dark/prev_hover.png")
         self.next_btn_icon = QIcon("Assets/Themes/Dark/next.png")
@@ -279,14 +268,6 @@ class PageSwitcher(QFrame):
         self.prev_button.clicked.connect(self.prev)
         self.next_button.clicked.connect(self.next)
 
-        self.setStyleSheet(
-            """
-            color: #ffffff;
-            background-color: #100F0F;
-            border: 2px solid #100F0F; 
-            border-radius: 8px;
-        """
-        )
 
     def update_page(self, index: int):
         self.current_index = index
@@ -331,22 +312,25 @@ class PTGraphicsView(QGraphicsView):
         self.horizontalScrollBar().setSliderPosition(1)
 
         self.v_scrollbar = QScrollBar(self)
+        self.v_scrollbar.setObjectName("VerticalScrollBar")
         self.h_scrollbar = QScrollBar(self)
+        self.v_scrollbar.setObjectName("HorizontalScrollbar")
 
         self.setVerticalScrollBar(self.v_scrollbar)
         self.setHorizontalScrollBar(self.h_scrollbar)
 
         self.v_scrollbar.setStyleSheet(
             """
+
             QScrollBar:vertical {
                 border: none;
-                background: rgb(45, 45, 68);
+                background: #2d2d46;
                 width: 25px;
                 margin: 10px 5px 15px 10px;
                 border-radius: 0px;
              }
-            
-            QScrollBar::handle:vertical {
+
+            QScrollBar::handle:vertical {	
                 border: 2px solid #A40021;
                 background-color: #A40021;
                 min-height: 30px;
@@ -358,29 +342,29 @@ class PTGraphicsView(QGraphicsView):
             QScrollBar::handle:vertical:pressed {	
                 background-color: #C80021;
             }
-            
+
             QScrollBar::sub-line:vertical {
                 height: 0px;
             }
-           
+
             QScrollBar::add-line:vertical {
                 height: 0px;
             }
-            
+
             QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
                 background: none;
             }
             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 background: none;
             }
-            
             """
         )
+
         self.h_scrollbar.setStyleSheet(
             """
             QScrollBar:horizontal {
-               border: none;
-                background: rgb(45, 45, 68);
+                border: none;
+                background: #2d2d46;
                 height: 30px;
                 margin: 10px 10px 10px 10px;
                 border-radius: 0px;
@@ -407,6 +391,7 @@ class PTGraphicsView(QGraphicsView):
             }
         """
         )
+
 
     def enable_rubberband(self):
         self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
@@ -566,11 +551,21 @@ class Canvas(QFrame):
     def set_preview(self, data: BudaOCRData):
         self.view.reset_scaling()
         scene_rect = self.view.sceneRect()
-
         _last_pos = self.gr_scene.get_current_item_pos()
+
         self.gr_scene.clear()
         preview_item = ImagePreview(data.image_path, data.lines)
-        preview_item.setPos(_last_pos)
+
+        if int(_last_pos.x()) == 0 and int(_last_pos.y()) == 0:
+            target_x = (scene_rect.width() // 4)
+            target_y = (scene_rect.height() // 4)
+
+            center_pos = QPointF(target_x, target_y)
+            print(f"Moving item to center: {center_pos}")
+            preview_item.setPos(center_pos)
+        else:
+            preview_item.setPos(_last_pos)
+
         self.gr_scene.add_item(preview_item, 1)
 
     def handle_preview_toggle(self):
@@ -913,6 +908,7 @@ class ImageGallery(QFrame):
         self.setContentsMargins(0, 0, 0, 0)
         # build layout
         self.image_label = QLabel(self)
+        self.image_label.setContentsMargins(6, 0, 0, 0)
         self.image_pixmap = QPixmap("Assets/Themes/Dark/BDRC_Logo.png").scaled(
             QSize(140, 90), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
         )

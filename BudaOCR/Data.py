@@ -9,11 +9,11 @@ class OpStatus(Enum):
     SUCCESS = 0
     FAILED = 1
 
+
 class Platform(Enum):
     Windows = 0
     Mac = 1
     Linux = 2
-
 
 class Encoding(Enum):
     Unicode = 0
@@ -73,12 +73,6 @@ class ScreenData:
     start_height: int
     start_x: int
     start_y: int
-
-
-@dataclass
-class OCRSettings:
-    k_factor: float
-
 
 @dataclass
 class BBox:
@@ -165,6 +159,13 @@ class OCResult:
     mask: npt.NDArray
     lines: List[Line]
     text: List[str]
+
+@dataclass
+class OCRSample:
+    cnt: int
+    guid: UUID
+    name: str
+    result: OCResult
 
 
 @dataclass
