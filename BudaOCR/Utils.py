@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 from PIL import Image, ImageOps
 from tps import ThinPlateSpline
-from typing import List, Tuple, Optional, Sequence
+from typing import List, Tuple, Optional, Sequence, Dict
 
 from BudaOCR.Config import OCRARCHITECTURE, CHARSETENCODER
 from BudaOCR.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
@@ -200,6 +200,9 @@ def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tole
     return line_img, tmp_k
 
 
+
+
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -212,11 +215,11 @@ def run_tps(image: npt.NDArray, input_pts, output_pts, add_corners=True, alpha=0
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         height, width, _ = image.shape
 
-    input_pts = np.array(input_pts)
-    output_pts = np.array(output_pts)
+    input_pts = npt.NDArray(input_pts)
+    output_pts = npt.NDArray(output_pts)
 
     if add_corners:
-        corners = np.array(  # Add corners ctrl points
+        corners = npt.NDArray(  # Add corners ctrl points
         [
             [0.0, 0.0],
             [1.0, 0.0],
@@ -284,8 +287,8 @@ def get_line_images_via_local_tps(image: npt.NDArray, line_data: list, k_factor:
 
 
 def get_text_area(
-    image: np.array, prediction: np.array
-) -> tuple[np.array, BBox] | tuple[None, None, None]:
+    image: np.array, prediction: npt.NDArray
+) -> Tuple[np.array, BBox] | Tuple[None, None, None]:
     dil_kernel = np.ones((12, 2))
     dil_prediction = cv2.dilate(prediction, kernel=dil_kernel, iterations=10)
 
@@ -358,7 +361,7 @@ def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     return image_masked
 
 def calculate_rotation_angle_from_lines(
-    line_mask: np.array,
+    line_mask: npt.NDArray,
     max_angle: float = 5.0,
     debug_angles: bool = False,
 ) -> float:
@@ -381,7 +384,7 @@ def calculate_rotation_angle_from_lines(
         mean_angle = -(90 - np.mean(high_angles))
 
     else:
-        mean_angle = 0
+        mean_angle = 0.0
 
     return mean_angle
 
@@ -686,9 +689,6 @@ def sort_lines_by_threshold(
 
     sorted_bbox_centers = sort_bbox_centers(bbox_centers, line_threshold=line_treshold)
 
-    if debug:
-        print(sorted_bbox_centers)
-
     if group_lines:
         new_lines = group_line_chunks(sorted_bbox_centers, lines)
     else:
@@ -839,8 +839,7 @@ def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tole
 
     return line_img, tmp_k
 
-
-def extract_line_images(image: npt.NDArray, line_data: List[npt.NDArray], default_k: float = 1.7, bbox_tolerance: float = 2.5):
+def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 2.5):
     default_k_factor = default_k
     current_k = default_k_factor
 
@@ -867,8 +866,8 @@ def normalize(image: npt.NDArray) -> npt.NDArray:
 
 
 def binarize(
-        img: np.array, adaptive: bool = True, block_size: int = 51, c: int = 13
-) -> np.array:
+        img: npt.NDArray, adaptive: bool = True, block_size: int = 51, c: int = 13
+) -> npt.NDArray:
     line_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
     if adaptive:
@@ -909,7 +908,7 @@ def pad_to_width(img: np.array, target_width: int, target_height: int, padding: 
     return out_img
 
 
-def pad_to_height(img: np.array, target_width: int, target_height: int, padding: str) -> np.array:
+def pad_to_height(img: npt.NDArray, target_width: int, target_height: int, padding: str) -> npt.NDArray:
     height, _, channels = img.shape
     tmp_img, ratio = resize_to_height(img, target_height)
 
@@ -933,10 +932,10 @@ def pad_to_height(img: np.array, target_width: int, target_height: int, padding:
 
 
 def pad_ocr_line(
-        img: np.array,
-        target_width: int = 2000,
+        img: npt.NDArray,
+        target_width: int = 3000,
         target_height: int = 80,
-        padding: str = "black") -> np.array:
+        padding: str = "black") -> npt.NDArray:
 
     width_ratio = target_width / img.shape[1]
     height_ratio = target_height / img.shape[0]
@@ -1015,13 +1014,13 @@ def read_ocr_model_config(config_file: str):
 
 
 def create_preview_image(
-            image: np.array,
-            image_predictions: Optional,
-            line_predictions: Optional,
-            caption_predictions: Optional,
-            margin_predictions: Optional,
+            image: npt.NDArray,
+            image_predictions: Optional[List],
+            line_predictions: Optional[List],
+            caption_predictions: Optional[List],
+            margin_predictions: Optional[List],
             alpha: float = 0.4,
-    ) -> np.array:
+    ) -> npt.NDArray:
         mask = np.zeros(image.shape, dtype=np.uint8)
 
         if image_predictions is not None and len(image_predictions) > 0:
@@ -1061,7 +1060,7 @@ def create_preview_image(
         return image
 
 
-def get_global_tps_line(line_data: dict):
+def get_global_tps_line(line_data: List):
     """
     A simple approach to the most representative curved line in the image assuming that the overall distortion is relatively uniform
     """
@@ -1213,7 +1212,7 @@ def check_for_tps(image: npt.NDArray, line_contours: List[npt.NDArray]):
 
     return ratio, line_data
 
-def prepare_ocr_line(image: np.array, target_width: int = 2000, target_height: int = 80):
+def prepare_ocr_line(image: npt.NDArray, target_width: int = 3200, target_height: int = 80):
     line_image = pad_ocr_line(image)
     line_image = cv2.cvtColor(line_image, cv2.COLOR_BGR2GRAY)
     line_image = line_image.reshape((1, target_height, target_width))
@@ -1221,16 +1220,3 @@ def prepare_ocr_line(image: np.array, target_width: int = 2000, target_height: i
     line_image = line_image.astype(np.float32)
 
     return line_image
-
-def generate_alpha_mask(mask: Image.Image):
-    mask = mask.convert("L")
-    alpha_mask = ImageOps.colorize(mask, black="red", white="black")
-    alpha_mask = alpha_mask.convert("RGBA")
-    array = np.array(alpha_mask, dtype=np.ubyte)
-    mask = (array[:, :, :3] == (0, 0, 0)).all(axis=2)
-    alpha = np.where(mask, 0, 255)
-    array[:, :, -1] = alpha
-    alpha_mask = Image.fromarray(np.ubyte(array))
-    alpha_mask.putalpha(128)
-
-    return alpha_mask

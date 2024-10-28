@@ -1,48 +1,61 @@
-from PySide6.QtGui import QIcon, QEnterEvent
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon, QEnterEvent, QPixmap, QColor
 from PySide6.QtWidgets import QPushButton
 
 
 class HeaderButton(QPushButton):
     def __init__(
             self,
-            normal_icon: QIcon,
-            hover_icon: QIcon,
+            hint: str,
+            icon_path: str,
             width: int = 40,
             height: int = 40,
             object_name: str = "MenuButton",
+
             parent=None):
 
         super().__init__()
         self.parent = parent
         self.setObjectName(object_name)
-        self.normal_icon = normal_icon
-        self.hover_icon = hover_icon
-        self.active_icon = self.hover_icon
+        self.width = width
+        self.height = height
+        self._icon_path = icon_path
+        self.hint = hint
+        self._pixmap = QPixmap(self._icon_path)
 
-        self.setFixedWidth(width)
-        self.setFixedHeight(height)
-
-        self.setIcon(self.normal_icon)
+        self.setFixedWidth(self.width)
+        self.setFixedHeight(self.height)
+        self.setToolTip(self.hint)
+        self.default_color = "#ffffff"
+        self.highlight_color = "#F2CD9B"
         self.is_active = False
 
-    def set_icon(self, icon: QIcon) -> None:
-        self.normal_icon = icon
-        self.setIcon(icon)
+        self.set_default_icon()
 
-    def set_hover_icon(self, icon: QIcon) -> None:
-        self.hover_icon = icon
+    def set_hover_icon(self) -> None:
+        mask = self._pixmap.createMaskFromColor(QColor('transparent'), Qt.MaskMode.MaskInColor)
+        self._pixmap.fill((QColor(self.highlight_color)))
+        self._pixmap.setMask(mask)
+        self.setIcon(QIcon(self._pixmap))
+
+    def set_default_icon(self):
+        mask = self._pixmap.createMaskFromColor(QColor('transparent'), Qt.MaskMode.MaskInColor)
+        self._pixmap.fill((QColor('white')))
+        self._pixmap.setMask(mask)
+
+        self.setIcon(QIcon(self._pixmap))
 
     def activate(self) -> None:
         self.is_active = True
-        self.setIcon(self.hover_icon)
+        self.set_default_icon()
 
     def deactivate(self) -> None:
         self.is_active = False
-        self.setIcon(self.normal_icon)
+        self.set_default_icon()
 
     def enterEvent(self, event):
         if isinstance(event, QEnterEvent):
-            self.setIcon(self.hover_icon)
+            self.set_hover_icon()
             return super().enterEvent(event)
 
     def leaveEvent(self, event):
@@ -52,5 +65,5 @@ class HeaderButton(QPushButton):
         """
         if event.type() == 11:
             if not self.is_active:
-                self.setIcon(self.normal_icon)
+                self.set_default_icon()
             return super().leaveEvent(event)

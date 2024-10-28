@@ -109,7 +109,6 @@ class ThemeData:
     RunButton: str
     SettingsButton: str
 
-
 @dataclass
 class BudaOCRData:
     guid: UUID

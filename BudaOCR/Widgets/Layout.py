@@ -5,7 +5,6 @@ from typing import List
 
 from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF
 from PySide6.QtGui import (
-    QIcon,
     QBrush,
     QColor,
     QPen,
@@ -46,7 +45,8 @@ from BudaOCR.Widgets.Dialogs import ImportFilesDialog
 from BudaOCR.Widgets.GraphicItems import ImagePreview
 
 
-class HeaderTools(QWidget):
+
+class HeaderTools(QFrame):
 
     def __init__(self, data_view: BudaDataViewModel, settings_view: BudaSettingsViewModel, icon_size: int = 48):
         super().__init__()
@@ -62,10 +62,12 @@ class HeaderTools(QWidget):
         # build layout
         self.spacer = QLabel()
         self.layout = QHBoxLayout()
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.layout.addWidget(self.toolbox)
         self.layout.addWidget(self.page_switcher)
         self.layout.addWidget(self.spacer)
+
+        self.layout.setContentsMargins(0, 10, 10, 10)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.setLayout(self.layout)
 
     def update_page_count(self, amount: int):
@@ -76,7 +78,7 @@ class HeaderTools(QWidget):
         self.page_switcher.update_page(_index)
 
 
-class ToolBox(QFrame):
+class ToolBox(QWidget):
     sign_new = Signal()
     sign_import_files = Signal(list)
     sign_save = Signal()
@@ -95,62 +97,51 @@ class ToolBox(QFrame):
         self.setMinimumWidth(720)
         self.icon_size = icon_size
 
-        self.new_btn_icon = QIcon("Assets/Themes/Dark/new_light.png")
-        self.new_btn_icon_hover = QIcon("Assets/Themes/Dark/new_hover.png")
-
-        self.import_btn_icon = QIcon("Assets/Themes/Dark/import.png")
-        self.import_btn_icon_hover = QIcon("Assets/Themes/Dark/import_hover.png")
-
-        self.save_btn_icon = QIcon("Assets/Themes/Dark/save-disc.png")
-        self.save_btn_icon_hover = QIcon("Assets/Themes/Dark/save-disc_hover.png")
-
-        self.run_btn_icon = QIcon("Assets/Themes/Dark/play_light.png")
-        self.run_btn_icon_hover = QIcon("Assets/Themes/Dark/play_light_hover.png")
-
-        self.run_all_btn_icon = QIcon("Assets/Themes/Dark/play_all_light.png")
-        self.run_all_btn_icon_hover = QIcon("Assets/Themes/Dark/play_all_light.png")
-
-        self.settings_btn_icon = QIcon("Assets/Themes/Dark/settings.png")
-        self.settings_btn_icon_hover = QIcon("Assets/Themes/Dark/settings_hover.png")
+        self.new_btn_icon = "Assets/Textures/new_light.png"
+        self.import_btn_icon = "Assets/Textures/import.png"
+        self.save_btn_icon = "Assets/Textures/save-disc.png"
+        self.run_btn_icon = "Assets/Textures/play_light.png"
+        self.run_all_btn_icon = "Assets/Textures/play_all_light.png"
+        self.settings_btn_icon = "Assets/Textures/settings.png"
 
         self.btn_new = HeaderButton(
+            "New Project",
             self.new_btn_icon,
-            self.new_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.btn_import = HeaderButton(
+            "Import",
             self.import_btn_icon,
-            self.import_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.btn_save = HeaderButton(
+            "Save",
             self.save_btn_icon,
-            self.save_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.btn_run = HeaderButton(
+            "Run OCR",
             self.run_btn_icon,
-            self.run_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.btn_run_all = HeaderButton(
+            "Run OCR on all images",
             self.run_all_btn_icon,
-            self.run_all_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.btn_settings = HeaderButton(
+            "Settings",
             self.settings_btn_icon,
-            self.settings_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
@@ -171,9 +162,16 @@ class ToolBox(QFrame):
         self.layout.setSizeConstraint(
            QLayout.SizeConstraint.SetMinimumSize)
 
-        self.layout.setSpacing(14)
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        #self.layout.setSpacing(14)
+        # hook up button clicks
+        self.btn_new.clicked.connect(self.new)
+        self.btn_import.clicked.connect(self.load_image)
+        self.btn_save.clicked.connect(self.save)
+        self.btn_run.clicked.connect(self.run)
+        self.btn_run_all.clicked.connect(self.run_all)
+        self.btn_settings.clicked.connect(self.settings)
 
+        # build layout
         self.layout.addWidget(self.btn_new)
         self.layout.addWidget(self.btn_import)
         self.layout.addWidget(self.btn_save)
@@ -182,15 +180,10 @@ class ToolBox(QFrame):
         self.layout.addWidget(self.btn_settings)
         self.layout.addWidget(self.model_selection)
 
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.layout.setContentsMargins(10, 0, 0, 0)
         self.setLayout(self.layout)
 
-        # hook up button clicks
-        self.btn_new.clicked.connect(self.new)
-        self.btn_import.clicked.connect(self.load_image)
-        self.btn_save.clicked.connect(self.save)
-        self.btn_run.clicked.connect(self.run)
-        self.btn_run_all.clicked.connect(self.run_all)
-        self.btn_settings.clicked.connect(self.settings)
 
     def new(self):
         self.sign_new.emit()
@@ -221,7 +214,7 @@ class ToolBox(QFrame):
         self.sign_on_select_model.emit(self.ocr_models[index])
 
 
-class PageSwitcher(QFrame):
+class PageSwitcher(QWidget):
     sign_on_page_changed = Signal(int)
 
     def __init__(self, pages: int = 0, icon_size: int = 40):
@@ -240,21 +233,19 @@ class PageSwitcher(QFrame):
         self.current_page.setObjectName("PageSelector")
         self.current_page.setFixedSize(100, 40)
 
-        self.prev_btn_icon = QIcon("Assets/Themes/Dark/prev.png")
-        self.prev_btn_icon_hover = QIcon("Assets/Themes/Dark/prev_hover.png")
-        self.next_btn_icon = QIcon("Assets/Themes/Dark/next.png")
-        self.next_btn_icon_hover = QIcon("Assets/Themes/Dark/next_hover.png")
+        self.prev_btn_icon = "Assets/Textures/prev.png"
+        self.next_btn_icon = "Assets/Textures/next.png"
 
         self.prev_button = HeaderButton(
+            "Previous image",
             self.prev_btn_icon,
-            self.prev_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
 
         self.next_button = HeaderButton(
+            "Next image",
             self.next_btn_icon,
-            self.next_btn_icon_hover,
             width=self.icon_size,
             height=self.icon_size,
         )
@@ -411,6 +402,7 @@ class PTGraphicsView(QGraphicsView):
         self.resetTransform()
         self.current_zoom_step = self.default_zoom_step
 
+
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
             if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
@@ -494,32 +486,41 @@ class Canvas(QFrame):
         self.view = PTGraphicsView(self.gr_scene)
         self.view.setScene(self.gr_scene)
 
-        self.toggle_prev_btn_icon = QIcon("Assets/Themes/Dark/Ui_TogglePreview_BTN.png")
-        self.toggle_prev_hover = QIcon("Assets/Themes/Dark/Ui_TogglePreview_BTN_hover.png")
-
-        self.reset_scale_icon = QIcon("Assets/Themes/Dark/BTN_ResetScale_light.png")
-        self.reset_scale_icon_hover = QIcon("Assets/Themes/Dark/BTN_ResetScale_light.png")
+        self.toggle_prev_btn_icon = "Assets/Textures/toggle_prev.png"
+        self.reset_scale_icon = "Assets/Textures/reset_scale.png"
+        self.fit_view_icon = "Assets/Textures/fit_to_canvas.png"
 
         self.toogle_prev_btn = HeaderButton(
-            normal_icon=self.toggle_prev_btn_icon,
-            hover_icon=self.toggle_prev_hover,
+            "Toggle line preview",
+            self.toggle_prev_btn_icon,
             width=20,
             height=20
         )
 
         self.reset_scale_btn = HeaderButton(
-            normal_icon=self.reset_scale_icon,
-            hover_icon=self.reset_scale_icon_hover,
+            "Reset image scale",
+            self.reset_scale_icon,
             width=20,
             height=20
         )
 
+        self.fit_in_btn = HeaderButton(
+            "Fit image in view",
+            self.fit_view_icon,
+            width=20,
+            height=20
+        )
+
+        # bind signals
         self.toogle_prev_btn.clicked.connect(self.handle_preview_toggle)
         self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
+        self.fit_in_btn.clicked.connect(self.fit_in_view)
+
         self.canvas_tools_layout = QHBoxLayout()
         self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.canvas_tools_layout.addWidget(self.toogle_prev_btn)
         self.canvas_tools_layout.addWidget(self.reset_scale_btn)
+        self.canvas_tools_layout.addWidget(self.fit_in_btn)
 
         self.layout = QVBoxLayout()
         self.layout.addLayout(self.canvas_tools_layout)
@@ -575,6 +576,24 @@ class Canvas(QFrame):
                     item.show_image()
                 else:
                     item.show_preview()
+
+    def fit_in_view(self):
+        scene_rect = self.view.sceneRect()
+        print(f"Current scene rect: {scene_rect}")
+        zoom_step = self.view.current_zoom_step
+        scene_width = self.gr_scene.scene_width
+        scene_height = self.gr_scene.scene_height
+
+        print(f"Current zoom step: {zoom_step}")
+        print(f"scene width: {scene_width}")
+        print(f"scene height: {scene_height}")
+
+        for item in self.gr_scene.items():
+            if isinstance(item, ImagePreview):
+                b_rect = item.boundingRect()
+                print(f"Current brect: {b_rect}")
+
+
 
 
 class ImageList(QListWidget):
@@ -909,7 +928,7 @@ class ImageGallery(QFrame):
         # build layout
         self.image_label = QLabel(self)
         self.image_label.setContentsMargins(6, 0, 0, 0)
-        self.image_pixmap = QPixmap("Assets/Themes/Dark/BDRC_Logo.png").scaled(
+        self.image_pixmap = QPixmap("Assets/Textures/BDRC_Logo.png").scaled(
             QSize(140, 90), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
         )
         self.image_label.setPixmap(self.image_pixmap)

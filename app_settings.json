@@ -2,5 +2,5 @@
  "model_path": "Models/OCR",
  "language": "en",
  "encoding": "unicode",
- "theme": "dark"
+ "theme": "light"
 }

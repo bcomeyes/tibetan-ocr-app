@@ -111,7 +111,7 @@ class Detection:
 
 class LineDetection(Detection):
     def __init__(self, platform: Platform, config: LineDetectionConfig) -> None:
-        super().__init__(plaform, config)
+        super().__init__(platform, config)
 
     def predict(self, image: npt.NDArray, class_threshold: float = 0.9, denoise: bool = False) -> npt.NDArray:
         _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(

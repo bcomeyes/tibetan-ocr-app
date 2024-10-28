@@ -1,0 +1,13 @@
+{
+  "MainWindow": {
+    "background": "#2A2A2A",
+    "text": "#ffffff",
+    "main": "1d1c1c",
+  },
+
+  "Canvas": {
+    "text": "#ffffff",
+    "background" : "#100F0F"
+
+  }
+}

@@ -1,26 +1,48 @@
+from dataclasses import dataclass
+
+@dataclass
+class BaseTheme:
+    bdrc_logo = "Assets/Textures/BDRC_Logo.png"
+    import_btn = "Assets/Textures/import.png"
+    new_btn = "Assets/Textures/new_light.png"
+    play_btn = "Assets/Textures/play_light.png"
+    save_btn = "Assets/Textures/save-disc.png"
+    next_btn = "Assets/Textures/next.png"
+    prev_btn = "Assets/Textures/prev.png"
+    settings_btn = "Assets/Textures/settings.png"
+
+@dataclass
+class Light(BaseTheme):
+    hover_color: str
+
+@dataclass
+class Dark(BaseTheme):
+    background: str
+    header_btn_hover: str
+
+
 DARK = """
     QWidget#MainWindow {
         background-color: #1d1c1c;
         color: #000000;
     }
 
-    QWidget#HeaderTools {
-         min-width: 880px;
-         margin: 0px 0px 0px 0px;
-         alignment: left;
-    }
-
-    QFrame#ToolBox {
-        color: #ffffff;
+    QFrame#HeaderTools {
         background-color: #100F0F;
+        min-width: 880px;
+        margin-left: 0px;
+        alignment: left;
         border: 2px solid #100F0F; 
         border-radius: 6px;
-        alignment-left;
-        padding-left: 10px;
-        padding-right: 10px;
     }
 
-    QFrame#PageSwitcher {
+    QWidget#ToolBox {
+        color: #ffffff;
+        background-color: #100F0F;
+        alignment-left;
+    }
+
+    QWidget#PageSwitcher {
         color: #ffffff;
         background-color: #100F0F;
         border: 2px solid #100F0F; 

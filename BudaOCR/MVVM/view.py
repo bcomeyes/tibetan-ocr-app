@@ -4,7 +4,7 @@ from uuid import UUID
 import cv2
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QSplitter
 from PySide6.QtCore import Signal, Qt, QThreadPool
-from typing import Dict
+from typing import Dict, List
 from BudaOCR.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BudaOCR.Data import OpStatus, Platform, BudaOCRData, OCRModel, OCResult
 from BudaOCR.Inference import OCRPipeline
@@ -38,6 +38,7 @@ class MainView(QWidget):
 
         # build layout
         self.v_layout = QVBoxLayout()
+        self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.v_layout.addWidget(self.header_tools)
 
         self.splitter.addWidget(self.canvas)
@@ -66,7 +67,7 @@ class MainView(QWidget):
     def handle_new(self):
         self._data_view.clear_data()
 
-    def update_data(self, data: list[BudaOCRData]):
+    def update_data(self, data: List[BudaOCRData]):
         self.header_tools.update_page_count(len(data))
 
     def handle_import(self, files: list[str]):

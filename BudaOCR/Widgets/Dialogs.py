@@ -496,11 +496,13 @@ class SettingsDialog(QDialog):
         self.general_settings_tab = QWidget()
         self.general_settings_tab.setStyleSheet("""
             background-color: #172832;
+            border: 1px solid #CCCCCC;
             border-radius: 4px;
         
         """)
 
         form_layout = QFormLayout()
+
         form_layout.setSpacing(20)
         form_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         ui_theme = QHBoxLayout()
