@@ -1,6 +1,6 @@
 from uuid import UUID
-from typing import List, Dict
 import numpy.typing as npt
+from typing import List, Dict
 from PySide6.QtCore import QObject, Signal
 from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
 from BudaOCR.Data import BudaOCRData, Line, OCRModel, AppSettings, OCRSettings

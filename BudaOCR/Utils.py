@@ -8,6 +8,7 @@ import platform
 import numpy as np
 import numpy.typing as npt
 import onnxruntime as ort
+
 from math import ceil
 from uuid import uuid1
 from pathlib import Path
@@ -15,7 +16,6 @@ from datetime import datetime
 from PIL import Image, ImageOps
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence, Dict
-
 from BudaOCR.Config import OCRARCHITECTURE, CHARSETENCODER
 from BudaOCR.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
 from PySide6.QtWidgets import QApplication
@@ -187,17 +187,7 @@ def get_contours(image: npt.NDArray) -> Sequence:
 
     return contours
 
-def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,
-                   k_factor: float = 1.2):
-    tmp_k = k_factor
-    line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
 
-    while line_img.shape[0] > bbox_h * bbox_tolerance:
-        tmp_k = tmp_k - 0.1
-        # print(f"Adjusted k_factor to: {tmp_k}")
-        line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
-
-    return line_img, tmp_k
 
 
 
@@ -828,8 +818,7 @@ def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: f
     return masked_line
 
 
-def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,
-                   k_factor: float = 1.2):
+def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,              k_factor: float = 1.2):
     tmp_k = k_factor
     line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
 
@@ -838,6 +827,7 @@ def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tole
         line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
 
     return line_img, tmp_k
+
 
 def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 2.5):
     default_k_factor = default_k

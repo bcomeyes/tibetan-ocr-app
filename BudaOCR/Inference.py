@@ -50,7 +50,7 @@ class CTCDecoder:
             self.charset = charset
 
         self.ctc_vocab = self.charset.copy()
-        self.ctc_vocab.insert(0, " ")
+        #self.ctc_vocab.insert(0, " ")
         self.ctc_decoder = build_ctcdecoder(self.ctc_vocab)
 
     def encode(self, label: str):
