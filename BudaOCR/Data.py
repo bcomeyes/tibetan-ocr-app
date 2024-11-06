@@ -145,6 +145,7 @@ class OCRModelConfig:
     swap_hw: bool
     encoder: CharsetEncoder
     charset: List[str]
+    add_blank: bool
 
 
 @dataclass

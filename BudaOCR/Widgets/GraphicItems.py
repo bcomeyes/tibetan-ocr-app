@@ -43,6 +43,7 @@ class ImagePreview(QGraphicsPixmapItem):
 
     def show_preview(self):
         line_preview = cv2.imread(self.image_path)
+        line_preview = cv2.cvtColor(line_preview, cv2.COLOR_BGR2RGB)
         line_preview = rotate_from_angle(line_preview, self.angle)
 
         color = (255, 100, 0)

@@ -822,7 +822,7 @@ def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tole
     return line_img, tmp_k
 
 
-def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 2.5):
+def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 3):
     default_k_factor = default_k
     current_k = default_k_factor
 
@@ -979,6 +979,7 @@ def read_ocr_model_config(config_file: str):
     )
     swap_hw = True if json_content["swap_hw"] == "yes" else False
     characters = json_content["charset"]
+    add_blank = True if json_content["add_blank"] == "yes" else False
 
     config = OCRModelConfig(
         onnx_model_file,
@@ -990,7 +991,8 @@ def read_ocr_model_config(config_file: str):
         squeeze_channel_dim,
         swap_hw,
         encoder=CHARSETENCODER[encoder],
-        charset=characters
+        charset=characters,
+        add_blank=add_blank
     )
 
     return config

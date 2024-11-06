@@ -1,17 +1,14 @@
-import os
 import cv2
-import logging
 import numpy as np
 import numpy.typing as npt
 import onnxruntime as ort
-from typing import List, Tuple
+from typing import List
 from scipy.special import softmax
 from BudaOCR.Config import COLOR_DICT
 from BudaOCR.Data import (
     OpStatus,
     TPSMode,
     OCRModelConfig,
-    OCResult,
     LineDetectionConfig,
     LayoutDetectionConfig, Platform,
 )
@@ -20,7 +17,6 @@ from pyctcdecode import build_ctcdecoder
 from BudaOCR.Utils import (
     apply_global_tps,
     build_line_data,
-    create_dir,
     extract_line_images,
     get_line_images_via_local_tps,
     optimize_countour,
@@ -33,15 +29,14 @@ from BudaOCR.Utils import (
     sigmoid,
     pad_to_height,
     pad_to_width,
-    read_ocr_model_config,
     build_raw_line_data,
     filter_line_contours,
-    check_for_tps, generate_guid, get_execution_providers
+    check_for_tps, get_execution_providers
 )
 
 
 class CTCDecoder:
-    def __init__(self, charset: str | List[str]):
+    def __init__(self, charset: str | List[str], add_blank: bool):
 
         if isinstance(charset, str):
             self.charset = [x for x in charset]
@@ -50,7 +45,10 @@ class CTCDecoder:
             self.charset = charset
 
         self.ctc_vocab = self.charset.copy()
-        #self.ctc_vocab.insert(0, " ")
+        self.add_blank = add_blank
+
+        if self.add_blank:
+            self.ctc_vocab.insert(0, " ")
         self.ctc_decoder = build_ctcdecoder(self.ctc_vocab)
 
     def encode(self, label: str):
@@ -235,8 +233,8 @@ class OCRInference:
         self.ocr_session = ort.InferenceSession(
             self._onnx_model_file, providers=self._execution_providers
         )
-
-        self.decoder = CTCDecoder(self._characters)
+        self._add_blank = ocr_config.add_blank
+        self.decoder = CTCDecoder(self._characters, self._add_blank)
 
         print(f"Characters: {len(self._characters)}")
         print(f"CTC_Decoder vocab: {len(self.decoder.ctc_vocab)}")
