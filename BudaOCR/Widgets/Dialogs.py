@@ -30,6 +30,7 @@ def build_languages(active_language: Language) -> Tuple[QButtonGroup, List[QRadi
 
     for lang in Language:
         button = QRadioButton(lang.name)
+        button.setObjectName("OptionsRadio")
         buttons.append(button)
 
         if lang == active_language:
@@ -49,6 +50,7 @@ def build_exporter_settings(active_exporter: ExportFormat) -> Tuple[QButtonGroup
 
     for exporter in ExportFormat:
         button = QRadioButton(exporter.name)
+        button.setObjectName("OptionsRadio")
         exporter_buttons.append(button)
 
         if exporter == active_exporter:
@@ -68,6 +70,8 @@ def build_encodings(active_encoding: Encoding) -> Tuple[QButtonGroup, List[QRadi
 
     for encoding in Encoding:
         button = QRadioButton(encoding.name)
+        button.setObjectName("OptionsRadio")
+
         encoding_buttons.append(button)
 
         if encoding == active_encoding:
@@ -87,6 +91,8 @@ def build_binary_selection(current_setting: bool) -> Tuple[QButtonGroup, List[QR
 
     yes_btn = QRadioButton("yes")
     no_btn = QRadioButton("no")
+    yes_btn.setObjectName("OptionsRadio")
+    no_btn.setObjectName("OptionsRadio")
 
     if current_setting:
         yes_btn.setChecked(True)
@@ -184,25 +190,46 @@ class NotificationDialog(QMessageBox):
         self.setMinimumWidth(600)
         self.setMinimumHeight(440)
         self.setIcon(QMessageBox.Icon.Information)
-        self.setStandardButtons(QMessageBox.Ok)
+
         self.setText(message)
 
+        self.ok_btn = QPushButton("Ok")
+        self.ok_btn.setStyleSheet("""
+                               color: #ffffff;
+                               font: bold 12px;
+                               width: 240px;
+                               height: 32px;
+                               background-color: #A40021;
+                               border-radius: 4px;
+
+                               QPushButton::hover { 
+                                   color: #ff0000;
+                               }
+                           """)
+
+        self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
+
         self.setStyleSheet("""
+                    background-color: #1d1c1c;
                     color: #ffffff;
                     QPushButton {
                         width: 200px;
                         padding: 5px;
-                        background-color: #4d4d4d;
+                        background-color: #A40021;
                     }
                 """)
+
+
 class ExportDialog(QDialog):
     def __init__(self, ocr_data: List[BudaOCRData], active_exporter: ExportFormat, active_encoding: Encoding):
         super().__init__()
+        self.setObjectName("ExportDialog")
         self.ocr_data = ocr_data
         self.exporter = active_exporter
         self.encoding = active_encoding
         self.output_dir = "/"
         self.main_label = QLabel("Export OCR Data")
+        self.main_label.setObjectName("OptionsLabel")
         self.exporter_group, self.exporter_buttons = build_exporter_settings(self.exporter)
         self.encodings_group, self.encoding_buttons = build_encodings(self.encoding)
 
@@ -214,6 +241,8 @@ class ExportDialog(QDialog):
 
         self.export_dir_layout = QHBoxLayout()
         self.dir_edit = QLineEdit()
+        self.dir_edit.setObjectName("")
+
         self.dir_select_btn = QPushButton("Select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
         self.export_dir_layout.addWidget(self.dir_edit)
@@ -421,6 +450,7 @@ class ModelList(QListWidget):
 class SettingsDialog(QDialog):
     def __init__(self, app_settings: AppSettings, ocr_settings: OCRSettings, ocr_models: List[OCRModel]):
         super().__init__()
+        self.setObjectName("SettingsDialog")
         self.app_settings = app_settings
         self.ocr_settings = ocr_settings
         self.ocr_models = ocr_models
@@ -434,12 +464,17 @@ class SettingsDialog(QDialog):
         self.dark_theme_btn = QRadioButton("Dark")
         self.light_theme_btn = QRadioButton("Light")
 
+        self.dark_theme_btn.setObjectName("OptionsRadio")
+        self.light_theme_btn.setObjectName("OptionsRadio")
+
         self.theme_group = QButtonGroup()
         self.theme_group.setExclusive(True)
         self.theme_group.addButton(self.dark_theme_btn)
         self.theme_group.addButton(self.light_theme_btn)
         self.theme_group.setId(self.dark_theme_btn, Theme.Dark.value)
         self.theme_group.setId(self.light_theme_btn, Theme.Light.value)
+
+        self.theme_group.setObjectName("OptionsRadio")
 
         if self.app_settings.theme == Theme.Dark:
             self.dark_theme_btn.setChecked(True)
@@ -463,46 +498,21 @@ class SettingsDialog(QDialog):
 
         # define layout
         self.settings_tabs = QTabWidget()
-        self.settings_tabs.setContentsMargins(0, 0, 0, 0)
-
         self.settings_tabs.setStyleSheet(
-            """              
-                QTabWidget::pane {
-                    border: 1 px solid white;
-                    padding-top: 20px;
-                }
-                
-                QTabWidget::tab-bar {
-                    height: 36px;
-                    border-radius: 4px;
-                    alignment: center; 
-                }
-                
-                QTabBar::tab {
-                    background-color: #961921;
-                    padding: 6px 6px 6px 6px;
-
-                }
-                QTabBar::tab:selected {
-                    background: #650b11;
-                }
-                
-                QTabBar::tab:!selected:hover {
-                    background: #999;
-                }
+            """
+                background-color: #3f3f3f;
+                border: 0px;
         """)
 
         # General Settings Tab
         self.general_settings_tab = QWidget()
         self.general_settings_tab.setStyleSheet("""
             background-color: #172832;
-            border: 1px solid #CCCCCC;
-            border-radius: 4px;
+            border: 0px;
         
         """)
 
         form_layout = QFormLayout()
-
         form_layout.setSpacing(20)
         form_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         ui_theme = QHBoxLayout()
@@ -518,9 +528,11 @@ class SettingsDialog(QDialog):
             language_layout.addWidget(btn)
 
         theme_label = QLabel("UI Theme")
+        theme_label.setObjectName("OptionsLabel")
         theme_label.setFixedWidth(160)
 
         language_label = QLabel("Language")
+        language_label.setObjectName("OptionsLabel")
         language_label.setFixedWidth(160)
 
         form_layout.addRow(theme_label, ui_theme)
@@ -528,9 +540,14 @@ class SettingsDialog(QDialog):
         self.general_settings_tab.setLayout(form_layout)
 
         # OCR Models Tab
+        self.ocr_label = QLabel("Available OCR Models")
+        self.ocr_label.setStyleSheet("""
+                color: #ffffff
+        """)
+
         self.ocr_models_tab = QWidget()
         h_layout = QHBoxLayout()
-        h_layout.addWidget(QLabel("Available OCR Models"))
+        h_layout.addWidget(self.ocr_label)
         h_layout.addWidget(self.import_models_btn)
 
         v_layout = QVBoxLayout()
@@ -540,13 +557,15 @@ class SettingsDialog(QDialog):
 
         # OCR Settings Tab
         self.ocr_settings_tab = QWidget()
+        self.ocr_settings_tab.setContentsMargins(0, 0, 0, 0)
         self.ocr_settings_tab.setStyleSheet("""
                     background-color: #172832;
-                    border-radius: 4px;
+          
                 """)
 
         form_layout = QFormLayout()
         form_layout.setSpacing(20)
+
         form_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         encoding_layout = QHBoxLayout()
@@ -571,6 +590,10 @@ class SettingsDialog(QDialog):
         dewarping_label = QLabel("Dewarping")
         export_label = QLabel("Export Formats")
 
+        encoding_label.setObjectName("OptionsLabel")
+        dewarping_label.setObjectName("OptionsLabel")
+        export_label.setObjectName("OptionsLabel")
+
         encoding_label.setFixedWidth(160)
         dewarping_label.setFixedWidth(160)
         export_label.setFixedWidth(160)
@@ -578,6 +601,7 @@ class SettingsDialog(QDialog):
         form_layout.addRow(encoding_label, encoding_layout)
         form_layout.addRow(dewarping_label, dewarping_layout)
         form_layout.addRow(export_label, export_layout)
+
         self.ocr_settings_tab.setLayout(form_layout)
 
         # build entire Layout
@@ -621,9 +645,13 @@ class SettingsDialog(QDialog):
             """
             background-color: #1d1c1c;
             color: #ffffff;
+            
+            QFormLayout {
+                background-color: #1d1c1c;  
+            }
         
             QLabel {
-                color: #000000;
+                color: #ffffff;
             }
             QDialogButtonBox::Ok {
                 height: 32px;
@@ -633,6 +661,35 @@ class SettingsDialog(QDialog):
                 height: 32px;
                 width: 64px;
             }
+            
+            QTabBar {
+                background-color: #ff0000;
+            }
+                        
+            QTabWidget::QTabBar {
+                background-color: #ff0000;  
+            }
+            
+            QTabBar::tab
+            {
+                 background-color: #3f3f3f;
+            }
+            
+             QTabWidget::pane {
+                    border: 0px;
+                    background-color: #0000ff;
+                    padding-top: 20px;
+                }
+                
+            QTabWidget::tab-bar {
+                background-color: #ff0000;
+                color: #0000ff;
+                left: 20px;
+                height: 36px;
+                border-radius: 4px;
+                alignment: center; 
+            }
+                
             """)
 
         self.build_model_overview()
@@ -734,6 +791,8 @@ class BatchOCRDialog(QDialog):
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("DialogProgressBar")
+        self.progress_bar.setTextVisible(False)
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(len(self.data)-1)
 
@@ -765,9 +824,15 @@ class BatchOCRDialog(QDialog):
 
         self.v_layout = QVBoxLayout()
         self.label = QLabel("Batch Processing")
+        self.label.setObjectName("OptionsLabel")
+        self.label.setStyleSheet("""
+            font-weight: bold;
+        """)
 
         self.export_dir_layout = QHBoxLayout()
         self.dir_edit = QLineEdit()
+        self.dir_edit.setObjectName("DialogLineEdit")
+
         self.dir_select_btn = QPushButton("select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
         self.export_dir_layout.addWidget(self.dir_edit)
@@ -778,6 +843,7 @@ class BatchOCRDialog(QDialog):
 
         self.model_selection = QComboBox()
         self.model_selection.setStyleSheet("""
+                color: #ffffff;
                 background: #434343;
                 border: 2px solid #ced4da;
                 border-radius: 4px;
@@ -801,13 +867,25 @@ class BatchOCRDialog(QDialog):
         for btn in self.exporter_buttons:
             export_layout.addWidget(btn)
 
-        self.form_layout.addRow(QLabel("Output Encoding"), encoding_layout)
-        self.form_layout.addRow(QLabel("Dewarping"), dewarping_layout)
-        self.form_layout.addRow(QLabel("Export Formats"), export_layout)
+        encoding_label = QLabel("Encoding")
+        encoding_label.setObjectName("OptionsLabel")
+
+        dewarping_label = QLabel("Dewarping")
+        dewarping_label.setObjectName("OptionsLabel")
+
+        export_labels = QLabel("Export Formats")
+        export_labels.setObjectName("OptionsLabel")
+
+        self.form_layout.addRow(encoding_label, encoding_layout)
+        self.form_layout.addRow(dewarping_label, dewarping_layout)
+        self.form_layout.addRow(export_labels, export_layout)
 
         self.status_layout = QHBoxLayout()
         self.status_label = QLabel("Status")
+        self.status_label.setObjectName("OptionsLabel")
         self.status = QLabel("")
+        self.status.setObjectName("OptionsLabel")
+
         self.status_layout.addWidget(self.status_label)
         self.status_layout.addWidget(self.status)
 
@@ -830,6 +908,15 @@ class BatchOCRDialog(QDialog):
         self.setStyleSheet("""
             background-color: #1d1c1c;
             color: #ffffff;
+            
+            QLineEdit {
+                color: #ffffff;
+                background-color: #474747;
+                border: 2px solid #343942;
+                border-radius: 8px;
+                padding: 6px;
+                text-align: left;
+            }
         
         """)
 
@@ -851,14 +938,20 @@ class BatchOCRDialog(QDialog):
         self.pipeline.update_ocr_model(self.ocr_models[index].config)
 
     def start_process(self):
-        encoding_id = self.encodings_group.checkedId()
-        encoding = Encoding(encoding_id)
 
-        self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
-        self.runner.signals.sample.connect(self.handle_update_progress)
-        self.runner.signals.finished.connect(self.finish)
-        self.threadpool.start(self.runner)
-        self.status.setText("Running")
+        if os.path.isdir(self.output_dir):
+            encoding_id = self.encodings_group.checkedId()
+            encoding = Encoding(encoding_id)
+
+            self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
+            self.runner.signals.sample.connect(self.handle_update_progress)
+            self.runner.signals.finished.connect(self.finish)
+            self.threadpool.start(self.runner)
+            self.status.setText("Running")
+
+        else:
+            note_dialog = NotificationDialog("No Ouput Directory", "Please select an output directory.")
+            note_dialog.exec()
 
     def handle_update_progress(self, sample: OCRSample):
         self.progress_bar.setValue(sample.cnt)

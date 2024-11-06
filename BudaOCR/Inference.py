@@ -443,6 +443,6 @@ class OCRPipeline:
                 pred = pred.replace("§", " ")
                 page_text.append(pred)
 
-            return OpStatus.SUCCESS, (rot_mask, line_data, page_text)
+            return OpStatus.SUCCESS, (rot_mask, line_data, page_text, page_angle)
         else:
             return OpStatus.FAILED, None

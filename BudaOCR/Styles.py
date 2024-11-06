@@ -47,6 +47,10 @@ DARK = """
         background-color: #100F0F;
         border: 2px solid #100F0F; 
         border-radius: 8px;
+        
+        QLineEdit {
+            background: #434343;
+        }
     }
 
     QWidget#PageSelector {
@@ -56,6 +60,7 @@ DARK = """
 
     QComboBox#ModelSelection {
         background: #434343;
+        color: #ffffff;
         min-width: 220px;
         border: 2px solid #ced4da;
         border-radius: 4px;
@@ -71,7 +76,44 @@ DARK = """
         color: #d73449;
     }
 
+    
+    QPushButton#TextToolsButton {
+        background-color: #3f3f3f;
+        border: 2px solid #1d1d1d;
+        border-radius: 4px;
+    }
+    
+    QPushButton#TextToolsButton:hover {
+        color: #ffad00;
+    }
+    
+
+    QDialog#ExportDialog {
+        color: #ffffff;
+        background-color: #1d1c1c;
+    }
+    
+    QDialog#SettingsDialog {
+        color: #ffffff;
+        background-color: #100F0F;
+        
+        QTabWidget::tab-bar {
+                left: 20px;
+                height: 36px;
+                border-radius: 4px;
+                alignment: center; 
+        }      
+    }
+    
+    QDialog#BatchOCRDialog
+    {
+        color: #ffffff;
+        background-color: #100F0F;
+    }
+    
+    
     QPushButton#DialogButton {
+        color: #ffffff;
         background-color: #A40021;
         border-radius: 4px;
         height: 24;
@@ -82,6 +124,7 @@ DARK = """
     }
     
     QPushButton#SmallDialogButton {
+        color: #ffffff;
         background-color: #A40021;
         border-radius: 4px;
         height: 20;
@@ -91,4 +134,41 @@ DARK = """
     QPushButton#SmallDialogButton:hover {
         color: #ffad00;
     }
+    
+    QRadioButton#OptionsRadio
+    {
+        color: #ffffff;
+        border: none;
+    }
+    
+    QButtonGroup#OptionsRadio
+    {
+        color: #ffffff;
+        border: none;
+    }
+    
+    QLabel#OptionsLabel
+    {
+        color: #ffffff;
+    }
+    
+    QLineEdit#DialogLineEdit {
+        color: #ffffff;
+        background-color: #474747;
+        border: 2px solid #343942;
+        border-radius: 2px;
+        text-align: left;
+    }
+    
+    QProgressBar#DialogProgressBar {
+        background-color: #474747;
+        border: 2px solid #343942;
+        border-radius: 2px;
+    
+        QProgressBar::chunk {
+            background-color: #2c2f37;
+            width: 20px;
+}
+    }
+    
     """

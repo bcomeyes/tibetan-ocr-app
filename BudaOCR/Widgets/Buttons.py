@@ -3,7 +3,7 @@ from PySide6.QtGui import QIcon, QEnterEvent, QPixmap, QColor
 from PySide6.QtWidgets import QPushButton
 
 
-class HeaderButton(QPushButton):
+class MenuButton(QPushButton):
     def __init__(
             self,
             hint: str,
@@ -67,3 +67,24 @@ class HeaderButton(QPushButton):
             if not self.is_active:
                 self.set_default_icon()
             return super().leaveEvent(event)
+
+
+
+class TextToolsButton(QPushButton):
+    def __init__(
+            self,
+            text: str,
+            width: int = 32,
+            height: int = 32,
+            object_name: str = "TextToolsButton",
+            parent=None):
+
+        super().__init__()
+        self.parent = parent
+        self.setObjectName(object_name)
+        self.width = width
+        self.height = height
+        self.setText(text)
+
+        self.setFixedHeight(self.height)
+        self.setFixedWidth(self.width)

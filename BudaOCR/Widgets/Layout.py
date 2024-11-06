@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
 from BudaOCR.Data import BudaOCRData, OCRModel
 from BudaOCR.Utils import get_filename
 from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
-from BudaOCR.Widgets.Buttons import HeaderButton
+from BudaOCR.Widgets.Buttons import MenuButton, TextToolsButton
 from BudaOCR.Widgets.Dialogs import ImportFilesDialog
 from BudaOCR.Widgets.GraphicItems import ImagePreview
 
@@ -100,46 +100,46 @@ class ToolBox(QWidget):
         self.new_btn_icon = "Assets/Textures/new_light.png"
         self.import_btn_icon = "Assets/Textures/import.png"
         self.save_btn_icon = "Assets/Textures/save-disc.png"
-        self.run_btn_icon = "Assets/Textures/play_light.png"
-        self.run_all_btn_icon = "Assets/Textures/play_all_light.png"
+        self.run_btn_icon = "Assets/Textures/play_btn.png"
+        self.run_all_btn_icon = "Assets/Textures/play_all_btn.png"
         self.settings_btn_icon = "Assets/Textures/settings.png"
 
-        self.btn_new = HeaderButton(
+        self.btn_new = MenuButton(
             "New Project",
             self.new_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.btn_import = HeaderButton(
+        self.btn_import = MenuButton(
             "Import",
             self.import_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.btn_save = HeaderButton(
+        self.btn_save = MenuButton(
             "Save",
             self.save_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.btn_run = HeaderButton(
+        self.btn_run = MenuButton(
             "Run OCR",
             self.run_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.btn_run_all = HeaderButton(
+        self.btn_run_all = MenuButton(
             "Run OCR on all images",
             self.run_all_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.btn_settings = HeaderButton(
+        self.btn_settings = MenuButton(
             "Settings",
             self.settings_btn_icon,
             width=self.icon_size,
@@ -149,6 +149,7 @@ class ToolBox(QWidget):
         # model selection
         self.model_selection = QComboBox()
         self.model_selection.setObjectName("ModelSelection")
+        self.model_selection.setContentsMargins(80, 0, 0, 0)
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -229,6 +230,12 @@ class PageSwitcher(QWidget):
         self.layout = QHBoxLayout()
 
         self.current_page = QLineEdit()
+        self.current_page.setStyleSheet("""
+            color: #ffffff;
+            font-weight: bold;
+            background: #434343;
+        """)
+
         self.current_page.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.current_page.setObjectName("PageSelector")
         self.current_page.setFixedSize(100, 40)
@@ -236,14 +243,14 @@ class PageSwitcher(QWidget):
         self.prev_btn_icon = "Assets/Textures/prev.png"
         self.next_btn_icon = "Assets/Textures/next.png"
 
-        self.prev_button = HeaderButton(
+        self.prev_button = MenuButton(
             "Previous image",
             self.prev_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
-        self.next_button = HeaderButton(
+        self.next_button = MenuButton(
             "Next image",
             self.next_btn_icon,
             width=self.icon_size,
@@ -398,10 +405,6 @@ class PTGraphicsView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(self.default_scrollbar_policy)
         self.setVerticalScrollBarPolicy(self.default_scrollbar_policy)
 
-    def reset_scaling(self):
-        self.resetTransform()
-        self.current_zoom_step = self.default_zoom_step
-
 
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
@@ -415,6 +418,28 @@ class PTGraphicsView(QGraphicsView):
                 zoom_factor = 1 / self.zoom_in_factor
                 self.current_zoom_step -= 1
                 self.scale(zoom_factor, zoom_factor)
+
+
+
+    def reset_scaling(self):
+        self.resetTransform()
+        self.current_zoom_step = self.default_zoom_step
+
+    def fit_in_view(self, brect: QRectF):
+        """
+        TODO: get the actual drawn size of the canvas element in the scene wrt to the scaling, otherwise it is
+        not possible to fit the image in the view
+
+        """
+        if not self.default_zoom_step < self.current_zoom_step < self.default_zoom_step:
+            _target_zoom_step = self.default_zoom_step - self.current_zoom_step
+
+        else:
+            return
+
+        _zoom_factor = self.zoom_in_factor ** _target_zoom_step
+        self.scale(_zoom_factor, _zoom_factor)
+        self.current_zoom_step = 10
 
 
 class PTGraphicsScene(QGraphicsScene):
@@ -490,21 +515,21 @@ class Canvas(QFrame):
         self.reset_scale_icon = "Assets/Textures/reset_scale.png"
         self.fit_view_icon = "Assets/Textures/fit_to_canvas.png"
 
-        self.toogle_prev_btn = HeaderButton(
+        self.toggle_prev_btn = MenuButton(
             "Toggle line preview",
             self.toggle_prev_btn_icon,
             width=20,
             height=20
         )
 
-        self.reset_scale_btn = HeaderButton(
+        self.reset_scale_btn = MenuButton(
             "Reset image scale",
             self.reset_scale_icon,
             width=20,
             height=20
         )
 
-        self.fit_in_btn = HeaderButton(
+        self.fit_in_btn = MenuButton(
             "Fit image in view",
             self.fit_view_icon,
             width=20,
@@ -512,15 +537,15 @@ class Canvas(QFrame):
         )
 
         # bind signals
-        self.toogle_prev_btn.clicked.connect(self.handle_preview_toggle)
+        self.toggle_prev_btn.clicked.connect(self.handle_preview_toggle)
         self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
-        self.fit_in_btn.clicked.connect(self.fit_in_view)
+        #self.fit_in_btn.clicked.connect(self.fit_in_view)
 
         self.canvas_tools_layout = QHBoxLayout()
         self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.canvas_tools_layout.addWidget(self.toogle_prev_btn)
+        self.canvas_tools_layout.addWidget(self.toggle_prev_btn)
         self.canvas_tools_layout.addWidget(self.reset_scale_btn)
-        self.canvas_tools_layout.addWidget(self.fit_in_btn)
+        #self.canvas_tools_layout.addWidget(self.fit_in_btn)
 
         self.layout = QVBoxLayout()
         self.layout.addLayout(self.canvas_tools_layout)
@@ -555,14 +580,13 @@ class Canvas(QFrame):
         _last_pos = self.gr_scene.get_current_item_pos()
 
         self.gr_scene.clear()
-        preview_item = ImagePreview(data.image_path, data.lines)
+        preview_item = ImagePreview(data.image_path, data.lines, data.angle)
 
         if int(_last_pos.x()) == 0 and int(_last_pos.y()) == 0:
             target_x = (scene_rect.width() // 4)
             target_y = (scene_rect.height() // 4)
 
             center_pos = QPointF(target_x, target_y)
-            print(f"Moving item to center: {center_pos}")
             preview_item.setPos(center_pos)
         else:
             preview_item.setPos(_last_pos)
@@ -576,6 +600,7 @@ class Canvas(QFrame):
                     item.show_image()
                 else:
                     item.show_preview()
+
 
     def fit_in_view(self):
         scene_rect = self.view.sceneRect()
@@ -592,8 +617,7 @@ class Canvas(QFrame):
             if isinstance(item, ImagePreview):
                 b_rect = item.boundingRect()
                 print(f"Current brect: {b_rect}")
-
-
+                self.view.fit_in_view(b_rect)
 
 
 class ImageList(QListWidget):
@@ -893,7 +917,6 @@ class ImageListWidget(QWidget):
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
-
             self.thumb.is_hovered = True
             self.thumb.is_selected = False
             self.thumb.update()
@@ -911,8 +934,17 @@ class ImageListWidget(QWidget):
         return super().event(event)
 
     def select(self):
+        self.is_active = True
         self.thumb.is_selected = True
+        self.thumb.is_hovered = False
         self.thumb.update()
+
+    def unselect(self):
+        self.is_active = False
+        self.thumb.is_selected = False
+        self.thumb.is_hovered = False
+        self.thumb.update()
+
 
 
 class ImageGallery(QFrame):
@@ -921,10 +953,10 @@ class ImageGallery(QFrame):
         self.view_model = viewmodel
         self.setObjectName("ImageGallery")
         self.setMinimumHeight(600)
-        # self.setMinimumWidth(280)
         self.setMaximumWidth(456)
         self.setContentsMargins(20, 20, 20, 20)
         self.setContentsMargins(0, 0, 0, 0)
+
         # build layout
         self.image_label = QLabel(self)
         self.image_label.setContentsMargins(6, 0, 0, 0)
@@ -936,6 +968,8 @@ class ImageGallery(QFrame):
         self.layout = QVBoxLayout()
         self.spacer = QSpacerItem(320, 10)
         self.image_list = ImageList(self)
+
+
         self.layout.addWidget(self.image_label)
         self.layout.addItem(self.spacer)
         self.layout.addWidget(self.image_list)
@@ -981,10 +1015,20 @@ class ImageGallery(QFrame):
             self.current_width = _new_size.width()
 
     def handle_item_selection(self, guid: UUID):
-        print(f"ImageGallery->Handling Item selection: {guid}is")
+        for idx in range(self.image_list.count()):
+                item = self.image_list.item(idx)
+
+                item_widget = self.image_list.itemWidget(item)
+                if isinstance(item_widget, ImageListWidget):
+                    if item_widget.guid == guid:
+                        item_widget.select()
+                    else:
+                        item_widget.unselect()
+
         self.view_model.select_data_by_guid(guid)
 
     def select_page(self, index: int):
+
         for idx in range(self.image_list.count()):
             if idx == index:
                 item = self.image_list.item(idx)
@@ -1000,7 +1044,7 @@ class ImageGallery(QFrame):
                 item_widget = self.image_list.itemWidget(item)
 
                 if isinstance(item_widget, ImageListWidget):
-                    item_widget.is_active = False
+                    item_widget.unselect()
 
     def focus_page(self, data: BudaOCRData):
         for idx in range(self.image_list.count()):
@@ -1009,15 +1053,18 @@ class ImageGallery(QFrame):
 
             if isinstance(item_widget, ImageListWidget):
                 if item_widget.guid == data.guid:
-                    item.setSelected(True)
+                    item.setSelected(True)  # what does this built-in method actually do..?
+                    item_widget.select()
                     self.image_list.scrollToItem(item, QAbstractItemView.ScrollHint.PositionAtCenter)
                 else:
                     item.setSelected(False)
+                    item_widget.unselect()
+
 
     def add_data(self, data: list[BudaOCRData]):
         _sizeHint = self.sizeHint()
         _targetWidth = _sizeHint.width()-80
-        print(f"ImageGallery sizeHint: {_sizeHint.width()}")
+
         for _data in data:
             image_item = QListWidgetItem()
             image_item.setSizeHint(QSize(_targetWidth, 160))
@@ -1033,6 +1080,7 @@ class ImageGallery(QFrame):
 
     def clear_data(self):
         self.image_list.clear()
+
 
 
 class TextWidgetList(QListWidget):
@@ -1132,7 +1180,11 @@ class TextWidgetList(QListWidget):
         _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
 
         if isinstance(_list_item_widget, TextListWidget):
-            print("TextWidgetList -> selected Text Widget")
+            """
+            TODO: enable highlighting of the selected text line in the canvas preview
+            """
+            pass
+            #print("TextWidgetList -> selected Text Widget")
             # self.sign_on_selected_item.emit(_list_item_widget.guid)
 
     def mouseMoveEvent(self, e):
@@ -1140,7 +1192,6 @@ class TextWidgetList(QListWidget):
         if item is not None:
             print("TextWidgetList->ITEM")
             _list_item_widget = self.itemWidget(item)
-            print(f"Item Hovered over: {_list_item_widget}")
 
         """if isinstance(_list_item_widget, ImageListWidget):
             _list_item_widget.is_hovered = True
@@ -1175,6 +1226,10 @@ class TextListWidget(QWidget):
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
 
+
+        label_size = self.label.sizeHint()
+        self.setFixedHeight(label_size.height() + 24) # that is a bit hacky, is it possible to inferr the size of the label based on the rendered text..?
+
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
             self.is_hovered = True
@@ -1198,12 +1253,42 @@ class TextView(QFrame):
         self.current_font = self.default_font
         self.converter = pyewts.pyewts()
         self.setContentsMargins(10, 0, 10, 0)
+        self.text_lines = []
         #self.setMinimumHeight(80)
         #self.setMinimumWidth(600)
 
         self.text_widget_list = TextWidgetList()
 
+        self.zoom_in_btn = TextToolsButton("+")
+        self.zoom_in_btn.setStyleSheet("""
+            background-color: #3f3f3f;
+            border: 2px solid #1d1d1d;
+            border-radius: 4px;
+        """)
+
+
+        self.zoom_out_btn = TextToolsButton("-")
+        self.zoom_out_btn.setStyleSheet("""
+                    background-color: #3f3f3f;
+                    border: 2px solid #1d1d1d;
+                    border-radius: 4px;
+                """)
+
+
+        self.spacer = QLabel()
+
+        # bind signals
+        self.zoom_in_btn.clicked.connect(self.zoom_in)
+        self.zoom_out_btn.clicked.connect(self.zoom_out)
+
+        # build layout
+        self.button_layout = QHBoxLayout()
+        self.button_layout.addWidget(self.zoom_in_btn)
+        self.button_layout.addWidget(self.zoom_out_btn)
+        self.button_layout.addWidget(self.spacer)
+
         self.layout = QVBoxLayout()
+        self.layout.addLayout(self.button_layout)
         self.layout.addWidget(self.text_widget_list)
         self.setLayout(self.layout)
         self.setStyleSheet(
@@ -1215,14 +1300,79 @@ class TextView(QFrame):
             """
         )
 
-    def update_text(self, text: list[str]):
+    def zoom_in(self):
+        if len(self.text_lines) == 0:
+            return
+
         self.text_widget_list.clear()
 
-        for text_line in text:
+        for text_line in self.text_lines:
             text_line = self.converter.toUnicode(text_line)
             list_item = QListWidgetItem()
-            list_item.setSizeHint(QSize(800, 60))
+
+            self.font_size = self.font_size+1
             text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+            text_size = text_widget.sizeHint()
+
+            if text_size.width() < 800:
+                list_item.setSizeHint(QSize(800, text_size.height()))
+            else:
+                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
+
+            self.text_widget_list.addItem(list_item)
+            self.text_widget_list.setItemWidget(list_item, text_widget)
+
+        for idx in range(self.text_widget_list.count()):
+            if idx % 2 == 0:
+                _qBrush = QBrush(QColor("#172832"))
+            else:
+                _qBrush = QBrush(QColor("#1d1c1c"))
+            self.text_widget_list.item(idx).setBackground(_qBrush)
+
+    def zoom_out(self):
+        if len(self.text_lines) == 0:
+            return
+
+        self.text_widget_list.clear()
+
+        for text_line in self.text_lines:
+            text_line = self.converter.toUnicode(text_line)
+            list_item = QListWidgetItem()
+            self.font_size = self.font_size - 1
+
+            text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+            text_size = text_widget.sizeHint()
+
+            if text_size.width() < 800:
+                list_item.setSizeHint(QSize(800, text_size.height()))
+            else:
+                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
+
+            self.text_widget_list.addItem(list_item)
+            self.text_widget_list.setItemWidget(list_item, text_widget)
+
+        for idx in range(self.text_widget_list.count()):
+            if idx % 2 == 0:
+                _qBrush = QBrush(QColor("#172832"))
+            else:
+                _qBrush = QBrush(QColor("#1d1c1c"))
+            self.text_widget_list.item(idx).setBackground(_qBrush)
+
+    def update_text(self, text_lines: List[str]):
+        self.text_lines = text_lines
+        self.text_widget_list.clear()
+
+        for text_line in text_lines:
+            text_line = self.converter.toUnicode(text_line)
+            list_item = QListWidgetItem()
+            text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+
+            text_size = text_widget.sizeHint()
+
+            if text_size.width() < 800:
+                list_item.setSizeHint(QSize(800, text_size.height()))
+            else:
+                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
 
             self.text_widget_list.addItem(list_item)
             self.text_widget_list.setItemWidget(list_item, text_widget)

@@ -35,8 +35,10 @@ class FileImportRunner(QRunnable):
                     image_name=file_name,
                     ocr_text=[],
                     lines=None,
-                    preview=None
+                    preview=None,
+                    angle=0.0
                 )
+
                 imported_data[guid] = ocr_data
 
         self.signals.ocr_data.emit(imported_data)
@@ -56,13 +58,14 @@ class OCRunner(QRunnable):
 
         if status == OpStatus.SUCCESS:
             print(f"Runner -> Done")
-            rot_mask, lines, page_text = result
+            rot_mask, lines, page_text, angle = result
 
             ocr_result = OCResult(
                 guid=self.data.guid,
                 mask=rot_mask,
                 lines=lines,
-                text=page_text
+                text=page_text,
+                angle=angle
             )
             print(f"Runner->Emitting Signals...")
             self.signals.ocr_result.emit(ocr_result)
@@ -97,19 +100,19 @@ class OCRBatchRunner(QRunnable):
         results = {}
 
         for idx, data in enumerate(self.data):
-
             if not self.stop:
                 img = cv2.imread(data.image_path)
                 status, result = self.ocr_pipeline.run_ocr(img)
 
                 if status == OpStatus.SUCCESS:
-                    rot_mask, lines, page_text = result
+                    rot_mask, lines, page_text, angle = result
 
                     ocr_result = OCResult(
                         guid=data.guid,
                         mask=rot_mask,
                         lines=lines,
-                        text=page_text
+                        text=page_text,
+                        angle=angle
                     )
                     results[data.guid] = ocr_result
                     sample = OCRSample(

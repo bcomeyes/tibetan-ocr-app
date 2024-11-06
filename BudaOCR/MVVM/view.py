@@ -34,7 +34,6 @@ class MainView(QWidget):
         self.canvas = Canvas()
         self.text_view = TextView()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
-        #self.splitter.setCollapsible(0, False)
 
         # build layout
         self.v_layout = QVBoxLayout()
@@ -183,7 +182,8 @@ class AppView(QWidget):
                     image_name=file_name,
                     ocr_text=[],
                     lines=None,
-                    preview=None
+                    preview=None,
+                    angle=0.0
                 )
                 new_data[guid] = palmtree_data
 
@@ -226,12 +226,12 @@ class AppView(QWidget):
         if os.path.isfile(data.image_path):
 
             img = cv2.imread(data.image_path)
-            status, ocr_result = self.ocr_pipeline.run_ocr(img)
+            status, result = self.ocr_pipeline.run_ocr(img)
 
             if status == OpStatus.SUCCESS:
-                mask, line_data, page_text = ocr_result
+                mask, line_data, page_text, angle = result
                 self._dataview_model.update_ocr_data(guid, page_text)
-                self._dataview_model.update_page_data(guid, line_data, mask)
+                self._dataview_model.update_page_data(guid, line_data, mask, angle)
             else:
                 dialog = NotificationDialog("Failed Running OCR", "Failed to run OCR on selected image.")
                 dialog.exec()
@@ -269,7 +269,7 @@ class AppView(QWidget):
     def update_ocr_result(self, result: OCResult, silent: bool = False):
         if result is not None:
             self._dataview_model.update_ocr_data(result.guid, result.text, silent)
-            self._dataview_model.update_page_data(result.guid, result.lines, result.mask, silent)
+            self._dataview_model.update_page_data(result.guid, result.lines, result.mask, result.angle, silent)
 
         else:
             dialog = NotificationDialog("Failed Running OCR", "Failed to run OCR on selected image.")

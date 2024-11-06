@@ -117,6 +117,7 @@ class BudaOCRData:
     ocr_text: List[str]
     lines: List[Line] | None
     preview: npt.NDArray | None
+    angle: float
 
 
 @dataclass
@@ -158,6 +159,7 @@ class OCResult:
     mask: npt.NDArray
     lines: List[Line]
     text: List[str]
+    angle: float
 
 @dataclass
 class OCRSample:

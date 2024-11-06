@@ -93,8 +93,12 @@ class BudaDataViewModel(QObject):
             data = self.get_data_by_guid(uuid)
             self.recordChanged.emit(data)
 
-    def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, silent: bool = False):
-        self._model.add_page_data(uuid, lines, preview_image)
+    def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float, silent: bool = False):
+        """
+        The silent flag is set to True when running OCR in batch mode to avoid triggering the recordChanged event for every image
+        """
+
+        self._model.add_page_data(uuid, lines, preview_image, angle)
 
         if not silent:
             data = self.get_data_by_guid(uuid)

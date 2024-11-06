@@ -50,9 +50,10 @@ class BudaOCRDataModel:
     def clear_data(self):
         self.data.clear()
 
-    def add_page_data(self, guid: UUID, lines: List[Line], preview_image: npt.NDArray) -> None:
+    def add_page_data(self, guid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float) -> None:
         self.data[guid].lines = lines
         self.data[guid].preview = preview_image
+        self.data[guid].angle = angle
 
     def add_ocr_text(self, guid: UUID, text: List[str]):
         self.data[guid].ocr_text = text

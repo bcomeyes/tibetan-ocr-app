@@ -324,14 +324,6 @@ def get_text_bbox(lines: List[Line]):
     return bbox
 
 
-def build_line_data(contour: npt.NDArray) -> Line:
-    x, y, w, h = cv2.boundingRect(contour)
-
-    x_center = x + (w // 2)
-    y_center = y + (h // 2)
-
-    bbox = BBox(x, y, w, h)
-    return Line(contour, bbox, (x_center, y_center))
 
 def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     image = image.astype(np.uint8)
@@ -509,16 +501,17 @@ def optimize_countour(cnt, e=0.001):
     return cv2.approxPolyDP(cnt, epsilon, True)
 
 
+
 def build_line_data(contour: np.array, optimize: bool = True) -> Line:
     if optimize:
         contour = optimize_countour(contour)
 
     x, y, w, h = cv2.boundingRect(contour)
+
     x_center = x + (w // 2)
     y_center = y + (h // 2)
 
     bbox = BBox(x, y, w, h)
-
     return Line(contour, bbox, (x_center, y_center))
 
 
