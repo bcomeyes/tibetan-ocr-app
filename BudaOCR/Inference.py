@@ -365,8 +365,8 @@ class OCRPipeline:
     # so that the user get's an information if things go wrong
     def run_ocr(self,
                 image: npt.NDArray,
-                k_factor: float = 1.7,
-                bbox_tolerance: float = 2.5,
+                k_factor: float = 2.5,
+                bbox_tolerance: float = 4.0,
                 merge_lines: bool = True,
                 use_tps: bool = False,
                 tps_mode: TPSMode = TPSMode.GLOBAL,
