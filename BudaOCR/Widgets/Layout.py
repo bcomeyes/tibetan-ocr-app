@@ -428,7 +428,7 @@ class PTGraphicsView(QGraphicsView):
                     return
                 self.scale(zoom_factor, zoom_factor)
 
-        elif event.angleDelta().y() < - 6:
+        elif y_delta < - 6:
             if self.zoom_range[0] < self.current_zoom_step <= self.zoom_range[-1]:
                 zoom_factor = 1.01
                 self.current_zoom_step -= 0.1
