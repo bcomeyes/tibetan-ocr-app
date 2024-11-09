@@ -1273,6 +1273,7 @@ class TextListWidget(QWidget):
         self.font = font
         self.font_size = font_size
         self.label = QLabel()
+        self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.label.setFont(QFont(self.font, font_size))
         self.label.setText(self.text)
         self.is_hovered = False

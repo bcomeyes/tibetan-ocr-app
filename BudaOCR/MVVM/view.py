@@ -110,6 +110,7 @@ class AppView(QWidget):
                  max_height: int):
         super().__init__()
         self.setObjectName("MainWindow")
+        self.setWindowTitle("BudaOCR [BETA] 0.1")
         self.platform = platform
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
