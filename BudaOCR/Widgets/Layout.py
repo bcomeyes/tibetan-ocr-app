@@ -958,10 +958,18 @@ class ImageListWidget(QWidget):
         self.setBaseSize(self.base_width, self.base_height)
 
         self.layout = QVBoxLayout()
+
         self.layout.addWidget(self.thumb)
-        self.is_active = False
-        # self.layout.addWidget(self.label)
+        self.layout.addWidget(self.label)
         self.setLayout(self.layout)
+        self.is_active = False
+
+        self.label.setStyleSheet("""
+            color: #ffffff;
+
+        """)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
 
     def resizeEvent(self, event):
         if isinstance(event, QResizeEvent):
@@ -1121,12 +1129,12 @@ class ImageGallery(QFrame):
 
         for _data in data:
             image_item = QListWidgetItem()
-            image_item.setSizeHint(QSize(_targetWidth, 160))
+            image_item.setSizeHint(QSize(_targetWidth, 200))
             image_widget = ImageListWidget(
                 _data.guid,
                 _data.image_path,
                 width=_targetWidth,
-                height=160
+                height=200
             )
 
             self.image_list.addItem(image_item)

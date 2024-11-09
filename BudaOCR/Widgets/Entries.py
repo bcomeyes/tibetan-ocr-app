@@ -1,10 +1,8 @@
 from PySide6.QtWidgets import (
-    QScrollBar,
     QWidget,
     QLabel,
-    QSpacerItem,
     QHBoxLayout,
-    QListView, QPushButton
+    QPushButton
 )
 
 
