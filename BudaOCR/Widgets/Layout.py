@@ -405,8 +405,40 @@ class PTGraphicsView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(self.default_scrollbar_policy)
         self.setVerticalScrollBarPolicy(self.default_scrollbar_policy)
 
+    """
+    def viewportEvent(self, event):
+        super().viewportEvent(event)
+        print(f"ViewPortEvent => {event.type()}")
 
+        return True
+    """
     def wheelEvent(self, event):
+        if event.source() == Qt.MouseEventSource.MouseEventSynthesizedBySystem:
+            self.handle_touch_zoom(event)
+        else:
+            self.handle_mouse_zoom(event)
+
+    def handle_touch_zoom(self, event):
+        if event.angleDelta().y() > 6:
+            if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
+                zoom_factor = 0.99
+                self.current_zoom_step += 0.1
+
+                if self.current_zoom_step > self.zoom_range[-1]:
+                    self.current_zoom_step = self.zoom_range[-1]
+                    return
+                self.scale(zoom_factor, zoom_factor)
+
+        elif event.angleDelta().y() < - 6:
+            if self.zoom_range[0] < self.current_zoom_step <= self.zoom_range[-1]:
+                zoom_factor = 1.01
+                self.current_zoom_step -= 0.1
+                if self.current_zoom_step < self.zoom_range[0]:
+                    self.current_zoom_step = self.zoom_range[0]
+                    return
+                self.scale(zoom_factor, zoom_factor)
+
+    def handle_mouse_zoom(self, event):
         if event.angleDelta().y() > 0:
             if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
                 zoom_factor = self.zoom_in_factor
@@ -418,8 +450,6 @@ class PTGraphicsView(QGraphicsView):
                 zoom_factor = 1 / self.zoom_in_factor
                 self.current_zoom_step -= 1
                 self.scale(zoom_factor, zoom_factor)
-
-
 
     def reset_scaling(self):
         self.resetTransform()
