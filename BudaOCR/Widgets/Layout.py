@@ -390,7 +390,6 @@ class PTGraphicsView(QGraphicsView):
         """
         )
 
-
     def enable_rubberband(self):
         self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
 
@@ -414,12 +413,12 @@ class PTGraphicsView(QGraphicsView):
     """
     def wheelEvent(self, event):
         if event.source() == Qt.MouseEventSource.MouseEventSynthesizedBySystem:
-            self.handle_touch_zoom(event)
+            self.handle_touch_zoom(event.angleDelta().y())
         else:
-            self.handle_mouse_zoom(event)
+            self.handle_mouse_zoom(event.angleDelta().y())
 
-    def handle_touch_zoom(self, event):
-        if event.angleDelta().y() > 6:
+    def handle_touch_zoom(self, y_delta: int):
+        if y_delta > 6:
             if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
                 zoom_factor = 0.99
                 self.current_zoom_step += 0.1
@@ -438,8 +437,8 @@ class PTGraphicsView(QGraphicsView):
                     return
                 self.scale(zoom_factor, zoom_factor)
 
-    def handle_mouse_zoom(self, event):
-        if event.angleDelta().y() > 0:
+    def handle_mouse_zoom(self, y_delta: int):
+        if y_delta > 0:
             if self.zoom_range[0] <= self.current_zoom_step < self.zoom_range[-1]:
                 zoom_factor = self.zoom_in_factor
                 self.current_zoom_step += 1
@@ -544,6 +543,8 @@ class Canvas(QFrame):
         self.toggle_prev_btn_icon = "Assets/Textures/toggle_prev.png"
         self.reset_scale_icon = "Assets/Textures/reset_scale.png"
         self.fit_view_icon = "Assets/Textures/fit_to_canvas.png"
+        self.zoom_in_icon = "Assets/Textures/plus_sign.png"
+        self.zoom_out_icon = "Assets/Textures/minus_sign.png"
 
         self.toggle_prev_btn = MenuButton(
             "Toggle line preview",
@@ -566,15 +567,33 @@ class Canvas(QFrame):
             height=20
         )
 
+        self.zoom_in_btn = MenuButton(
+            "Zoom in",
+            self.zoom_in_icon,
+            width=20,
+            height=20
+        )
+
+        self.zoom_out_btn = MenuButton(
+            "Zoom out",
+            self.zoom_out_icon,
+            width=20,
+            height=20
+        )
+
         # bind signals
         self.toggle_prev_btn.clicked.connect(self.handle_preview_toggle)
         self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
         #self.fit_in_btn.clicked.connect(self.fit_in_view)
+        self.zoom_in_btn.clicked.connect(self.zoom_in)
+        self.zoom_out_btn.clicked.connect(self.zoom_out)
 
         self.canvas_tools_layout = QHBoxLayout()
         self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.canvas_tools_layout.addWidget(self.toggle_prev_btn)
         self.canvas_tools_layout.addWidget(self.reset_scale_btn)
+        self.canvas_tools_layout.addWidget(self.zoom_in_btn)
+        self.canvas_tools_layout.addWidget(self.zoom_out_btn)
         #self.canvas_tools_layout.addWidget(self.fit_in_btn)
 
         self.layout = QVBoxLayout()
@@ -631,7 +650,6 @@ class Canvas(QFrame):
                 else:
                     item.show_preview()
 
-
     def fit_in_view(self):
         scene_rect = self.view.sceneRect()
         print(f"Current scene rect: {scene_rect}")
@@ -648,6 +666,12 @@ class Canvas(QFrame):
                 b_rect = item.boundingRect()
                 print(f"Current brect: {b_rect}")
                 self.view.fit_in_view(b_rect)
+
+    def zoom_in(self):
+        self.view.handle_mouse_zoom(1)
+
+    def zoom_out(self):
+        self.view.handle_mouse_zoom(-1)
 
 
 class ImageList(QListWidget):
@@ -1295,7 +1319,6 @@ class TextView(QFrame):
             border: 2px solid #1d1d1d;
             border-radius: 4px;
         """)
-
 
         self.zoom_out_btn = TextToolsButton("-")
         self.zoom_out_btn.setStyleSheet("""
