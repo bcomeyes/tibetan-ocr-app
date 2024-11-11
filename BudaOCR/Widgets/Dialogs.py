@@ -1,7 +1,7 @@
 import os
 import cv2
 from uuid import UUID
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import pyewts
 from PySide6.QtCore import Qt, QThreadPool, Signal
@@ -260,10 +260,6 @@ class ExportDialog(QDialog):
         for btn in self.exporter_buttons:
             export_layout.addWidget(btn)
 
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(len(self.ocr_data) - 1)
-
         self.button_h_layout = QHBoxLayout()
         self.ok_btn = QPushButton("Ok")
         self.ok_btn.setObjectName("DialogButton")
@@ -283,7 +279,6 @@ class ExportDialog(QDialog):
         self.v_layout.addLayout(self.export_dir_layout)
         self.v_layout.addLayout(encoding_layout)
         self.v_layout.addLayout(export_layout)
-        self.v_layout.addWidget(self.progress_bar)
         self.v_layout.addLayout(self.button_h_layout)
         self.setLayout(self.v_layout)
 
@@ -309,40 +304,42 @@ class ExportDialog(QDialog):
             if _exporter == ExportFormat.XML:
                 exporter = PageXMLExporter(self.output_dir)
 
-                for idx, data in self.ocr_data.items():
+                for idx, data in enumerate(self.ocr_data):
                     img = cv2.imread(data.image_path)
-                    exporter.export_lines(
-                        img,
-                        data.image_name,
-                        data.lines,
-                        data.ocr_text
-                    )
-                    self.progress_bar.setValue(idx)
 
-            elif _exporter == ExportFormat.JSON:
-                exporter = JsonExporter(self.output_dir)
-
-                for idx, data in self.ocr_data.items():
-                    img = cv2.imread(data.image_path)
-                    lines = len(data.lines)
-
-                    if len(lines) > 0:
+                    if data.lines is not None and len(data.lines) > 0:
                         exporter.export_lines(
                             img,
                             data.image_name,
                             data.lines,
                             data.ocr_text
                         )
-                    self.progress_bar.setValue(idx)
+
+            elif _exporter == ExportFormat.JSON:
+                exporter = JsonExporter(self.output_dir)
+
+                for idx, data in enumerate(self.ocr_data):
+                    img = cv2.imread(data.image_path)
+
+                    if data.lines is not None and len(data.lines) > 0:
+                        exporter.export_lines(
+                            img,
+                            data.image_name,
+                            data.lines,
+                            data.ocr_text
+                        )
             else:
                 exporter = TextExporter(self.output_dir)
 
-                for idx, data in self.ocr_data.items():
-                    exporter.export_text(
-                        data.image_name,
-                        data.ocr_text
-                    )
-                    self.progress_bar.setValue(idx)
+                for idx, data in enumerate(self.ocr_data):
+
+                    if data.lines is not None and len(data.lines) > 0:
+                        exporter.export_text(
+                            data.image_name,
+                            data.ocr_text
+                        )
+
+            self.accept()
 
         else:
             dialog = NotificationDialog("Invalid Export Directory", "The selected output directory is not valid.")
@@ -830,13 +827,13 @@ class BatchOCRDialog(QDialog):
         """)
 
         self.export_dir_layout = QHBoxLayout()
-        self.dir_edit = QLineEdit()
-        self.dir_edit.setObjectName("DialogLineEdit")
+        #self.dir_edit = QLineEdit()
+        #self.dir_edit.setObjectName("DialogLineEdit")
 
         self.dir_select_btn = QPushButton("select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
-        self.export_dir_layout.addWidget(self.dir_edit)
-        self.export_dir_layout.addWidget(self.dir_select_btn)
+        #self.export_dir_layout.addWidget(self.dir_edit)
+        #self.export_dir_layout.addWidget(self.dir_select_btn)
 
         self.form_layout = QFormLayout()
         self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -873,12 +870,12 @@ class BatchOCRDialog(QDialog):
         dewarping_label = QLabel("Dewarping")
         dewarping_label.setObjectName("OptionsLabel")
 
-        export_labels = QLabel("Export Formats")
-        export_labels.setObjectName("OptionsLabel")
+        #export_labels = QLabel("Export Formats")
+        #export_labels.setObjectName("OptionsLabel")
 
         self.form_layout.addRow(encoding_label, encoding_layout)
         self.form_layout.addRow(dewarping_label, dewarping_layout)
-        self.form_layout.addRow(export_labels, export_layout)
+        #self.form_layout.addRow(export_labels, export_layout)
 
         self.status_layout = QHBoxLayout()
         self.status_label = QLabel("Status")
@@ -891,7 +888,7 @@ class BatchOCRDialog(QDialog):
 
         self.v_layout.addWidget(self.label)
         self.v_layout.addWidget(self.model_selection)
-        self.v_layout.addLayout(self.export_dir_layout)
+        #self.v_layout.addLayout(self.export_dir_layout)
         self.v_layout.addLayout(self.form_layout)
         self.v_layout.addLayout(self.progress_layout)
         self.v_layout.addLayout(self.status_layout)
@@ -899,7 +896,7 @@ class BatchOCRDialog(QDialog):
         self.setLayout(self.v_layout)
 
         # bind signals
-        self.dir_select_btn.clicked.connect(self.select_export_dir)
+        #self.dir_select_btn.clicked.connect(self.select_export_dir)
         self.start_process_btn.clicked.connect(self.start_process)
         self.cancel_process_btn.clicked.connect(self.cancel_process)
         self.ok_btn.clicked.connect(self.accept)
@@ -920,7 +917,7 @@ class BatchOCRDialog(QDialog):
         
         """)
 
-    def select_export_dir(self):
+    """ def select_export_dir(self):
         dialog = ImportDirDialog()
         selected_dir = dialog.exec()
 
@@ -933,35 +930,31 @@ class BatchOCRDialog(QDialog):
         else:
             note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
             note_dialog.exec()
+    """
 
     def on_select_ocr_model(self, index: int):
         self.pipeline.update_ocr_model(self.ocr_models[index].config)
 
     def start_process(self):
+        encoding_id = self.encodings_group.checkedId()
+        encoding = Encoding(encoding_id)
 
-        if os.path.isdir(self.output_dir):
-            encoding_id = self.encodings_group.checkedId()
-            encoding = Encoding(encoding_id)
-
-            self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
-            self.runner.signals.sample.connect(self.handle_update_progress)
-            self.runner.signals.finished.connect(self.finish)
-            self.threadpool.start(self.runner)
-            self.status.setText("Running")
-
-        else:
-            note_dialog = NotificationDialog("No Ouput Directory", "Please select an output directory.")
-            note_dialog.exec()
+        self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
+        self.runner.signals.sample.connect(self.handle_update_progress)
+        self.runner.signals.finished.connect(self.finish)
+        self.threadpool.start(self.runner)
+        self.status.setText("Running")
 
     def handle_update_progress(self, sample: OCRSample):
         self.progress_bar.setValue(sample.cnt)
+        """ 
         file_name = self.data[sample.cnt].image_name
         out_file = os.path.join(self.output_dir, f"{file_name}.txt")
 
         with open(out_file, "w", encoding="utf-8") as f:
             for line in sample.result.text:
                 f.write(f"{line}\n")
-
+        """
         self.sign_ocr_result.emit(sample.result)
 
     def finish(self):
