@@ -5,27 +5,27 @@
 """
 import sys
 from PySide6.QtCore import QPoint
-from BudaOCR.MVVM.view import AppView
-from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
-from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
-from BudaOCR.Config import read_settings
-from BudaOCR.Utils import get_screen_center, get_platform
+from BDRC.MVVM.view import AppView
+from BDRC.MVVM.model import OCRDataModel, SettingsModel
+from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
+from BDRC.Config import read_settings
+from BDRC.Utils import get_screen_center, get_platform
 from PySide6.QtWidgets import QApplication
-from BudaOCR.Styles import DARK
+from BDRC.Styles import DARK
+
 
 if __name__ == "__main__":
-
     platform = get_platform()
     app = QApplication()
     app.setStyleSheet(DARK)
 
     app_settings, ocr_settings = read_settings()
 
-    data_model = BudaOCRDataModel()
-    settings_model = BudaSettingsModel(app_settings, ocr_settings)
+    data_model = OCRDataModel()
+    settings_model = SettingsModel(app_settings, ocr_settings)
 
-    dataview_model = BudaDataViewModel(data_model)
-    settingsview_model = BudaSettingsViewModel(settings_model)
+    dataview_model = DataViewModel(data_model)
+    settingsview_model = SettingsViewModel(settings_model)
 
     screen_data = get_screen_center(app)
 

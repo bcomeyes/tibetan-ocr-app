@@ -1,6 +1,6 @@
 import pyewts
 from uuid import UUID
-from BudaOCR.Data import Encoding
+from BDRC.Data import Encoding
 from typing import List
 
 from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF
@@ -37,18 +37,18 @@ from PySide6.QtWidgets import (
     QListView, QPushButton
 )
 
-from BudaOCR.Data import BudaOCRData, OCRModel
-from BudaOCR.Utils import get_filename
-from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
-from BudaOCR.Widgets.Buttons import MenuButton, TextToolsButton
-from BudaOCR.Widgets.Dialogs import ImportFilesDialog
-from BudaOCR.Widgets.GraphicItems import ImagePreview
+from BDRC.Data import OCRData, OCRModel
+from BDRC.Utils import get_filename
+from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
+from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
+from BDRC.Widgets.Dialogs import ImportFilesDialog
+from BDRC.Widgets.GraphicItems import ImagePreview
 
 
 
 class HeaderTools(QFrame):
 
-    def __init__(self, data_view: BudaDataViewModel, settings_view: BudaSettingsViewModel, icon_size: int = 48):
+    def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel, icon_size: int = 48):
         super().__init__()
         self.setObjectName("HeaderTools")
         self.data_view = data_view
@@ -58,6 +58,7 @@ class HeaderTools(QFrame):
 
         # bind signals
         self.data_view.dataSelected.connect(self.set_page_index)
+        self.settings_view.ocrModelsChanged.connect(self.update_ocr_models)
 
         # build layout
         self.spacer = QLabel()
@@ -73,10 +74,14 @@ class HeaderTools(QFrame):
     def update_page_count(self, amount: int):
         self.page_switcher.max_pages = amount
 
-    def set_page_index(self, data: BudaOCRData):
+    def set_page_index(self, data: OCRData):
         _index = self.data_view.get_data_index(data.guid)
         self.page_switcher.update_page(_index)
 
+
+    def update_ocr_models(self):
+        _ocr_models = self.settings_view.get_ocr_models()
+        self.toolbox.update_ocr_models(_ocr_models)
 
 class ToolBox(QWidget):
     sign_new = Signal()
@@ -146,10 +151,23 @@ class ToolBox(QWidget):
             height=self.icon_size,
         )
 
+        #spacer
+        self.spacer = QLabel("")
+        self.spacer.setFixedWidth(20)
+
         # model selection
         self.model_selection = QComboBox()
         self.model_selection.setObjectName("ModelSelection")
         self.model_selection.setContentsMargins(80, 0, 0, 0)
+
+
+        self.model_selection.setStyleSheet("""
+            QListView {
+                color:white;
+                background-color: #172832;
+                min-width: 150px;      
+        }  
+        """)
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -179,6 +197,7 @@ class ToolBox(QWidget):
         self.layout.addWidget(self.btn_run)
         self.layout.addWidget(self.btn_run_all)
         self.layout.addWidget(self.btn_settings)
+        self.layout.addWidget(self.spacer)
         self.layout.addWidget(self.model_selection)
 
         self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -213,6 +232,13 @@ class ToolBox(QWidget):
 
     def on_select_ocr_model(self, index: int):
         self.sign_on_select_model.emit(self.ocr_models[index])
+
+    def update_ocr_models(self, ocr_models: List[OCRModel]):
+        self.ocr_models = ocr_models
+
+        if self.ocr_models is not None and len(self.ocr_models) > 0:
+            for model in self.ocr_models:
+                self.model_selection.addItem(model.name)
 
 
 class PageSwitcher(QWidget):
@@ -623,7 +649,7 @@ class Canvas(QFrame):
                 QRectF(0, 0, self.current_width, self.current_height)
             )
 
-    def set_preview(self, data: BudaOCRData):
+    def set_preview(self, data: OCRData):
         self.view.reset_scaling()
         scene_rect = self.view.sceneRect()
         _last_pos = self.gr_scene.get_current_item_pos()
@@ -668,10 +694,10 @@ class Canvas(QFrame):
                 self.view.fit_in_view(b_rect)
 
     def zoom_in(self):
-        self.view.handle_mouse_zoom(1)
+        self.view.handle_mouse_zoom(-1)
 
     def zoom_out(self):
-        self.view.handle_mouse_zoom(-1)
+        self.view.handle_mouse_zoom(1)
 
 
 class ImageList(QListWidget):
@@ -1010,7 +1036,7 @@ class ImageListWidget(QWidget):
 
 
 class ImageGallery(QFrame):
-    def __init__(self, viewmodel: BudaDataViewModel):
+    def __init__(self, viewmodel: DataViewModel):
         super().__init__()
         self.view_model = viewmodel
         self.setObjectName("ImageGallery")
@@ -1108,7 +1134,7 @@ class ImageGallery(QFrame):
                 if isinstance(item_widget, ImageListWidget):
                     item_widget.unselect()
 
-    def focus_page(self, data: BudaOCRData):
+    def focus_page(self, data: OCRData):
         for idx in range(self.image_list.count()):
             item = self.image_list.item(idx)
             item_widget = self.image_list.itemWidget(item)
@@ -1123,7 +1149,7 @@ class ImageGallery(QFrame):
                     item_widget.unselect()
 
 
-    def add_data(self, data: list[BudaOCRData]):
+    def add_data(self, data: list[OCRData]):
         _sizeHint = self.sizeHint()
         _targetWidth = _sizeHint.width()-80
 

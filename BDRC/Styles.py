@@ -65,7 +65,7 @@ DARK = """
         border: 2px solid #ced4da;
         border-radius: 4px;
     }
-
+    
     QPushButton#MenuButton {
         background-color: #172832;
         border: 1px solid #1d1d1d;
@@ -93,24 +93,41 @@ DARK = """
         background-color: #1d1c1c;
     }
     
-    QDialog#SettingsDialog {
-        color: #ffffff;
-        background-color: #100F0F;
-        
-        QTabWidget::tab-bar {
-                left: 20px;
-                height: 36px;
-                border-radius: 4px;
-                alignment: center; 
-        }      
-    }
-    
     QDialog#BatchOCRDialog
     {
         color: #ffffff;
         background-color: #100F0F;
     }
     
+    QDialog#SettingsDialog
+    {
+        background-color: #172832;
+    }
+    
+    QTabWidget::pane {
+        background-color: #242424;             
+        border-width: 0px;                 
+        border-radius: 6px;        
+    }
+    
+    QTabWidget::tab-bar {          
+        left: 5px;                 
+    } 
+            
+    QTabBar::tab {
+        color: #ffffff;
+        background: #A40021;
+        padding: 4px;
+    }
+    
+    QTabWidget::tab-bar {          
+        left: 5px;
+    }  
+    
+    QTabBar::tab:selected { 
+        background: #730017; 
+        margin-bottom: -1px;
+    }    
     
     QPushButton#DialogButton {
         color: #ffffff;
@@ -141,10 +158,18 @@ DARK = """
         border: none;
     }
     
-    QButtonGroup#OptionsRadio
+    QRadioButton#OptionsRadio:indicator:checked
     {
-        color: #ffffff;
-        border: none;
+        image:url(Assets/Textures/qradio_indicator_checked.png);
+        width: 12px;
+        height: 12px;
+    }
+    
+    QRadioButton#OptionsRadio:indicator:unchecked
+    {
+        image:url(Assets/Textures/qradio_indicator.png);
+        width: 12px;
+        height: 12px;
     }
     
     QLabel#OptionsLabel
@@ -162,13 +187,18 @@ DARK = """
     
     QProgressBar#DialogProgressBar {
         background-color: #474747;
+        color: #A40021;
         border: 2px solid #343942;
         border-radius: 2px;
     
         QProgressBar::chunk {
             background-color: #2c2f37;
             width: 20px;
-}
+        }
+        
+    QListWidget#ModelList {
+        background-color: #172832;
+        border-radius: 4px;
     }
     
-    """
+"""

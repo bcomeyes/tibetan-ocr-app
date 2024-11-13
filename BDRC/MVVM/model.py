@@ -1,11 +1,11 @@
 from uuid import UUID
 import numpy.typing as npt
 from typing import List, Dict
-from BudaOCR.Utils import import_local_models
-from BudaOCR.Data import BudaOCRData, Line, AppSettings, OCRSettings, OCRModel
+from BDRC.Utils import import_local_models
+from BDRC.Data import OCRData, Line, AppSettings, OCRSettings, OCRModel
 
 
-class BudaSettingsModel:
+class SettingsModel:
     def __init__(self, app_settings: AppSettings, ocr_settings: OCRSettings):
         self.app_settings = app_settings
         self.ocr_settings = ocr_settings
@@ -35,11 +35,11 @@ class BudaSettingsModel:
         self.current_ocr_model = ocr_model
 
 
-class BudaOCRDataModel:
+class OCRDataModel:
     def __init__(self):
         self.data = {}
 
-    def add_data(self, data: Dict[UUID, BudaOCRData]):
+    def add_data(self, data: Dict[UUID, OCRData]):
         self.data.clear()
         self.data = data
 

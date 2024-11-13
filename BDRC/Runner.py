@@ -2,11 +2,11 @@ import os
 import cv2
 from uuid import UUID
 from typing import List
-from BudaOCR.Data import OpStatus, OCResult, LineMode, BudaOCRData, Encoding, OCRSettings, OCRSample
+from BDRC.Data import OpStatus, OCResult, LineMode, OCRData, Encoding, OCRSettings, OCRSample
 from PySide6.QtCore import QObject, Signal, QRunnable
 
-from BudaOCR.Inference import OCRPipeline
-from BudaOCR.Utils import get_filename, generate_guid
+from BDRC.Inference import OCRPipeline
+from BDRC.Utils import get_filename, generate_guid
 
 
 class RunnerSignals(QObject):
@@ -14,7 +14,7 @@ class RunnerSignals(QObject):
     error = Signal(str)
     finished = Signal()
     ocr_result = Signal(OCResult)
-    ocr_data = Signal(dict[UUID, BudaOCRData])
+    ocr_data = Signal(dict[UUID, OCRData])
 
 
 class FileImportRunner(QRunnable):
@@ -29,7 +29,7 @@ class FileImportRunner(QRunnable):
             if os.path.isfile(file_path):
                 file_name = get_filename(file_path)
                 guid = generate_guid(idx)
-                ocr_data = BudaOCRData(
+                ocr_data = OCRData(
                     guid=guid,
                     image_path=file_path,
                     image_name=file_name,
@@ -45,7 +45,7 @@ class FileImportRunner(QRunnable):
 
 
 class OCRunner(QRunnable):
-    def __init__(self, data: BudaOCRData, ocr_pipeline: OCRPipeline, settings: OCRSettings):
+    def __init__(self, data: OCRData, ocr_pipeline: OCRPipeline, settings: OCRSettings):
         super(OCRunner, self).__init__()
         self.signals = RunnerSignals()
         self.data = data
@@ -77,7 +77,7 @@ class OCRunner(QRunnable):
 class OCRBatchRunner(QRunnable):
     def __init__(
             self,
-            data: List[BudaOCRData],
+            data: List[OCRData],
             ocr_pipeline: OCRPipeline,
             output_encoding: Encoding,
             mode: LineMode = LineMode.Layout,

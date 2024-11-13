@@ -7,13 +7,13 @@ import numpy as np
 import numpy.typing as npt
 from xml.dom import minidom
 import xml.etree.ElementTree as etree
-from BudaOCR.Data import BBox, Line
-from BudaOCR.Utils import (
-    get_text_bbox,
+from BDRC.Data import BBox, Line
+from BDRC.Utils import (
     get_utc_time,
     rotate_contour,
-    optimize_countour,
+    optimize_countour, get_text_bbox,
 )
+
 
 
 class Exporter:
@@ -93,9 +93,6 @@ class PageXMLExporter(Exporter):
         unicode_field.text = unicode_text
 
         return text_line
-
-    def get_line_baseline(self, bbox: tuple[int, int, int, int]) -> str:
-        return f"{bbox.x},{bbox.y + bbox.h} {bbox.x + bbox.w},{bbox.y + bbox.h}"
 
     def build_xml_document(
         self,
@@ -214,7 +211,9 @@ class PageXMLExporter(Exporter):
 
             for line in lines:
                 line.contour = rotate_contour(
-                    line.contour, x_center, y_center, angle
+                    line.contour,
+                    (x_center, y_center),
+                    angle
                 )
 
         if optimize:

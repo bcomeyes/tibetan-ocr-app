@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from BudaOCR.Data import OpStatus, AppSettings, Encoding, ExportFormat, Language, Theme, OCRSettings, LineMode, \
+from BDRC.Data import OpStatus, AppSettings, Encoding, ExportFormat, Language, Theme, OCRSettings, LineMode, \
     LineMerge, LineSorting, TPSMode, CharsetEncoder, OCRArchitecture
 from huggingface_hub import snapshot_download
 

@@ -4,8 +4,8 @@ import numpy.typing as npt
 import onnxruntime as ort
 from typing import List
 from scipy.special import softmax
-from BudaOCR.Config import COLOR_DICT
-from BudaOCR.Data import (
+from BDRC.Config import COLOR_DICT
+from BDRC.Data import (
     OpStatus,
     TPSMode,
     OCRModelConfig,
@@ -14,7 +14,7 @@ from BudaOCR.Data import (
 )
 
 from pyctcdecode import build_ctcdecoder
-from BudaOCR.Utils import (
+from BDRC.Utils import (
     apply_global_tps,
     build_line_data,
     extract_line_images,
@@ -68,7 +68,7 @@ class Detection:
         self._config_file = config
         self._onnx_model_file = config.model_file
         self._patch_size = config.patch_size
-        self._execution_providers = get_execution_providers(self.platform)
+        self._execution_providers = get_execution_providers()
         self._inference = ort.InferenceSession(
             self._onnx_model_file, providers=self._execution_providers
         )
@@ -229,7 +229,7 @@ class OCRInference:
         self._characters = ocr_config.charset
         self._squeeze_channel_dim = ocr_config.squeeze_channel
         self._swap_hw = ocr_config.swap_hw
-        self._execution_providers = get_execution_providers(self.platform)
+        self._execution_providers = get_execution_providers()
         self.ocr_session = ort.InferenceSession(
             self._onnx_model_file, providers=self._execution_providers
         )

@@ -13,12 +13,12 @@ from math import ceil
 from uuid import uuid1
 from pathlib import Path
 from datetime import datetime
-from PIL import Image, ImageOps
 from tps import ThinPlateSpline
-from typing import List, Tuple, Optional, Sequence, Dict
-from BudaOCR.Config import OCRARCHITECTURE, CHARSETENCODER
-from BudaOCR.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
+from typing import List, Tuple, Optional, Sequence
+from BDRC.Config import OCRARCHITECTURE, CHARSETENCODER
+from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
 from PySide6.QtWidgets import QApplication
+
 
 # TODO: read this from the global Config
 page_classes = {
@@ -31,7 +31,6 @@ page_classes = {
 
 def get_screen_center(app: QApplication, start_size_ratio: float = 0.8) -> ScreenData:
     screen = app.primaryScreen()
-    size = screen.size()
     rect = screen.availableGeometry()
     max_width = rect.width()
     max_height = rect.height()
@@ -67,9 +66,15 @@ def get_platform() -> Platform:
 
     return _platform
 
-def get_execution_providers(platform: Platform) -> List[str]:
-    available_providers = ort.get_available_providers()
+def get_utc_time():
+    utc_time = datetime.now()
+    utc_time = utc_time.strftime('%Y-%m-%dT%H:%M:%S')
 
+    return utc_time
+
+def get_execution_providers() -> List[str]:
+    available_providers = ort.get_available_providers()
+    print(f"Available ONNX providers: {available_providers}")
     return available_providers
 
 def get_filename(file_path: str) -> str:
@@ -91,13 +96,6 @@ def generate_guid(clock_seq: int):
     return uuid1(clock_seq=clock_seq)
 
 
-def get_utc_time():
-    utc_time = datetime.now()
-    utc_time = utc_time.strftime('%Y-%m-%dT%H:%M:%S')
-
-    return utc_time
-
-
 def read_theme_file(file_path: str) -> dict | None:
     if os.path.isfile(file_path):
         with open(file_path, "r") as f:
@@ -112,20 +110,22 @@ def read_theme_file(file_path: str) -> dict | None:
 def import_local_models(model_path: str):
     tick = 1
     ocr_models = []
-    for sub_dir in Path(model_path).iterdir():
-        if os.path.isdir(sub_dir):
-            _config_file = os.path.join(sub_dir, "model_config.json")
-            assert os.path.isfile(_config_file)
 
-            _config = read_ocr_model_config(_config_file)
-            _model = OCRModel(
-                guid=generate_guid(tick),
-                name=sub_dir.name,
-                path=str(sub_dir),
-                config=_config
-            )
-            ocr_models.append(_model)
-        tick += 1
+    if os.path.isdir(model_path):
+        for sub_dir in Path(model_path).iterdir():
+            if os.path.isdir(sub_dir):
+                _config_file = os.path.join(sub_dir, "model_config.json")
+                assert os.path.isfile(_config_file)
+
+                _config = read_ocr_model_config(_config_file)
+                _model = OCRModel(
+                    guid=generate_guid(tick),
+                    name=sub_dir.name,
+                    path=str(sub_dir),
+                    config=_config
+                )
+                ocr_models.append(_model)
+            tick += 1
 
     return ocr_models
 
@@ -421,7 +421,7 @@ def cart2pol(x, y):
     return theta, rho
 
 
-def rotate_contour(cnt, center, angle):
+def rotate_contour(cnt, center: Tuple[int, int], angle: float):
     cx = center[0]
     cy = center[1]
 

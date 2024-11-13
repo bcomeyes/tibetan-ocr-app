@@ -1,6 +1,6 @@
 {
- "model_path": "Models/OCR",
- "language": "en",
- "encoding": "unicode",
- "theme": "light"
+ "model_path": "C:/Users/Eric/Desktop/OCR_Models",
+ "language": "ch",
+ "encoding": "wylie",
+ "theme": "dark"
 }

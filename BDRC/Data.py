@@ -110,7 +110,7 @@ class ThemeData:
     SettingsButton: str
 
 @dataclass
-class BudaOCRData:
+class OCRData:
     guid: UUID
     image_path: str
     image_name: str

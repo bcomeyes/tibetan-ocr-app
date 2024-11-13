@@ -1,12 +1,12 @@
 import logging
-from BudaOCR.Data import OpStatus, BudaOCRData
+from BDRC.Data import OpStatus, OCRData
 
 
 class TextExporter:
     def __init__(self):
         pass
 
-    def export(self, save_dir: str, data: list[BudaOCRData]) -> OpStatus:
+    def export(self, save_dir: str, data: list[OCRData]) -> OpStatus:
 
         for _data in data:
             if len(_data.ocr_text) > 0:

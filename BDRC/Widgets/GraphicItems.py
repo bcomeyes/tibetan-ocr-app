@@ -4,10 +4,10 @@ from PIL import Image
 from typing import List
 from PIL.ImageQt import ImageQt, QImage
 from PySide6.QtGui import QPixmap, QTransform
-from BudaOCR.Data import Line
+from BDRC.Data import Line
 from PySide6.QtWidgets import QGraphicsPixmapItem, QGraphicsItem
 
-from BudaOCR.Utils import rotate_from_angle
+from BDRC.Utils import rotate_from_angle
 
 
 class ImagePreview(QGraphicsPixmapItem):

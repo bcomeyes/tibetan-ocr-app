@@ -1,19 +1,20 @@
 import os
-from uuid import UUID
-
 import cv2
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QSplitter
-from PySide6.QtCore import Signal, Qt, QThreadPool
+from uuid import UUID
 from typing import Dict, List
-from BudaOCR.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
-from BudaOCR.Data import OpStatus, Platform, BudaOCRData, OCRModel, OCResult
-from BudaOCR.Inference import OCRPipeline
-from BudaOCR.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
-from BudaOCR.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog
-from BudaOCR.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
-from BudaOCR.MVVM.viewmodel import BudaDataViewModel, BudaSettingsViewModel
-from BudaOCR.IO import TextExporter
-from BudaOCR.Styles import DARK
+from PySide6.QtCore import Signal, Qt, QThreadPool
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter
+
+from BDRC.Styles import DARK
+from BDRC.IO import TextExporter
+from BDRC.Inference import OCRPipeline
+from BDRC.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
+from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
+from BDRC.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
+from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog
+from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
+from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
+
 
 
 class MainView(QWidget):
@@ -24,7 +25,7 @@ class MainView(QWidget):
     sign_run_batch_ocr = Signal()
     sign_handle_settings = Signal()
 
-    def __init__(self, data_view: BudaDataViewModel, settings_view: BudaSettingsViewModel):
+    def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel):
         super().__init__()
         self.setObjectName("MainView")
         self._data_view = data_view
@@ -66,7 +67,7 @@ class MainView(QWidget):
     def handle_new(self):
         self._data_view.clear_data()
 
-    def update_data(self, data: List[BudaOCRData]):
+    def update_data(self, data: List[OCRData]):
         self.header_tools.update_page_count(len(data))
 
     def handle_import(self, files: list[str]):
@@ -95,7 +96,7 @@ class MainView(QWidget):
     def handle_update_page(self, index: int):
         self._data_view.select_data_by_index(index)
 
-    def set_data(self, data: BudaOCRData):
+    def set_data(self, data: OCRData):
         self.canvas.set_preview(data)
         self.text_view.update_text(data.ocr_text)
         self.current_guid = data.guid
@@ -103,14 +104,14 @@ class MainView(QWidget):
 
 class AppView(QWidget):
     def __init__(self,
-                 dataview_model: BudaDataViewModel,
-                 settingsview_model: BudaSettingsViewModel,
+                 dataview_model: DataViewModel,
+                 settingsview_model: SettingsViewModel,
                  platform: Platform,
                  max_width: int,
                  max_height: int):
         super().__init__()
         self.setObjectName("MainWindow")
-        self.setWindowTitle("BudaOCR [BETA] 0.1")
+        self.setWindowTitle("BDRC OCR [BETA] 0.1")
         self.platform = platform
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
@@ -156,8 +157,10 @@ class AppView(QWidget):
         self.layout_model_config = read_layout_model_config(LAYOUT_CONFIG)
         _ocr_model = self._settingsview_model.get_current_ocr_model()
 
-        print(f"Creating Default OCRPipeline: {_ocr_model.name}")
-        self.ocr_pipeline = OCRPipeline(self.platform, _ocr_model.config, self.layout_model_config)
+        if _ocr_model is not None:
+            self.ocr_pipeline = OCRPipeline(self.platform, _ocr_model.config, self.layout_model_config)
+        else:
+            self.ocr_pipeline = None
 
         self.setStyleSheet("""
             QFrame::TextView {
@@ -177,7 +180,7 @@ class AppView(QWidget):
             if os.path.isfile(file_path):
                 file_name = get_filename(file_path)
                 guid = generate_guid(idx)
-                palmtree_data = BudaOCRData(
+                palmtree_data = OCRData(
                     guid=guid,
                     image_path=file_path,
                     image_name=file_name,
@@ -292,12 +295,18 @@ class AppView(QWidget):
         dialog = SettingsDialog(_app_settings, _ocr_settings, _models)
         dialog.setStyleSheet(DARK)
 
-        app_settings, ocr_settings = dialog.exec()
+        app_settings, ocr_settings, ocr_models = dialog.exec()
 
         # TODO: add ovewrite confirmation or so ?
         save_app_settings(app_settings)
         save_ocr_settings(ocr_settings)
 
+        self._settingsview_model.update_ocr_models(ocr_models)
+
     def update_ocr_model(self, ocr_model: OCRModel):
         print(f"Updating OCR Pipeline with OCR model: {ocr_model.name}")
-        self.ocr_pipeline.update_ocr_model(ocr_model.config)
+
+        if self.ocr_pipeline is not None:
+            self.ocr_pipeline.update_ocr_model(ocr_model.config)
+        else:
+            self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, self.layout_model_config)

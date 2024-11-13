@@ -2,16 +2,16 @@ from uuid import UUID
 import numpy.typing as npt
 from typing import List, Dict
 from PySide6.QtCore import QObject, Signal
-from BudaOCR.MVVM.model import BudaOCRDataModel, BudaSettingsModel
-from BudaOCR.Data import BudaOCRData, Line, OCRModel, AppSettings, OCRSettings
+from BDRC.MVVM.model import OCRDataModel, SettingsModel
+from BDRC.Data import OCRData, Line, OCRModel, AppSettings, OCRSettings
 
 
-class BudaSettingsViewModel(QObject):
+class SettingsViewModel(QObject):
     appSettingsChanged = Signal(AppSettings)
     ocrSettingsChanged = Signal(OCRSettings)
-    ocrModelsChanged = Signal(list[OCRModel]) # TODO: Why is this somethis working and sometimes not when using List insteand of list
+    ocrModelsChanged = Signal() # TODO: Why is this somethis working and sometimes not when using List insteand of list
     ocrModelChanged = Signal(OCRModel)
-    def __init__(self, model: BudaSettingsModel):
+    def __init__(self, model: SettingsModel):
         super().__init__()
         self._model = model
 
@@ -36,39 +36,42 @@ class BudaSettingsViewModel(QObject):
         self.appSettingsChanged.emit(settings)
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
+        print(f"SettingsViewModel -> updating models: {ocr_models}")
         self._model.ocr_models = ocr_models
-        self.ocrModelsChanged.emit(ocr_models)
+        self._model.current_ocr_model = self._model.ocr_models[0]
+        self.select_ocr_model(self._model.current_ocr_model)
+        self.ocrModelsChanged.emit()
 
     def select_ocr_model(self, ocr_model: OCRModel):
         self._model.set_current_ocr_model(ocr_model)
         self.ocrModelChanged.emit(ocr_model)
 
 
-class BudaDataViewModel(QObject):
-    recordChanged = Signal(BudaOCRData)
+class DataViewModel(QObject):
+    recordChanged = Signal(OCRData)
     dataChanged = Signal(list) # This is actually a list[PalmTreeData] or [], but specifying the type throws errors..
-    dataSelected = Signal(BudaOCRData)
+    dataSelected = Signal(OCRData)
     """
     Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
     via the page switcher in the header, which focuses and scrolls to the respective image in the ImageGallery. 
     This is for time being a separate signal to avoid having a cycling signal when an image get's selected in the ImageGallery
     via seleced_by_guid which would be focused afterwards as well - which is a weird behaviour
     """
-    dataAutoSelected = Signal(BudaOCRData)
+    dataAutoSelected = Signal(OCRData)
     dataCleared = Signal()
 
-    def __init__(self, model: BudaOCRDataModel):
+    def __init__(self, model: OCRDataModel):
         super().__init__()
         self._model = model
 
-    def get_data_by_guid(self, guid: UUID) -> BudaOCRData:
+    def get_data_by_guid(self, guid: UUID) -> OCRData:
         return self._model.data[guid]
 
-    def get_data(self) -> Dict[UUID, BudaOCRData]:
+    def get_data(self) -> Dict[UUID, OCRData]:
         return self._model.data
 
 
-    def add_data(self, data: Dict[UUID, BudaOCRData]):
+    def add_data(self, data: Dict[UUID, OCRData]):
         self.clear_data()
         self._model.add_data(data)
         current_data = self._model.get_data()
