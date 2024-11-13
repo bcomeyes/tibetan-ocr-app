@@ -1,7 +1,6 @@
 from uuid import UUID
 import numpy.typing as npt
 from typing import List, Dict
-from BDRC.Utils import import_local_models
 from BDRC.Data import OCRData, Line, AppSettings, OCRSettings, OCRModel
 
 
@@ -9,7 +8,7 @@ class SettingsModel:
     def __init__(self, app_settings: AppSettings, ocr_settings: OCRSettings):
         self.app_settings = app_settings
         self.ocr_settings = ocr_settings
-        self.ocr_models = import_local_models(self.app_settings.model_path)
+        self.ocr_models = []
         self.line_model = ""
         self.layout_model = ""
         self.current_ocr_model = self.set_default_ocr_model()

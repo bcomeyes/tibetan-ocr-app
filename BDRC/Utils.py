@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import datetime
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
-from BDRC.Config import OCRARCHITECTURE, CHARSETENCODER
+from Config import OCRARCHITECTURE, CHARSETENCODER
 from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
 from PySide6.QtWidgets import QApplication
 
@@ -115,6 +115,7 @@ def import_local_models(model_path: str):
         for sub_dir in Path(model_path).iterdir():
             if os.path.isdir(sub_dir):
                 _config_file = os.path.join(sub_dir, "model_config.json")
+                print(f"Looking for config file: {_config_file}")
                 assert os.path.isfile(_config_file)
 
                 _config = read_ocr_model_config(_config_file)

@@ -245,7 +245,8 @@ def create_default_ocr_config():
         "line_sorting": "threshold",
         "dewarp": "yes",
         "tps": "global",
-        "exporter": "text"
+        "exporter": "text",
+        "output_encoding": "unicode"
     }
 
     with open("ocr_settings.json", "w", encoding="utf-8") as f:

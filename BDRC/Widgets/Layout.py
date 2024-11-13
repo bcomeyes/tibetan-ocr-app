@@ -481,11 +481,6 @@ class PTGraphicsView(QGraphicsView):
         self.current_zoom_step = self.default_zoom_step
 
     def fit_in_view(self, brect: QRectF):
-        """
-        TODO: get the actual drawn size of the canvas element in the scene wrt to the scaling, otherwise it is
-        not possible to fit the image in the view
-
-        """
         if not self.default_zoom_step < self.current_zoom_step < self.default_zoom_step:
             _target_zoom_step = self.default_zoom_step - self.current_zoom_step
 
@@ -506,7 +501,7 @@ class PTGraphicsScene(QGraphicsScene):
 
     clear_selections = Signal()
 
-    def __init__(self, scene, width: int = 1200, height: int = 600, parent=None):
+    def __init__(self, scene, width: int = 2000, height: int = 2000, parent=None):
         super().__init__(parent)
         self.scene = scene
         self._background_color = QColor("#393939")
@@ -526,7 +521,6 @@ class PTGraphicsScene(QGraphicsScene):
 
     def add_item(self, item: QGraphicsItem, z_order: int):
         item.setZValue(z_order)
-        item.setScale(0.16) # Why that scale?
         self.addItem(item)
 
     def remove_item(self, item: QGraphicsItem):
@@ -549,7 +543,7 @@ class PTGraphicsScene(QGraphicsScene):
 
 
 class Canvas(QFrame):
-    def __init__(self, width: int = 1200, height: int = 400):
+    def __init__(self, width: int = 2000, height: int = 2000):
         super().__init__()
 
         self.default_width = width
@@ -610,7 +604,7 @@ class Canvas(QFrame):
         # bind signals
         self.toggle_prev_btn.clicked.connect(self.handle_preview_toggle)
         self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
-        #self.fit_in_btn.clicked.connect(self.fit_in_view)
+        self.fit_in_btn.clicked.connect(self.fit_in_view)
         self.zoom_in_btn.clicked.connect(self.zoom_in)
         self.zoom_out_btn.clicked.connect(self.zoom_out)
 
@@ -620,7 +614,7 @@ class Canvas(QFrame):
         self.canvas_tools_layout.addWidget(self.reset_scale_btn)
         self.canvas_tools_layout.addWidget(self.zoom_in_btn)
         self.canvas_tools_layout.addWidget(self.zoom_out_btn)
-        #self.canvas_tools_layout.addWidget(self.fit_in_btn)
+        self.canvas_tools_layout.addWidget(self.fit_in_btn)
 
         self.layout = QVBoxLayout()
         self.layout.addLayout(self.canvas_tools_layout)
@@ -651,11 +645,22 @@ class Canvas(QFrame):
 
     def set_preview(self, data: OCRData):
         self.view.reset_scaling()
+
         scene_rect = self.view.sceneRect()
-        _last_pos = self.gr_scene.get_current_item_pos()
+        zoom_step = self.view.current_zoom_step
+        scene_width = self.gr_scene.scene_width
+        scene_height = self.gr_scene.scene_height
+
+        print(f"Current scene rect: {scene_rect}")
+        print(f"Current zoom step: {zoom_step}")
+        print(f"scene width: {scene_width}")
+        print(f"scene height: {scene_height}")
 
         self.gr_scene.clear()
         preview_item = ImagePreview(data.image_path, data.lines, data.angle)
+        """_last_pos = self.gr_scene.get_current_item_pos()
+
+        
 
         if int(_last_pos.x()) == 0 and int(_last_pos.y()) == 0:
             target_x = (scene_rect.width() // 4)
@@ -665,8 +670,12 @@ class Canvas(QFrame):
             preview_item.setPos(center_pos)
         else:
             preview_item.setPos(_last_pos)
-
+        """
+        _pos = QPointF(0, 0)
+        preview_item.setPos(_pos)
         self.gr_scene.add_item(preview_item, 1)
+        brect = preview_item.boundingRect()
+        self.view.fitInView(brect, Qt.AspectRatioMode.KeepAspectRatio)
 
     def handle_preview_toggle(self):
         for item in self.gr_scene.items():
@@ -677,12 +686,14 @@ class Canvas(QFrame):
                     item.show_preview()
 
     def fit_in_view(self):
+        print("fit_in_view")
         scene_rect = self.view.sceneRect()
-        print(f"Current scene rect: {scene_rect}")
+
         zoom_step = self.view.current_zoom_step
         scene_width = self.gr_scene.scene_width
         scene_height = self.gr_scene.scene_height
 
+        print(f"Current scene rect: {scene_rect}")
         print(f"Current zoom step: {zoom_step}")
         print(f"scene width: {scene_width}")
         print(f"scene height: {scene_height}")

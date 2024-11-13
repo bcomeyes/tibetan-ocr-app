@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter
 from BDRC.Styles import DARK
 from BDRC.IO import TextExporter
 from BDRC.Inference import OCRPipeline
-from BDRC.Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
+from Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
 from BDRC.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
 from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog

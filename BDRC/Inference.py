@@ -4,7 +4,7 @@ import numpy.typing as npt
 import onnxruntime as ort
 from typing import List
 from scipy.special import softmax
-from BDRC.Config import COLOR_DICT
+from Config import COLOR_DICT
 from BDRC.Data import (
     OpStatus,
     TPSMode,
