@@ -709,6 +709,7 @@ class ImageList(QListWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.parent = parent
+        self.setObjectName("ImageGalleryList")
         self.setObjectName("ImageGalleryItem")
         self.setFlow(QListView.Flow.TopToBottom)
         self.setMouseTracking(True)
@@ -980,10 +981,12 @@ class ImageListWidget(QWidget):
         self.base_height = height
         self.thumb = ImageThumb(image_path)
         self.label = QLabel()
+        self.label.setContentsMargins(0, 0, 0, 0)
         self.label.setText(self.file_name)
         self.setBaseSize(self.base_width, self.base_height)
 
         self.layout = QVBoxLayout()
+        self.layout.setSpacing(0)
 
         self.layout.addWidget(self.thumb)
         self.layout.addWidget(self.label)
@@ -1057,30 +1060,20 @@ class ImageGallery(QFrame):
         self.spacer = QSpacerItem(320, 10)
         self.image_list = ImageList(self)
 
-
         self.layout.addWidget(self.image_label)
         self.layout.addItem(self.spacer)
         self.layout.addWidget(self.image_list)
         self.setLayout(self.layout)
 
-        self.setStyleSheet(
-            """
-                background-color: #1d1c1c;
-                
-            """
-        )
-
         self.image_list.setStyleSheet(
             """
             background-color: #100f0f;
             border: 4px solid #100f0f;
-            border-radius: 8px;
                        
             QListWidget {
                 color: #ffffff;
                 background-color: #100f0f; 
-                border: 4px solid #100f0f; 
-                border-radius: 8px;
+                border: 4px solid #100f0f;    
             }
             
             QListWidget::item:selected {
@@ -1116,7 +1109,6 @@ class ImageGallery(QFrame):
         self.view_model.select_data_by_guid(guid)
 
     def select_page(self, index: int):
-
         for idx in range(self.image_list.count()):
             if idx == index:
                 item = self.image_list.item(idx)

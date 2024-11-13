@@ -26,6 +26,14 @@ DARK = """
         background-color: #1d1c1c;
         color: #000000;
     }
+    
+    QFrame#ImageGallery {
+        background-color: #1d1c1c;
+    }
+    
+    QListWidget#ImageGalleryList {
+    
+    }
 
     QFrame#HeaderTools {
         background-color: #100F0F;

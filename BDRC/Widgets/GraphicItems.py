@@ -32,9 +32,6 @@ class ImagePreview(QGraphicsPixmapItem):
 
     def show_image(self):
         q_image = QImage(self.image_path)
-
-        #transform = QTransform().rotate(self.angle)
-        #q_image = transform.map(q_image)
         pixMap = QPixmap.fromImage(q_image)
 
         self.setPixmap(pixMap)
