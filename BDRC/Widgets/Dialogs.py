@@ -141,12 +141,12 @@ class ConfirmationDialog(QMessageBox):
         self.cancel_btn.clicked.connect(self.reject)
 
         self.ok_btn.setStyleSheet("""
-                color: #000000;
+                color: #ffffff;
                 font: bold 12px;
                 width: 240px;
                 height: 32px;
-                background-color: #ffad00;
-                border: 2px solid #ffad00;
+                background-color: #A40021;
+                border: 2px solid #A40021;
                 border-radius: 4px;
 
                 QPushButton::hover { 
@@ -156,12 +156,12 @@ class ConfirmationDialog(QMessageBox):
             """)
 
         self.cancel_btn.setStyleSheet("""
-                color: #000000;
+                color: #ffffff;
                 font: bold 12px; 
                 width: 240px;
                 height: 32px;
-                background-color: #ffad00;
-                border: 2px solid #ffad00;
+                background-color: #A40021;
+                border: 2px solid #A40021;
                 border-radius: 4px;
 
                 QPushButton::hover {
@@ -174,11 +174,6 @@ class ConfirmationDialog(QMessageBox):
             self.addButton(self.cancel_btn, QMessageBox.ButtonRole.NoRole)
         else:
             self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
-
-        self.setStyleSheet("""
-                background-color: #292951;
-                color: #ffffff;
-        """)
 
 
 class NotificationDialog(QMessageBox):
