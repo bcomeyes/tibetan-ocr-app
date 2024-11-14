@@ -36,11 +36,11 @@ class SettingsViewModel(QObject):
         self.appSettingsChanged.emit(settings)
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
-        print(f"SettingsViewModel -> updating models: {ocr_models}")
-        self._model.ocr_models = ocr_models
-        self._model.current_ocr_model = self._model.ocr_models[0]
-        self.select_ocr_model(self._model.current_ocr_model)
-        self.ocrModelsChanged.emit()
+        if len(ocr_models) > 0:
+            self._model.ocr_models = ocr_models
+            self._model.current_ocr_model = self._model.ocr_models[0]
+            self.select_ocr_model(self._model.current_ocr_model)
+            self.ocrModelsChanged.emit()
 
     def select_ocr_model(self, ocr_model: OCRModel):
         self._model.set_current_ocr_model(ocr_model)
