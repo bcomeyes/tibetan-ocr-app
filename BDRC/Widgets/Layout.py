@@ -503,23 +503,29 @@ class PTGraphicsScene(QGraphicsScene):
 
     def __init__(self, scene, width: int = 2000, height: int = 2000, parent=None):
         super().__init__(parent)
-        self.scene = scene
-        self._background_color = QColor("#393939")
-        self.scene_width = width
-        self.scene_height = height
-        self.set_scene(self.scene_width, self.scene_height)
+        self._scene = scene
+        self._scene_width = width
+        self._scene_height = height
         self._line_color = QColor("#2f2f2f")
-
+        self._background_color = QColor("#393939")
         self._pen_light = QPen(self._line_color)
         self._pen_light.setWidth(10)
-
         self._bg_image = QPixmap("Assets/Themes/Dark/background_grid.jpg")
+
+        self.set_scene(self._scene_width, self._scene_height)
         self.setBackgroundBrush(self._bg_image)
 
     def set_scene(self, width: int, height: int) -> None:
         self.setSceneRect(0, 0, width, height)
 
     def add_item(self, item: QGraphicsItem, z_order: int):
+        _brect = item.boundingRect()
+        x = _brect.left()
+        y = _brect.top()
+        width = _brect.width()
+        height = _brect.height()
+
+        self.setSceneRect(x, y, width, height)
         item.setZValue(z_order)
         self.addItem(item)
 
@@ -561,7 +567,6 @@ class Canvas(QFrame):
         self.view.setScene(self.gr_scene)
 
         self.toggle_prev_btn_icon = "Assets/Textures/toggle_prev.png"
-        self.reset_scale_icon = "Assets/Textures/reset_scale.png"
         self.fit_view_icon = "Assets/Textures/fit_to_canvas.png"
         self.zoom_in_icon = "Assets/Textures/plus_sign.png"
         self.zoom_out_icon = "Assets/Textures/minus_sign.png"
@@ -573,19 +578,13 @@ class Canvas(QFrame):
             height=20
         )
 
-        self.reset_scale_btn = MenuButton(
-            "Reset image scale",
-            self.reset_scale_icon,
-            width=20,
-            height=20
-        )
-
         self.fit_in_btn = MenuButton(
             "Fit image in view",
             self.fit_view_icon,
             width=20,
             height=20
         )
+
 
         self.zoom_in_btn = MenuButton(
             "Zoom in",
@@ -603,7 +602,6 @@ class Canvas(QFrame):
 
         # bind signals
         self.toggle_prev_btn.clicked.connect(self.handle_preview_toggle)
-        self.reset_scale_btn.clicked.connect(self.view.reset_scaling)
         self.fit_in_btn.clicked.connect(self.fit_in_view)
         self.zoom_in_btn.clicked.connect(self.zoom_in)
         self.zoom_out_btn.clicked.connect(self.zoom_out)
@@ -611,10 +609,9 @@ class Canvas(QFrame):
         self.canvas_tools_layout = QHBoxLayout()
         self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.canvas_tools_layout.addWidget(self.toggle_prev_btn)
-        self.canvas_tools_layout.addWidget(self.reset_scale_btn)
+        self.canvas_tools_layout.addWidget(self.fit_in_btn)
         self.canvas_tools_layout.addWidget(self.zoom_in_btn)
         self.canvas_tools_layout.addWidget(self.zoom_out_btn)
-        self.canvas_tools_layout.addWidget(self.fit_in_btn)
 
         self.layout = QVBoxLayout()
         self.layout.addLayout(self.canvas_tools_layout)
@@ -645,36 +642,14 @@ class Canvas(QFrame):
 
     def set_preview(self, data: OCRData):
         self.view.reset_scaling()
-
-        scene_rect = self.view.sceneRect()
-        zoom_step = self.view.current_zoom_step
-        scene_width = self.gr_scene.scene_width
-        scene_height = self.gr_scene.scene_height
-
-        print(f"Current scene rect: {scene_rect}")
-        print(f"Current zoom step: {zoom_step}")
-        print(f"scene width: {scene_width}")
-        print(f"scene height: {scene_height}")
-
         self.gr_scene.clear()
+
         preview_item = ImagePreview(data.image_path, data.lines, data.angle)
-        """_last_pos = self.gr_scene.get_current_item_pos()
-
-        
-
-        if int(_last_pos.x()) == 0 and int(_last_pos.y()) == 0:
-            target_x = (scene_rect.width() // 4)
-            target_y = (scene_rect.height() // 4)
-
-            center_pos = QPointF(target_x, target_y)
-            preview_item.setPos(center_pos)
-        else:
-            preview_item.setPos(_last_pos)
-        """
+        brect = preview_item.boundingRect()
         _pos = QPointF(0, 0)
         preview_item.setPos(_pos)
+
         self.gr_scene.add_item(preview_item, 1)
-        brect = preview_item.boundingRect()
         self.view.fitInView(brect, Qt.AspectRatioMode.KeepAspectRatio)
 
     def handle_preview_toggle(self):
@@ -686,23 +661,12 @@ class Canvas(QFrame):
                     item.show_preview()
 
     def fit_in_view(self):
-        print("fit_in_view")
-        scene_rect = self.view.sceneRect()
-
-        zoom_step = self.view.current_zoom_step
-        scene_width = self.gr_scene.scene_width
-        scene_height = self.gr_scene.scene_height
-
-        print(f"Current scene rect: {scene_rect}")
-        print(f"Current zoom step: {zoom_step}")
-        print(f"scene width: {scene_width}")
-        print(f"scene height: {scene_height}")
-
         for item in self.gr_scene.items():
             if isinstance(item, ImagePreview):
                 b_rect = item.boundingRect()
-                print(f"Current brect: {b_rect}")
+                item.setPos(0, 0)
                 self.view.fit_in_view(b_rect)
+
 
     def zoom_in(self):
         self.view.handle_mouse_zoom(-1)
