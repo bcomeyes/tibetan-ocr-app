@@ -197,16 +197,12 @@ DARK = """
         background-color: #474747;
         color: #A40021;
         border: 2px solid #343942;
-        border-radius: 2px;
-    
-        QProgressBar::chunk {
-            background-color: #2c2f37;
-            width: 20px;
-        }
-        
+        border-radius: 8px;
+        padding: 4px 4px 4px 4px;
+    }
+
     QListWidget#ModelList {
         background-color: #172832;
         border-radius: 4px;
     }
-    
 """

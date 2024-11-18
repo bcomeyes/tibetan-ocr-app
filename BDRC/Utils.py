@@ -16,7 +16,8 @@ from datetime import datetime
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
 from Config import OCRARCHITECTURE, CHARSETENCODER
-from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, OCRModel
+from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, \
+    OCRModel, OCRData
 from PySide6.QtWidgets import QApplication
 
 
@@ -95,6 +96,21 @@ def create_dir(dir_name: str) -> None:
 def generate_guid(clock_seq: int):
     return uuid1(clock_seq=clock_seq)
 
+
+def build_ocr_data(tick: int, file_path: str):
+    file_name = get_filename(file_path)
+    guid = generate_guid(tick)
+    ocr_data = OCRData(
+        guid=guid,
+        image_path=file_path,
+        image_name=file_name,
+        ocr_text=[],
+        lines=None,
+        preview=None,
+        angle=0.0
+    )
+
+    return ocr_data
 
 def read_theme_file(file_path: str) -> dict | None:
     if os.path.isfile(file_path):
@@ -186,11 +202,6 @@ def get_contours(image: npt.NDArray) -> Sequence:
     contours, _ = cv2.findContours(image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     return contours
-
-
-
-
-
 
 
 def sigmoid(x):

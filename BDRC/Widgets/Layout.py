@@ -1,9 +1,9 @@
 import pyewts
 from uuid import UUID
 from BDRC.Data import Encoding
-from typing import List
+from typing import Dict, List, Tuple
 
-from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF
+from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool, QRunnable, QObject
 from PySide6.QtGui import (
     QBrush,
     QColor,
@@ -13,8 +13,7 @@ from PySide6.QtGui import (
     QPainter,
     QImage,
     QPainterPath,
-    QFont,
-    QIntValidator
+    QFont
 )
 
 from PySide6.QtWidgets import (
@@ -34,20 +33,18 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView, QPushButton
+    QListView, QProgressBar, QPushButton, QDialog
 )
 
 from BDRC.Data import OCRData, OCRModel
 from BDRC.Utils import get_filename
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
-from BDRC.Widgets.Dialogs import ImportFilesDialog
 from BDRC.Widgets.GraphicItems import ImagePreview
-
+from BDRC.Widgets.Dialogs import ImportFilesProgress
 
 
 class HeaderTools(QFrame):
-
     def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel, icon_size: int = 48):
         super().__init__()
         self.setObjectName("HeaderTools")
@@ -85,7 +82,7 @@ class HeaderTools(QFrame):
 
 class ToolBox(QWidget):
     sign_new = Signal()
-    sign_import_files = Signal(list)
+    sign_import_files = Signal()
     sign_save = Signal()
     sign_run = Signal()
     sign_run_all = Signal()
@@ -209,11 +206,7 @@ class ToolBox(QWidget):
         self.sign_new.emit()
 
     def load_image(self):
-        dialog = ImportFilesDialog(self)
-        if dialog.exec():
-            _file_paths = dialog.selectedFiles()
-            if _file_paths and len(_file_paths) > 0:
-                self.sign_import_files.emit(_file_paths)
+        self.sign_import_files.emit()
 
     def save(self):
         self.sign_save.emit()
@@ -1014,14 +1007,16 @@ class ImageListWidget(QWidget):
 
 
 class ImageGallery(QFrame):
-    def __init__(self, viewmodel: DataViewModel):
+    def __init__(self, viewmodel: DataViewModel, pool: QThreadPool):
         super().__init__()
         self.view_model = viewmodel
+        self.pool = pool
         self.setObjectName("ImageGallery")
         self.setMinimumHeight(600)
         self.setMaximumWidth(456)
         self.setContentsMargins(20, 20, 20, 20)
         self.setContentsMargins(0, 0, 0, 0)
+        self.import_dialog = None
 
         # build layout
         self.image_label = QLabel(self)
@@ -1116,22 +1111,59 @@ class ImageGallery(QFrame):
                     item_widget.unselect()
 
 
-    def add_data(self, data: list[OCRData]):
+    def add_data(self, data: List[OCRData]):
+        print(f"ImageList .. > adding data: {len(data)} entries")
         _sizeHint = self.sizeHint()
         _targetWidth = _sizeHint.width()-80
 
-        for _data in data:
-            image_item = QListWidgetItem()
-            image_item.setSizeHint(QSize(_targetWidth, 200))
-            image_widget = ImageListWidget(
-                _data.guid,
-                _data.image_path,
-                width=_targetWidth,
-                height=200
-            )
+        if len (data) < 60:
+            for _data in data:
+                image_item = QListWidgetItem()
+                image_item.setSizeHint(QSize(_targetWidth, 200))
+                image_widget = ImageListWidget(
+                    _data.guid,
+                    _data.image_path,
+                    width=_targetWidth,
+                    height=200
+                )
 
-            self.image_list.addItem(image_item)
-            self.image_list.setItemWidget(image_item, image_widget)
+                self.image_list.addItem(image_item)
+                self.image_list.setItemWidget(image_item, image_widget)
+
+        else:
+            print(f"importing a lot of files.....")
+            progress = ImportFilesProgress( max_length=len(data))
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+
+            for idx, _data in enumerate(data):
+                if progress.wasCanceled():
+                    break
+
+                image_item = QListWidgetItem()
+                image_item.setSizeHint(QSize(_targetWidth, 200))
+                image_widget = ImageListWidget(
+                    _data.guid,
+                    _data.image_path,
+                    width=_targetWidth,
+                    height=200
+                )
+
+                self.image_list.addItem(image_item)
+                self.image_list.setItemWidget(image_item, image_widget)
+
+                progress.setValue(idx)
+
+    def add_async_data(self):
+        _data = self.import_dialog.imported_data
+        print(f"adding async data: {len(_data)}")
+
+        for k, v in _data.items():
+            item, widget = v
+
+            if isinstance(widget, ImageListWidget):
+                widget.setParent(self)
+            self.image_list.addItem(item)
+            self.image_list.setItemWidget(item, widget)
 
     def clear_data(self):
         self.image_list.clear()

@@ -10,15 +10,16 @@ from BDRC.IO import TextExporter
 from BDRC.Inference import OCRPipeline
 from Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
-from BDRC.Utils import get_filename, generate_guid, read_line_model_config, read_layout_model_config
-from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog
+from BDRC.Utils import read_line_model_config, read_layout_model_config, build_ocr_data
+from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog, \
+    ImportFilesDialog
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 
 
 
 class MainView(QWidget):
-    sign_handle_import = Signal(list)
+    sign_handle_import = Signal()
     sign_handle_page_select = Signal(int)
     sign_on_file_save = Signal()
     sign_run_ocr = Signal(UUID)
@@ -70,8 +71,8 @@ class MainView(QWidget):
     def update_data(self, data: List[OCRData]):
         self.header_tools.update_page_count(len(data))
 
-    def handle_import(self, files: list[str]):
-        self.sign_handle_import.emit(files)
+    def handle_import(self):
+        self.sign_handle_import.emit()
 
     def handle_file_save(self):
         self.sign_on_file_save.emit()
@@ -117,7 +118,7 @@ class AppView(QWidget):
         self._dataview_model = dataview_model
         self._settingsview_model = settingsview_model
 
-        self.image_gallery = ImageGallery(self._dataview_model)
+        self.image_gallery = ImageGallery(self._dataview_model, self.threadpool)
         self.main_container = MainView(self._dataview_model, self._settingsview_model)
         self.main_container.setContentsMargins(0, 0, 0, 0)
         # build layout
@@ -173,25 +174,23 @@ class AppView(QWidget):
 
         self.show()
 
-    def handle_file_import(self, files: list[str]):
-        new_data = {}
+    def handle_file_import(self):
+        dialog = ImportFilesDialog()
 
-        for idx, file_path in enumerate(files):
-            if os.path.isfile(file_path):
-                file_name = get_filename(file_path)
-                guid = generate_guid(idx)
-                palmtree_data = OCRData(
-                    guid=guid,
-                    image_path=file_path,
-                    image_name=file_name,
-                    ocr_text=[],
-                    lines=None,
-                    preview=None,
-                    angle=0.0
-                )
-                new_data[guid] = palmtree_data
+        if dialog.exec():
+            _file_list = dialog.selectedFiles()
+            _imported_data = {}
 
-        self._dataview_model.add_data(new_data)
+            for idx, file_path in enumerate(_file_list):
+                if os.path.isfile(file_path):
+                    ocr_data = build_ocr_data(idx, file_path)
+                    _imported_data[ocr_data.guid] = ocr_data
+
+            self.import_files(_imported_data)
+
+
+    def import_files(self, results: Dict[UUID, OCRData]):
+        self._dataview_model.add_data(results)
 
     def save(self):
         _ocr_data = self._dataview_model.get_data()

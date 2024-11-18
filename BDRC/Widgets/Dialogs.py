@@ -118,9 +118,9 @@ class ImportFilesDialog(QFileDialog):
         self.setViewMode(QFileDialog.ViewMode.List)
 
 
-class ImportDirDialog(QFileDialog):
+class ExportDirDialog(QFileDialog):
     def __init__(self, parent=None):
-        super(ImportDirDialog, self).__init__(parent)
+        super(ExportDirDialog, self).__init__(parent)
         self.setFileMode(QFileDialog.FileMode.Directory)
 
 
@@ -343,7 +343,7 @@ class ExportDialog(QDialog):
         self.reject()
 
     def select_export_dir(self):
-        dialog = ImportDirDialog()
+        dialog = ExportDirDialog()
         selected_dir = dialog.exec()
 
         if selected_dir == 1:
@@ -404,7 +404,6 @@ class ModelList(QListWidget):
             background-color: #464646;
         
         """)
-
 
     def on_item_entered(self, item: QListWidgetItem):
         print(f"Entered Item: {item}")
@@ -568,7 +567,7 @@ class SettingsDialog(QDialog):
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
-        self.settings_tabs.addTab(self.general_settings_tab, "General")
+        #self.settings_tabs.addTab(self.general_settings_tab, "General")
         self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
         self.settings_tabs.addTab(self.ocr_settings_tab, "OCR Settings")
 
@@ -651,7 +650,7 @@ class SettingsDialog(QDialog):
         self.model_list.clear()
 
     def handle_model_import(self):
-        _dialog = ImportDirDialog()
+        _dialog = ExportDirDialog()
         selected_dir = _dialog.exec()
 
         if selected_dir == 1:
@@ -704,7 +703,13 @@ class SettingsDialog(QDialog):
 class BatchOCRDialog(QDialog):
     sign_ocr_result = Signal(OCResult)
 
-    def __init__(self, data: List[OCRData], ocr_pipeline: OCRPipeline, ocr_models: List[OCRModel], ocr_settings: OCRSettings, threadpool: QThreadPool):
+    def __init__(self,
+                 data: List[OCRData],
+                 ocr_pipeline: OCRPipeline,
+                 ocr_models: List[OCRModel],
+                 ocr_settings: OCRSettings,
+                 threadpool: QThreadPool
+                 ):
         super().__init__()
         self.setObjectName("BatchOCRDialog")
         self.data = data
@@ -761,17 +766,11 @@ class BatchOCRDialog(QDialog):
         """)
 
         self.export_dir_layout = QHBoxLayout()
-        #self.dir_edit = QLineEdit()
-        #self.dir_edit.setObjectName("DialogLineEdit")
-
         self.dir_select_btn = QPushButton("select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
-        #self.export_dir_layout.addWidget(self.dir_edit)
-        #self.export_dir_layout.addWidget(self.dir_select_btn)
 
         self.form_layout = QFormLayout()
         self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
-
         self.model_selection = QComboBox()
         self.model_selection.setStyleSheet("""
                 color: #ffffff;
@@ -898,6 +897,83 @@ class BatchOCRDialog(QDialog):
         if self.runner is not None:
             self.runner.stop = True
 
+
+class ImportFilesProgress(QProgressDialog):
+    def __init__(self, max_length: int):
+        super(ImportFilesProgress, self).__init__()
+        self.setWindowTitle("Importing Files...")
+        #self.setMinimum(0)
+        #self.setMaximum(max_length)
+        self.setFixedWidth(420)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+        self.setContentsMargins(32, 32, 32, 32)
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setFixedWidth(80)
+        self.cancel_btn.setFixedHeight(32)
+        self.setCancelButton(self.cancel_btn)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(max_length)
+        self.progress_bar.setObjectName("DialogProgressBar")
+        self.progress_bar.setStyleSheet("""
+                    QProgressBar {
+                        background-color: #474747;
+                        color: #A40021;
+                        border: 2px solid #343942;
+                        border-radius: 8px;
+                        padding: 4px 4px 4px 4px;
+                    }
+
+                    QProgressBar::chunk {
+                        background-color: #A40021;
+                        width: 20px;
+                    }
+                """)
+
+        self.setBar(self.progress_bar)
+
+
+        self.cancel_btn.setStyleSheet("""
+            QPushButton {
+                color: #ffffff;
+                background-color: #A40021;
+                border-radius: 4px;
+                height: 24;
+                margin-right: 24px;
+            }
+        
+        """)
+
+        self.setStyleSheet("""
+            color: #ffffff;
+            background-color: #1d1c1c;
+            QPushButton {
+                color: #ffffff;
+                background-color: #A40021;
+                border-radius: 4px;
+                height: 24;
+            }
+            
+            QProgressBar {
+                background-color: #24272c;
+                border-radius: 5px;
+                border-width: 2px;
+            }
+
+            QProgressBar::chunk
+            {
+                background-color: #003d66;
+                border-radius: 5px;
+                margin: 3px 3px 3px 3px;
+            }
+            
+            """
+        )
+
+
+
 class OCRDialog(QProgressDialog):
     sign_ocr_result = Signal(OCResult)
 
@@ -913,13 +989,11 @@ class OCRDialog(QProgressDialog):
         self.settings = settings
         self.data = data
         self.pool = pool
-        self.runner = None
         self.result = None
 
         # build layout
         self.start_btn = QPushButton("Start")
         self.cancel_btn = QPushButton("Cancel")
-
         self.cancel_btn.setStyleSheet("""
 
                 QPushButton {

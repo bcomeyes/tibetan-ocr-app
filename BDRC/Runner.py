@@ -1,48 +1,20 @@
-import os
 import cv2
 from uuid import UUID
 from typing import List
-from BDRC.Data import OpStatus, OCResult, LineMode, OCRData, Encoding, OCRSettings, OCRSample
 from PySide6.QtCore import QObject, Signal, QRunnable
 
 from BDRC.Inference import OCRPipeline
-from BDRC.Utils import get_filename, generate_guid
+from BDRC.Data import OpStatus, OCResult, LineMode, OCRData, Encoding, OCRSettings, OCRSample
+
 
 
 class RunnerSignals(QObject):
     sample = Signal(OCRSample)
+    sample_count = Signal(int)
     error = Signal(str)
     finished = Signal()
     ocr_result = Signal(OCResult)
     ocr_data = Signal(dict[UUID, OCRData])
-
-
-class FileImportRunner(QRunnable):
-    def __init__(self, files: List[str]):
-        self.file_list = files
-        self.signals = RunnerSignals()
-        super(FileImportRunner, self).__init__()
-
-    def run(self):
-        imported_data = {}
-        for idx, file_path in enumerate(self.file_list):
-            if os.path.isfile(file_path):
-                file_name = get_filename(file_path)
-                guid = generate_guid(idx)
-                ocr_data = OCRData(
-                    guid=guid,
-                    image_path=file_path,
-                    image_name=file_name,
-                    ocr_text=[],
-                    lines=None,
-                    preview=None,
-                    angle=0.0
-                )
-
-                imported_data[guid] = ocr_data
-
-        self.signals.ocr_data.emit(imported_data)
-
 
 class OCRunner(QRunnable):
     def __init__(self, data: OCRData, ocr_pipeline: OCRPipeline, settings: OCRSettings):
@@ -57,7 +29,6 @@ class OCRunner(QRunnable):
         status, result = self.pipeline.run_ocr(img)
 
         if status == OpStatus.SUCCESS:
-            print(f"Runner -> Done")
             rot_mask, lines, page_text, angle = result
 
             ocr_result = OCResult(
@@ -67,11 +38,9 @@ class OCRunner(QRunnable):
                 text=page_text,
                 angle=angle
             )
-            print(f"Runner->Emitting Signals...")
             self.signals.ocr_result.emit(ocr_result)
         else:
-            print(f"Runner -> Failed")
-            self.signals.finished()
+            self.signals.finished.emit()
 
 
 class OCRBatchRunner(QRunnable):
@@ -124,7 +93,6 @@ class OCRBatchRunner(QRunnable):
                     self.signals.sample.emit(sample)
 
             else:
-                print("Interrupted Process...")
                 self.signals.finished.emit()
 
         self.signals.finished.emit()
