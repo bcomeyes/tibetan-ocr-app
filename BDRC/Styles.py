@@ -95,20 +95,17 @@ DARK = """
         color: #ffad00;
     }
     
-
     QDialog#ExportDialog {
         color: #ffffff;
         background-color: #1d1c1c;
     }
     
-    QDialog#BatchOCRDialog
-    {
+    QDialog#BatchOCRDialog {
         color: #ffffff;
-        background-color: #100F0F;
+        background-color: #172832;
     }
     
-    QDialog#SettingsDialog
-    {
+    QDialog#SettingsDialog {
         background-color: #172832;
     }
     
@@ -160,31 +157,36 @@ DARK = """
         color: #ffad00;
     }
     
-    QRadioButton#OptionsRadio
-    {
+    QRadioButton#OptionsRadio {
         color: #ffffff;
         border: none;
     }
     
-    QRadioButton#OptionsRadio:indicator:checked
-    {
+    QRadioButton#OptionsRadio:indicator:checked {
         image:url(Assets/Textures/qradio_indicator_checked.png);
         width: 12px;
         height: 12px;
     }
     
-    QRadioButton#OptionsRadio:indicator:unchecked
-    {
+    QRadioButton#OptionsRadio:indicator:unchecked {
         image:url(Assets/Textures/qradio_indicator.png);
         width: 12px;
         height: 12px;
     }
     
-    QLabel#OptionsLabel
-    {
+    QLabel#OptionsLabel {
         color: #ffffff;
+        width: 100px;
     }
     
+    QLabel#HeaderLabel {
+        color: #ffffff;
+        background-color: #172832;
+        font-weight: bold;
+        padding: 4px 4px 4px 4px;
+        width: 80px;
+    }
+           
     QLineEdit#DialogLineEdit {
         color: #ffffff;
         background-color: #474747;
@@ -199,6 +201,12 @@ DARK = """
         border: 2px solid #343942;
         border-radius: 8px;
         padding: 4px 4px 4px 4px;
+    }
+    
+    QProgressBar#DialogProgressBar::chunk {
+        background-color: #fcc104;
+        border-radius: 5px;
+        margin: 3px 3px 3px 3px;
     }
 
     QListWidget#ModelList {

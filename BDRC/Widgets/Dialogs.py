@@ -42,17 +42,17 @@ def build_languages(active_language: Language) -> Tuple[QButtonGroup, List[QRadi
 
 
 # Export Formats
-def build_exporter_settings(active_exporter: ExportFormat) -> Tuple[QButtonGroup, List[QRadioButton]]:
+def build_exporter_settings() -> Tuple[QButtonGroup, List[QRadioButton]]:
     exporter_buttons = []
     exporters_group = QButtonGroup()
     exporters_group.setExclusive(True)
 
-    for exporter in ExportFormat:
+    for idx, exporter in enumerate(ExportFormat):
         button = QRadioButton(exporter.name)
         button.setObjectName("OptionsRadio")
         exporter_buttons.append(button)
 
-        if exporter == active_exporter:
+        if idx == 0: # just select the first exporter
             button.setChecked(True)
 
         exporters_group.addButton(button)
@@ -308,7 +308,6 @@ class ExportDialog(QDialog):
                     img = cv2.imread(data.image_path)
 
                     print(f"Exporting OCR text: {len(data.ocr_text)} => {data.ocr_text} for {len(data.lines)} line data")
-
                     if data.lines is not None and len(data.lines) > 0:
 
                         exporter.export_lines(
@@ -467,10 +466,10 @@ class SettingsDialog(QDialog):
         self.import_models_btn.setObjectName("SmallDialogButton")
         self.import_models_btn.clicked.connect(self.handle_model_import)
 
-        self.exporter_group, self.exporter_buttons = build_exporter_settings(self.ocr_settings.exporter)
         self.encodings_group, self.encoding_buttons = build_encodings(self.app_settings.encoding)
         self.language_group, self.language_buttons = build_languages(self.app_settings.language)
         self.dewarp_group, self.dewarp_buttons = build_binary_selection(self.ocr_settings.dewarping)
+        self.merge_group, self.merge_buttons = build_binary_selection(self.ocr_settings.merge_lines)
 
         self.setWindowTitle("BDRC Settings")
         self.setMinimumHeight(400)
@@ -523,8 +522,31 @@ class SettingsDialog(QDialog):
         h_layout.addWidget(self.ocr_label)
         h_layout.addWidget(self.import_models_btn)
 
+        list_header_layout = QHBoxLayout()
+        list_header_layout.setSpacing(0)
+        list_header_layout.setObjectName("OptionsListHeader")
+        list_header_layout.setContentsMargins(0, 10, 0, 0)
+
+        list_header_model_title = QLabel("Model name")
+        list_header_model_title.setObjectName("HeaderLabel")
+        list_header_encoding = QLabel("Encoding")
+        list_header_encoding.setObjectName("HeaderLabel")
+        list_header_architecture = QLabel("Architecture")
+        list_header_architecture.setObjectName("HeaderLabel")
+        list_header_version = QLabel("Version")
+        list_header_version.setObjectName("HeaderLabel")
+        list_header_file_path = QLabel("Model file")
+        list_header_file_path.setObjectName("HeaderLabel")
+
+        list_header_layout.addWidget(list_header_model_title)
+        list_header_layout.addWidget(list_header_encoding)
+        list_header_layout.addWidget(list_header_architecture)
+        list_header_layout.addWidget(list_header_version)
+        list_header_layout.addWidget(list_header_file_path)
+
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout)
+        v_layout.addLayout(list_header_layout)
         v_layout.addWidget(self.model_list)
         self.ocr_models_tab.setLayout(v_layout)
 
@@ -539,7 +561,6 @@ class SettingsDialog(QDialog):
         encoding_layout = QHBoxLayout()
         encoding_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         encoding_label = QLabel("Encoding")
-        encoding_label.setFixedWidth(180)
         encoding_label.setObjectName("OptionsLabel")
         encoding_layout.addWidget(encoding_label)
 
@@ -550,11 +571,20 @@ class SettingsDialog(QDialog):
         dewarping_layout = QHBoxLayout()
         dewarping_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         dewarping_label = QLabel("Dewarping")
-        dewarping_label.setFixedWidth(180)
         dewarping_label.setObjectName("OptionsLabel")
         dewarping_layout.addWidget(dewarping_label)
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
+
+        # merge lines
+        merge_layout = QHBoxLayout()
+        merge_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        merge_label = QLabel("Merge")
+        merge_label.setObjectName("OptionsLabel")
+        merge_layout.addWidget(merge_label)
+
+        for btn in self.merge_buttons:
+            merge_layout.addWidget(btn)
 
         # specific ocr parameters
         spacer = QLabel()
@@ -589,26 +619,15 @@ class SettingsDialog(QDialog):
         bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
         bbox_tolerance_layout.addWidget(spacer)
 
-        #export
-        export_layout = QHBoxLayout()
-        export_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        export_label = QLabel("Export Formats")
-        export_label.setObjectName("OptionsLabel")
-        export_layout.addWidget(export_label)
-
-        for btn in self.exporter_buttons:
-            export_layout.addWidget(btn)
-
         encoding_label.setFixedWidth(160)
         dewarping_label.setFixedWidth(160)
-        export_label.setFixedWidth(160)
+        merge_label.setFixedWidth(160)
 
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
+        self.ocr_settings_layout.addLayout(merge_layout)
         self.ocr_settings_layout.addLayout(k_factor_layout)
         self.ocr_settings_layout.addLayout(bbox_tolerance_layout)
-        self.ocr_settings_layout.addLayout(export_layout)
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
@@ -636,7 +655,6 @@ class SettingsDialog(QDialog):
 
         self.build_model_overview()
         self.setStyleSheet("""
-           
             QPushButton {
                 color: #A40021;
                 background-color: #fce08d;
@@ -647,7 +665,6 @@ class SettingsDialog(QDialog):
             QPushButton::hover {
                 color: #ffad00;
             }
-
         """)
 
     def validate_bbox_tolerance_input(self):
@@ -678,7 +695,6 @@ class SettingsDialog(QDialog):
 
         for idx in range(len(self.ocr_models)):
             model_item = QListWidgetItem(self.model_list)
-            #model_widget = ModelListWidget(guid=uuid.uuid1(),title=model.name)
             _model = self.ocr_models[idx]
 
 
@@ -687,7 +703,8 @@ class SettingsDialog(QDialog):
                 title=_model.name,
                 encoder=_model.config.encoder.name,
                 architecture=_model.config.architecture.name,
-                version="1.0"
+                version="1.0",
+                file_path=_model.config.model_file
             )
 
             model_item.setSizeHint(model_widget.sizeHint())
@@ -748,11 +765,11 @@ class SettingsDialog(QDialog):
         encoding_id = self.encodings_group.checkedId()
         self.app_settings.encoding = Encoding(encoding_id)
 
-        exporters_id = self.exporter_group.checkedId()
-        self.ocr_settings.exporter = ExportFormat(exporters_id)
-
         dewarp_id = self.dewarp_group.checkedId()
         do_dewarp = bool(dewarp_id)
+
+        merge_id = self.merge_group.checkedId()
+        do_merge = bool(merge_id)
 
         if self.k_factor_edit.text() != "":
             self.ocr_settings.k_factor = float(self.k_factor_edit.text())
@@ -761,6 +778,7 @@ class SettingsDialog(QDialog):
             self.ocr_settings.bbox_tolerance = float(self.bbox_tolerance_edit.text())
 
         self.ocr_settings.dewarping = do_dewarp
+        self.ocr_settings.merge_lines = do_merge
 
         return self.app_settings, self.ocr_settings, self.ocr_models
 
@@ -804,9 +822,10 @@ class BatchOCRDialog(QDialog):
 
         # settings elements
         # Exports
-        self.exporter_group, self.exporter_buttons = build_exporter_settings(self.ocr_settings.exporter)
+        self.exporter_group, self.exporter_buttons = build_exporter_settings()
         self.encodings_group, self.encoding_buttons = build_encodings(self.ocr_settings.output_encoding)
         self.dewarp_group, self.dewarp_buttons = build_binary_selection(self.ocr_settings.dewarping)
+        self.merge_group, self.merge_buttons = build_binary_selection(self.ocr_settings.merge_lines)
 
         # build layout
         self.progress_layout = QHBoxLayout()
@@ -836,6 +855,7 @@ class BatchOCRDialog(QDialog):
 
         self.form_layout = QFormLayout()
         self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.form_layout.setContentsMargins(10, 10, 10, 10)
         self.model_selection = QComboBox()
         self.model_selection.setStyleSheet("""
                 color: #ffffff;
@@ -858,6 +878,10 @@ class BatchOCRDialog(QDialog):
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
 
+        merge_layout = QHBoxLayout()
+        for btn in self.merge_buttons:
+            merge_layout.addWidget(btn)
+
         export_layout = QHBoxLayout()
         for btn in self.exporter_buttons:
             export_layout.addWidget(btn)
@@ -868,22 +892,52 @@ class BatchOCRDialog(QDialog):
         dewarping_label = QLabel("Dewarping")
         dewarping_label.setObjectName("OptionsLabel")
 
+        merge_label = QLabel("Merge Lines")
+        merge_label.setObjectName("OptionsLabel")
+
+        other_layout = QHBoxLayout()
+        spacer = QLabel()
+        spacer.setFixedWidth(60)
+        other_label = QLabel("Other Settings")
+        other_label.setObjectName("OptionsLabel")
+        k_factor_label = QLabel("K-factor")
+        k_factor_label.setObjectName("OptionsLabel")
+        self.k_factor_edit = QLineEdit()
+        self.k_factor_edit.setText(str(self.ocr_settings.k_factor))
+        self.k_factor_edit.editingFinished.connect(self.validate_kfactor_input)
+
+        bbox_tolerance_label = QLabel("Bbox tolerance")
+        bbox_tolerance_label.setObjectName("OptionsLabel")
+        self.bbox_tolerance_edit = QLineEdit()
+        self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
+        self.bbox_tolerance_edit.editingFinished.connect(self.validate_bbox_tolerance_input)
+
+        other_layout.addWidget(spacer)
+        other_layout.addWidget(k_factor_label)
+        other_layout.addWidget(self.k_factor_edit)
+        other_layout.addWidget(spacer)
+        other_layout.addWidget(bbox_tolerance_label)
+        other_layout.addWidget(self.bbox_tolerance_edit)
+
         self.form_layout.addRow(encoding_label, encoding_layout)
         self.form_layout.addRow(dewarping_label, dewarping_layout)
-        #self.form_layout.addRow(export_labels, export_layout)
+        self.form_layout.addRow(merge_label, merge_layout)
+        self.form_layout.addRow(other_label, other_layout)
 
         self.status_layout = QHBoxLayout()
         self.status_label = QLabel("Status")
         self.status_label.setObjectName("OptionsLabel")
         self.status = QLabel("")
         self.status.setObjectName("OptionsLabel")
+        self.status.setMinimumWidth(180)
+        self.status.setFixedHeight(32)
+        self.status.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_layout.addWidget(self.status_label)
         self.status_layout.addWidget(self.status)
 
         self.v_layout.addWidget(self.label)
         self.v_layout.addWidget(self.model_selection)
-        #self.v_layout.addLayout(self.export_dir_layout)
         self.v_layout.addLayout(self.form_layout)
         self.v_layout.addLayout(self.progress_layout)
         self.v_layout.addLayout(self.status_layout)
@@ -912,34 +966,55 @@ class BatchOCRDialog(QDialog):
             }
         
         """)
+    def validate_bbox_tolerance_input(self):
+        try:
+            float(self.bbox_tolerance_edit.text())
+            self.ocr_settings.bbox_tolerance = float(self.bbox_tolerance_edit.text())
 
-    """ def select_export_dir(self):
-        dialog = ImportDirDialog()
-        selected_dir = dialog.exec()
+        except ValueError as e:
+            print(f"Invalid float value: {e}")
+            self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
 
-        if selected_dir == 1:
-            _selected_dir = dialog.selectedFiles()[0]
-
-            if os.path.isdir(_selected_dir):
-                self.dir_edit.setText(_selected_dir)
-                self.output_dir=_selected_dir
-        else:
-            note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
-            note_dialog.exec()
-    """
+    def validate_kfactor_input(self):
+        try:
+            float(self.k_factor_edit.text())
+            self.ocr_settings.k_factor = float(self.k_factor_edit.text())
+        except ValueError as e:
+            print(f"Invalid float value: {e}")
+            self.k_factor_edit.setText(str(self.ocr_settings.k_factor))
 
     def on_select_ocr_model(self, index: int):
         self.pipeline.update_ocr_model(self.ocr_models[index].config)
 
     def start_process(self):
         encoding_id = self.encodings_group.checkedId()
-        encoding = Encoding(encoding_id)
+        dewarp_id = self.dewarp_group.checkedId()
+        merge_id = self.dewarp_group.checkedId()
 
-        self.runner = OCRBatchRunner(self.data, self.pipeline, output_encoding=encoding)
+        encoding = Encoding(encoding_id)
+        do_dewarp = bool(dewarp_id)
+        do_merge = bool(merge_id)
+
+        k_factor = self.k_factor_edit.text()
+        bbox_tolerance = self.bbox_tolerance_edit.text()
+
+        self.runner = OCRBatchRunner(
+            self.data,
+            self.pipeline,
+            dewarp=do_dewarp,
+            merge_lines=do_merge,
+            k_factor=float(k_factor),
+            bbox_tolerance=float(bbox_tolerance)
+        )
+
+
         self.runner.signals.sample.connect(self.handle_update_progress)
         self.runner.signals.finished.connect(self.finish)
         self.threadpool.start(self.runner)
         self.status.setText("Running")
+        self.status.setStyleSheet("""
+            background-color: #ff9100;
+        """)
 
     def handle_update_progress(self, sample: OCRSample):
         self.progress_bar.setValue(sample.cnt)
@@ -957,10 +1032,17 @@ class BatchOCRDialog(QDialog):
         print(f"Thread Completed")
         self.runner = None
         self.status.setText("Finished")
+        self.status.setStyleSheet("""
+                    background-color: #63ff00;
+                """)
 
     def cancel_process(self):
         if self.runner is not None:
             self.runner.stop = True
+            self.status.setText("Canceled")
+            self.status.setStyleSheet("""
+                                background-color: #e80000;
+                            """)
 
 
 class ImportFilesProgress(QProgressDialog):

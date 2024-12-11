@@ -174,20 +174,20 @@ def read_settings():
     _k_factor = ocr_json_settings["k_factor"]
     _bbox_tolerance = ocr_json_settings["bbox_tolerance"]
     _dewarping = ocr_json_settings["dewarp"]
+    _merge_lines = ocr_json_settings["merge_lines"]
     _tps = ocr_json_settings["tps"]
     _out_encoding = ocr_json_settings["output_encoding"]
-    _exporter = ocr_json_settings["exporter"]
 
     ocr_settings = OCRSettings(
         line_mode=LINE_MODES[_line_mode],
         line_merge=LINE_MERGE[_line_merge],
         line_sorting=LINE_SORTING[_line_sorting],
         dewarping=True if _dewarping == "yes" else False,
+        merge_lines=True if _merge_lines == "yes" else False,
         k_factor=float(_k_factor),
         bbox_tolerance=float(_bbox_tolerance),
         tps_mode=TPS_MODE[_tps],
         output_encoding=ENCODINGS[_out_encoding],
-        exporter=EXPORTERS[_exporter]
     )
 
     return app_settings, ocr_settings
@@ -214,19 +214,19 @@ def save_ocr_settings(settings: OCRSettings):
     _line_merge = [x for x in LINE_MERGE if LINE_MERGE[x] == settings.line_merge][0]
     _line_sorting = [x for x in LINE_SORTING if LINE_SORTING[x] == settings.line_sorting][0]
     _dewarp = "yes" if settings.dewarping else "no"
+    _merge_lines = "yes" if settings.merge_lines else "no"
     _tps = [x for x in TPS_MODE if TPS_MODE[x] == settings.tps_mode][0]
-    _exporter = [x for x in EXPORTERS if EXPORTERS[x] == settings.exporter][0]
 
     _settings = {
         "line_mode": _line_mode,
         "line_merge": _line_merge,
         "line_sorting": _line_sorting,
         "dewarp": _dewarp,
+        "merge_lines": _merge_lines,
         "k_factor": settings.k_factor,
         "bbox_tolerance": settings.bbox_tolerance,
         "tps": _tps,
         "output_encoding": "unicode",
-        "exporter": _exporter
     }
 
     with open("ocr_settings.json", "w", encoding="utf-8") as f:
@@ -251,10 +251,10 @@ def create_default_ocr_config():
         "line_merge": "merge",
         "line_sorting": "threshold",
         "dewarp": "yes",
+        "merge_lines": "yes",
         "k_factor": 2.5,
         "bbox_tolerance": 2.5,
         "tps": "global",
-        "exporter": "text",
         "output_encoding": "unicode"
     }
 

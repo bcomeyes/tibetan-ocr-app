@@ -23,7 +23,6 @@ if __name__ == "__main__":
     app.setStyleSheet(DARK)
 
     app_settings, ocr_settings = read_settings()
-
     print(f"starting with model_path: {app_settings.model_path}")
 
     data_model = OCRDataModel()

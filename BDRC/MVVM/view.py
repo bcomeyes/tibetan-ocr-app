@@ -196,12 +196,13 @@ class AppView(QWidget):
             size_hint = self.image_gallery.sizeHint()
             target_width = size_hint.width() - 80
 
-            if len(file_list) > 60:
+            if len(file_list) > 20:
                 progress = ImportFilesProgress("Importing Images...", max_length=len(file_list))
                 progress.setWindowModality(Qt.WindowModality.WindowModal)
 
                 for idx, file_path in enumerate(file_list):
                     if os.path.isfile(file_path):
+
                         ocr_data = build_ocr_data(idx, file_path, target_width)
                         imported_data[ocr_data.guid] = ocr_data
                         progress.setValue(idx)
@@ -305,7 +306,13 @@ class AppView(QWidget):
         if os.path.isfile(data.image_path):
 
             img = cv2.imread(data.image_path)
-            status, result = self.ocr_pipeline.run_ocr(img)
+            ocr_settings = self._settingsview_model.get_ocr_settings()
+            status, result = self.ocr_pipeline.run_ocr(
+                img,
+                k_factor=ocr_settings.k_factor,
+                bbox_tolerance=ocr_settings.bbox_tolerance,
+                merge_lines=ocr_settings.merge_lines,
+                use_tps=ocr_settings.dewarping)
 
             if status == OpStatus.SUCCESS:
                 mask, line_data, page_text, angle = result
@@ -371,8 +378,6 @@ class AppView(QWidget):
         dialog.setStyleSheet(DARK)
 
         app_settings, ocr_settings, ocr_models = dialog.exec()
-
-        # TODO: add ovewrite confirmation or so ?
         save_app_settings(app_settings)
         save_ocr_settings(ocr_settings)
 

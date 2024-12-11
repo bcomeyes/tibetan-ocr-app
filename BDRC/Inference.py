@@ -362,6 +362,7 @@ class OCRPipeline:
         self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
 
     # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
+    # TPS Mode is global-only at the moment
     def run_ocr(self,
                 image: npt.NDArray,
                 k_factor: float = 2.5,
@@ -392,7 +393,6 @@ class OCRPipeline:
             ratio, tps_line_data = check_for_tps(rot_img, filtered_contours)
 
             if ratio > tps_threshold:
-                if tps_mode == TPSMode.GLOBAL:
                     dewarped_img, dewarped_mask = apply_global_tps(rot_img, rot_mask, tps_line_data)
 
                     if len(dewarped_mask.shape) == 3:
@@ -405,11 +405,7 @@ class OCRPipeline:
 
                     line_data = [build_line_data(x) for x in filtered_contours]
                     sorted_lines, _ = sort_lines_by_threshold2(rot_mask, line_data, group_lines=merge_lines)
-
                     line_images = extract_line_images(dew_rot_img, sorted_lines, k_factor, bbox_tolerance)
-
-                else:
-                    line_images = get_line_images_via_local_tps(rot_img, tps_line_data)
 
             else:
                 line_data = [build_line_data(x) for x in filtered_contours]
@@ -433,6 +429,6 @@ class OCRPipeline:
                 pred = pred.replace("§", " ")
                 page_text.append(pred)
 
-            return OpStatus.SUCCESS, (rot_mask, line_data, page_text, page_angle)
+            return OpStatus.SUCCESS, (rot_mask, sorted_lines, page_text, page_angle)
         else:
             return OpStatus.FAILED, None

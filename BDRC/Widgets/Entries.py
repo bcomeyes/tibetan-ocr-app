@@ -1,4 +1,5 @@
 from uuid import UUID
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QWidget,
     QLabel,
@@ -27,18 +28,25 @@ class ModelEntry(QWidget):
 
 
 class ModelEntryWidget(QWidget):
-    def __init__(self, guid: UUID, title: str, encoder: str, architecture: str, version: str):
+    def __init__(self, guid: UUID, title: str, encoder: str, architecture: str, version: str, file_path: str):
         super().__init__()
         self.guid = guid
         self.title = str(title)
         self.encoder = str(encoder)
         self.architecture = str(architecture)
         self.version = version
+        self.file_path = file_path
 
         self.title_label = QLabel(self.title)
+        self.title_label.setObjectName("OptionsLabel")
         self.encoder_label = QLabel(self.encoder)
+        self.encoder_label.setObjectName("OptionsLabel")
         self.architecture_label = QLabel(self.architecture)
+        self.architecture_label.setObjectName("OptionsLabel")
         self.version_number =  QLabel(self.version)
+        self.version_number.setObjectName("OptionsLabel")
+        self.file_path = QLabel(self.file_path)
+        self.file_path.setObjectName("OptionsLabel")
 
         # build layout
         self.h_layout = QHBoxLayout()
@@ -46,6 +54,7 @@ class ModelEntryWidget(QWidget):
         self.h_layout.addWidget(self.encoder_label)
         self.h_layout.addWidget(self.architecture_label)
         self.h_layout.addWidget(self.version_number)
+        self.h_layout.addWidget(self.file_path)
         self.setLayout(self.h_layout)
 
         self.setStyleSheet("""

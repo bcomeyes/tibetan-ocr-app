@@ -32,7 +32,7 @@ class OCRunner(QRunnable):
 
         if status == OpStatus.SUCCESS:
             rot_mask, lines, page_text, angle = result
-
+            print(f"OCRunner -> Result: lines: {len(lines)}, Textlines: {len(page_text)}")
             ocr_result = OCResult(
                 guid=self.data.guid,
                 mask=rot_mask,
@@ -50,9 +50,12 @@ class OCRBatchRunner(QRunnable):
             self,
             data: List[OCRData],
             ocr_pipeline: OCRPipeline,
-            output_encoding: Encoding,
             mode: LineMode = LineMode.Layout,
-            k_factor: float = 1.7):
+            dewarp: bool = True,
+            merge_lines: bool = True,
+            k_factor: float = 1.7,
+            bbox_tolerance: float = 3.0,
+            ):
 
         super(OCRBatchRunner, self).__init__()
         self.signals = RunnerSignals()
@@ -60,7 +63,10 @@ class OCRBatchRunner(QRunnable):
         self.ocr_pipeline = ocr_pipeline
         self.data = data
         self.mode = mode
+        self.do_dewarp = dewarp
+        self.merge_lines = merge_lines
         self.k_factor = k_factor
+        self.bbox_tolerance = bbox_tolerance
         self.stop = False
 
     def kill(self):
@@ -73,7 +79,13 @@ class OCRBatchRunner(QRunnable):
         for idx, data in enumerate(self.data):
             if not self.stop:
                 img = cv2.imread(data.image_path)
-                status, result = self.ocr_pipeline.run_ocr(img)
+                status, result = self.ocr_pipeline.run_ocr(
+                    image=img,
+                    k_factor=self.k_factor,
+                    bbox_tolerance=self.bbox_tolerance,
+                    merge_lines=self.merge_lines,
+                    use_tps=self.do_dewarp
+                )
 
                 if status == OpStatus.SUCCESS:
                     rot_mask, lines, page_text, angle = result

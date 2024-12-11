@@ -186,9 +186,9 @@ class OCRSettings:
     k_factor: float
     bbox_tolerance: float
     dewarping: bool
+    merge_lines: bool
     tps_mode: TPSMode
     output_encoding: Encoding
-    exporter: ExportFormat
 
 @dataclass
 class AppSettings:

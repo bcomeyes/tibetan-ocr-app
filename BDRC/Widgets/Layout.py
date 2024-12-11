@@ -243,6 +243,8 @@ class ToolBox(QWidget):
         self.ocr_models = ocr_models
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
+            self.model_selection.clear()
+
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
 
