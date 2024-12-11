@@ -56,3 +56,15 @@ class OCRDataModel:
 
     def add_ocr_text(self, guid: UUID, text: List[str]):
         self.data[guid].ocr_text = text
+
+    def delete_image(self, guid: UUID):
+        """del_k = None
+        for k, data in self.data.items():
+            if data.guid == guid:
+                del_k = k
+                break
+
+        if del_k is not None:
+            del self.data[del_k]
+        """
+        del self.data[guid]

@@ -9,8 +9,10 @@ from BDRC.Data import OCRData, Line, OCRModel, AppSettings, OCRSettings
 class SettingsViewModel(QObject):
     appSettingsChanged = Signal(AppSettings)
     ocrSettingsChanged = Signal(OCRSettings)
-    ocrModelsChanged = Signal() # TODO: Why is this somethis working and sometimes not when using List insteand of list
+    ocrModelsChanged = Signal()
     ocrModelChanged = Signal(OCRModel)
+
+
     def __init__(self, model: SettingsModel):
         super().__init__()
         self._model = model
@@ -49,7 +51,8 @@ class SettingsViewModel(QObject):
 
 class DataViewModel(QObject):
     recordChanged = Signal(OCRData)
-    dataChanged = Signal(list) # This is actually a list[PalmTreeData] or [], but specifying the type throws errors..
+    dataChanged = Signal(list)
+    dataSizeChanged = Signal(list)
     dataSelected = Signal(OCRData)
     """
     Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
@@ -70,15 +73,19 @@ class DataViewModel(QObject):
     def get_data(self) -> Dict[UUID, OCRData]:
         return self._model.data
 
-
     def add_data(self, data: Dict[UUID, OCRData]):
         self.clear_data()
         self._model.add_data(data)
+
         current_data = self._model.get_data()
         self.dataChanged.emit(current_data)
 
     def select_data_by_guid(self, uuid: UUID):
         self.dataSelected.emit(self._model.data[uuid])
+
+    def delete_image_by_guid(self, guid: UUID):
+        self._model.delete_image(guid)
+        self.dataSizeChanged.emit(self._model.get_data())
 
     def get_data_index(self, uuid: UUID):
         _entries = list(self._model.data.keys())

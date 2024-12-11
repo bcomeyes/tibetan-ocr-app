@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import List
+from typing import List, Tuple
 import pyewts
 import logging
 import numpy as np
@@ -98,12 +98,9 @@ class PageXMLExporter(Exporter):
         self,
         image: npt.NDArray,
         image_name: str,
-        images: tuple[int],
         text_bbox: str,
-        lines: list[Line],
-        margins: tuple[int],
-        captions: tuple[int],
-        text_lines: list[str] | None,
+        lines: List[Line],
+        text_lines: List[str] | None,
     ):
         root = etree.Element("PcGts")
         root.attrib["xmlns"] = (
@@ -142,6 +139,9 @@ class PageXMLExporter(Exporter):
         text_region_coords = etree.SubElement(text_region, "Coords")
         text_region_coords.attrib["points"] = text_bbox
 
+        print(f"Exporting XML Lines: {len(text_lines)}")
+        print(f"Exporting Line Info: {len(lines)}")
+
         for l_idx, line in enumerate(lines):
             if text_lines is not None and len(text_lines) > 0:
                 text_region.append(
@@ -156,39 +156,6 @@ class PageXMLExporter(Exporter):
                     )
                 )
 
-        if len(images) > 0:
-            for idx, bbox in enumerate(images):
-                image_region = etree.SubElement(page, "ImageRegion")
-                image_region.attrib["id"] = "Image_1234"
-                image_region.attrib["custom"] = f"readingOrder {{index: {str(idx)};}}"
-
-                coords_points = etree.SubElement(image_region, "Coords")
-                coords_points.attrib["points"] = self.get_bbox_points(bbox)
-
-        if len(margins) > 0:
-            for idx, bbox in enumerate(margins):
-                margin_region = etree.SubElement(page, "TextRegion")
-                margin_region.attrib["id"] = f"margin_1234_{idx}"
-                margin_region.attrib["type"] = "margin"
-                margin_region.attrib["custom"] = (
-                    f"readingOrder {{index: {str(idx)};}} structure {{type:marginalia;}}"
-                )
-
-                coords_points = etree.SubElement(margin_region, "Coords")
-                coords_points.attrib["points"] = self.get_bbox_points(bbox)
-
-        if len(captions) > 0:
-            for idx, bbox in enumerate(captions):
-                captions_region = etree.SubElement(page, "TextRegion")
-                captions_region.attrib["id"] = f"caption_1234_{idx}"
-                captions_region.attrib["type"] = "caption"
-                captions_region.attrib["custom"] = (
-                    f"readingOrder {{index: {str(idx)};}} structure {{type:caption;}}"
-                )
-
-                coords_points = etree.SubElement(captions_region, "Coords")
-                coords_points.attrib["points"] = self.get_bbox_points(bbox)
-
         parsed_xml = minidom.parseString(etree.tostring(root))
         parsed_xml = parsed_xml.toprettyxml()
 
@@ -199,7 +166,7 @@ class PageXMLExporter(Exporter):
         image: np.array,
         image_name: str,
         lines: List[Line],
-        text_lines: list[str],
+        text_lines: List[str],
         optimize: bool = True,
         bbox: bool = False,
         angle: float = 0.0
@@ -231,11 +198,8 @@ class PageXMLExporter(Exporter):
         xml_doc = self.build_xml_document(
             image,
             image_name,
-            images=[],
-            lines=plain_lines,
-            margins=[],
-            captions=[],
             text_bbox=plain_box,
+            lines=plain_lines,
             text_lines=text_lines,
         )
 

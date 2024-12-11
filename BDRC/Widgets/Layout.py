@@ -1,7 +1,12 @@
 import pyewts
 from uuid import UUID
+from typing import List
 from BDRC.Data import Encoding
-from typing import Dict, List, Tuple
+from BDRC.Utils import get_filename
+from BDRC.Data import OCRData, OCRModel
+from BDRC.Widgets.GraphicItems import ImagePreview
+from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
+from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 
 from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool, QRunnable, QObject
 from PySide6.QtGui import (
@@ -33,15 +38,8 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView, QProgressBar, QPushButton, QDialog
+    QListView
 )
-
-from BDRC.Data import OCRData, OCRModel
-from BDRC.Utils import get_filename
-from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
-from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
-from BDRC.Widgets.GraphicItems import ImagePreview
-from BDRC.Widgets.Dialogs import ImportFilesProgress
 
 
 class HeaderTools(QFrame):
@@ -80,15 +78,17 @@ class HeaderTools(QFrame):
         _ocr_models = self.settings_view.get_ocr_models()
         self.toolbox.update_ocr_models(_ocr_models)
 
+
 class ToolBox(QWidget):
-    sign_new = Signal()
-    sign_import_files = Signal()
-    sign_save = Signal()
-    sign_run = Signal()
-    sign_run_all = Signal()
-    sign_settings = Signal()
-    sign_update_page = Signal(int)
-    sign_on_select_model = Signal(OCRModel)
+    s_new = Signal()
+    s_import_files = Signal()
+    s_import_pdf = Signal()
+    s_save = Signal()
+    s_run = Signal()
+    s_run_all = Signal()
+    s_settings = Signal()
+    s_update_page = Signal(int)
+    s_on_select_model = Signal(OCRModel)
 
     def __init__(self, ocr_models: List[OCRModel] | None, icon_size: int = 64):
         super().__init__()
@@ -101,6 +101,7 @@ class ToolBox(QWidget):
 
         self.new_btn_icon = "Assets/Textures/new_light.png"
         self.import_btn_icon = "Assets/Textures/import.png"
+        self.import_pdf_icon = "Assets/Textures/pdf_import.png"
         self.save_btn_icon = "Assets/Textures/save-disc.png"
         self.run_btn_icon = "Assets/Textures/play_btn.png"
         self.run_all_btn_icon = "Assets/Textures/play_all_btn.png"
@@ -113,15 +114,22 @@ class ToolBox(QWidget):
             height=self.icon_size,
         )
 
-        self.btn_import = MenuButton(
-            "Import",
+        self.btn_import_images = MenuButton(
+            "Import Images",
             self.import_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
         )
 
+        self.btn_import_pdf = MenuButton(
+            "Import PDF",
+            self.import_pdf_icon,
+            width=self.icon_size,
+            height=self.icon_size,
+        )
+
         self.btn_save = MenuButton(
-            "Save",
+            "Save Output",
             self.save_btn_icon,
             width=self.icon_size,
             height=self.icon_size,
@@ -181,7 +189,8 @@ class ToolBox(QWidget):
         #self.layout.setSpacing(14)
         # hook up button clicks
         self.btn_new.clicked.connect(self.new)
-        self.btn_import.clicked.connect(self.load_image)
+        self.btn_import_images.clicked.connect(self.load_images)
+        self.btn_import_pdf.clicked.connect(self.import_pdf)
         self.btn_save.clicked.connect(self.save)
         self.btn_run.clicked.connect(self.run)
         self.btn_run_all.clicked.connect(self.run_all)
@@ -189,7 +198,8 @@ class ToolBox(QWidget):
 
         # build layout
         self.layout.addWidget(self.btn_new)
-        self.layout.addWidget(self.btn_import)
+        self.layout.addWidget(self.btn_import_images)
+        self.layout.addWidget(self.btn_import_pdf)
         self.layout.addWidget(self.btn_save)
         self.layout.addWidget(self.btn_run)
         self.layout.addWidget(self.btn_run_all)
@@ -203,28 +213,31 @@ class ToolBox(QWidget):
 
 
     def new(self):
-        self.sign_new.emit()
+        self.s_new.emit()
 
-    def load_image(self):
-        self.sign_import_files.emit()
+    def load_images(self):
+        self.s_import_files.emit()
+
+    def import_pdf(self):
+        self.s_import_pdf.emit()
 
     def save(self):
-        self.sign_save.emit()
+        self.s_save.emit()
 
     def run(self):
-        self.sign_run.emit()
+        self.s_run.emit()
 
     def run_all(self):
-        self.sign_run_all.emit()
+        self.s_run_all.emit()
 
     def settings(self):
-        self.sign_settings.emit()
+        self.s_settings.emit()
 
     def update_page(self, index: int):
-        self.sign_update_page.emit(index)
+        self.s_update_page.emit(index)
 
     def on_select_ocr_model(self, index: int):
-        self.sign_on_select_model.emit(self.ocr_models[index])
+        self.s_on_select_model.emit(self.ocr_models[index])
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
         self.ocr_models = ocr_models
@@ -621,7 +634,6 @@ class Canvas(QFrame):
         )
 
     def update_display_position(self, position: QPointF):
-        print(f"Canvas: updating tracked item position: {position}")
         self.current_item_pos = position
 
     def resizeEvent(self, event):
@@ -638,12 +650,12 @@ class Canvas(QFrame):
         self.gr_scene.clear()
 
         preview_item = ImagePreview(data.image_path, data.lines, data.angle)
-        brect = preview_item.boundingRect()
+        b_rect = preview_item.boundingRect()
         _pos = QPointF(0, 0)
         preview_item.setPos(_pos)
 
         self.gr_scene.add_item(preview_item, 1)
-        self.view.fitInView(brect, Qt.AspectRatioMode.KeepAspectRatio)
+        self.view.fitInView(b_rect, Qt.AspectRatioMode.KeepAspectRatio)
 
     def handle_preview_toggle(self):
         for item in self.gr_scene.items():
@@ -666,6 +678,10 @@ class Canvas(QFrame):
 
     def zoom_out(self):
         self.view.handle_mouse_zoom(1)
+
+    def clear(self):
+        self.view.reset_scaling()
+        self.gr_scene.clear()
 
 
 class ImageList(QListWidget):
@@ -764,7 +780,6 @@ class ImageList(QListWidget):
         # setting vertical scroll bar to it
         self.setVerticalScrollBar(self.v_scrollbar)
         self.setHorizontalScrollBar(self.h_scrollbar)
-        # self.itemEntered.connect(self.on_hover_item)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setStyleSheet(
@@ -782,38 +797,24 @@ class ImageList(QListWidget):
     def mouseMoveEvent(self, e):
         item = self.itemAt(e.pos())
         if item is not None:
-            print("ImageList->ITEM")
             _list_item_widget = self.itemWidget(item)
-            print(f"Item Hovered over: {_list_item_widget}")
 
-        """if isinstance(_list_item_widget, ImageListWidget):
-            _list_item_widget.is_hovered = True
-        """
-
-    def event(self, event):
-        if event.type() == QEvent.Type.HoverEnter:
-            #print("QFrame->enter")
-            pass
-        elif event.type() == QEvent.Type.HoverLeave:
-            #print("QFrame->leave")
-            pass
-
-        return super().event(event)
 
 
 class ImageThumb(QFrame):
-    def __init__(self, image_path: str, max_height: int = 140):
+    def __init__(self, q_image: QImage, max_height: int = 140):
         super().__init__()
         # TODO: Setting this does actually not work
-        self.image_path = image_path
+        #self.image_path = image_path
         self.setFixedHeight(max_height)
         self.setMinimumWidth(220)
         self.max_height = 140
         self.current_width = 220
         self.round_rect_margin = 6
         self.round_rect_radius = 14
-        self.qimage = QImage(self.image_path).scaledToHeight(max_height)
-        self.pixmap = QPixmap(image_path)
+        self.qimage = q_image
+        #self.qimage = QImage(self.image_path).scaledToHeight(max_height)
+        self.pixmap = QPixmap(q_image)
         self.brush = QBrush(self.pixmap)
 
         self._pen_hover = QPen(QColor("#fce08d"))
@@ -940,25 +941,42 @@ class ImageThumb(QFrame):
 
 
 class ImageListWidget(QWidget):
-    def __init__(self, guid: UUID, image_path: str, width: int, height: int):
+    s_delete_image = Signal(UUID)
+
+    def __init__(self, guid: UUID, image_path: str, q_image: QImage, width: int, height: int):
         super().__init__()
         self.guid = guid
         self.image_path = image_path
         self.file_name = get_filename(image_path)
         self.base_width = width
         self.base_height = height
-        self.thumb = ImageThumb(image_path)
+
+        self.thumb = ImageThumb(q_image)
         self.label = QLabel()
         self.label.setContentsMargins(0, 0, 0, 0)
         self.label.setText(self.file_name)
+
+        self.btn_delete_icon = "Assets/Textures/delete_icon.png"
+        self.icon_size = 24
+        self.btn_delete = MenuButton(
+            "Delete image",
+            self.btn_delete_icon,
+            width=self.icon_size,
+            height=self.icon_size,
+        )
+
         self.setBaseSize(self.base_width, self.base_height)
 
-        self.layout = QVBoxLayout()
-        self.layout.setSpacing(0)
+        self.v_layout = QVBoxLayout()
+        self.v_layout.setSpacing(0)
+        self.v_layout.addWidget(self.thumb)
 
-        self.layout.addWidget(self.thumb)
-        self.layout.addWidget(self.label)
-        self.setLayout(self.layout)
+        self.h_layout = QHBoxLayout()
+        self.h_layout.addWidget(self.label)
+        self.h_layout.addWidget(self.btn_delete)
+        self.v_layout.addLayout(self.h_layout)
+
+        self.setLayout(self.v_layout)
         self.is_active = False
 
         self.label.setStyleSheet("""
@@ -967,6 +985,11 @@ class ImageListWidget(QWidget):
         """)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # bind delete signal
+        self.btn_delete.clicked.connect(self.delete_image)
+
+    def delete_image(self):
+        self.s_delete_image.emit(self.guid)
 
     def resizeEvent(self, event):
         if isinstance(event, QResizeEvent):
@@ -1056,6 +1079,7 @@ class ImageGallery(QFrame):
 
         # connect signals
         self.view_model.dataChanged.connect(self.add_data)
+        self.view_model.dataSizeChanged.connect(self.refresh_data)
         self.view_model.dataCleared.connect(self.clear_data)
         self.view_model.dataAutoSelected.connect(self.focus_page)
         self.image_list.sign_on_selected_item.connect(self.handle_item_selection)
@@ -1110,60 +1134,42 @@ class ImageGallery(QFrame):
                     item.setSelected(False)
                     item_widget.unselect()
 
+    def add_image_widget(self, data: OCRData, target_width: int):
+        image_item = QListWidgetItem()
+        image_item.setSizeHint(QSize(target_width, 200))
+        image_widget = ImageListWidget(
+            data.guid,
+            data.image_path,
+            data.qimage,
+            width=target_width,
+            height=200
+        )
+        image_widget.s_delete_image.connect(self.delete_image)
+        self.image_list.addItem(image_item)
+        self.image_list.setItemWidget(image_item, image_widget)
 
-    def add_data(self, data: List[OCRData]):
-        print(f"ImageList .. > adding data: {len(data)} entries")
+    def add_data(self, data: List[OCRData], cached=False):
+        self.clear_data()
+
+        size_hint = self.sizeHint()
+        target_width = size_hint.width()-80
+
+        for _data in data:
+            self.add_image_widget(_data, target_width)
+
+    def refresh_data(self, data: List[OCRData]):
+        """
+        This is called to refresh the list after an image has been manually deleted
+        """
+        self.clear_data()
+
         _sizeHint = self.sizeHint()
-        _targetWidth = _sizeHint.width()-80
+        _targetWidth = _sizeHint.width() - 80
+        for _data in data:
+            self.add_image_widget(_data, _targetWidth)
 
-        if len (data) < 60:
-            for _data in data:
-                image_item = QListWidgetItem()
-                image_item.setSizeHint(QSize(_targetWidth, 200))
-                image_widget = ImageListWidget(
-                    _data.guid,
-                    _data.image_path,
-                    width=_targetWidth,
-                    height=200
-                )
-
-                self.image_list.addItem(image_item)
-                self.image_list.setItemWidget(image_item, image_widget)
-
-        else:
-            print(f"importing a lot of files.....")
-            progress = ImportFilesProgress( max_length=len(data))
-            progress.setWindowModality(Qt.WindowModality.WindowModal)
-
-            for idx, _data in enumerate(data):
-                if progress.wasCanceled():
-                    break
-
-                image_item = QListWidgetItem()
-                image_item.setSizeHint(QSize(_targetWidth, 200))
-                image_widget = ImageListWidget(
-                    _data.guid,
-                    _data.image_path,
-                    width=_targetWidth,
-                    height=200
-                )
-
-                self.image_list.addItem(image_item)
-                self.image_list.setItemWidget(image_item, image_widget)
-
-                progress.setValue(idx)
-
-    def add_async_data(self):
-        _data = self.import_dialog.imported_data
-        print(f"adding async data: {len(_data)}")
-
-        for k, v in _data.items():
-            item, widget = v
-
-            if isinstance(widget, ImageListWidget):
-                widget.setParent(self)
-            self.image_list.addItem(item)
-            self.image_list.setItemWidget(item, widget)
+    def delete_image(self, guid: UUID):
+        self.view_model.delete_image_by_guid(guid)
 
     def clear_data(self):
         self.image_list.clear()

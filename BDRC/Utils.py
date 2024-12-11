@@ -19,6 +19,7 @@ from Config import OCRARCHITECTURE, CHARSETENCODER
 from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, \
     OCRModel, OCRData
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QImage
 
 
 # TODO: read this from the global Config
@@ -97,13 +98,15 @@ def generate_guid(clock_seq: int):
     return uuid1(clock_seq=clock_seq)
 
 
-def build_ocr_data(tick: int, file_path: str):
+def build_ocr_data(tick: int, file_path: str, target_height: int):
     file_name = get_filename(file_path)
     guid = generate_guid(tick)
+    q_image = QImage(file_path).scaledToHeight(target_height)
     ocr_data = OCRData(
         guid=guid,
         image_path=file_path,
         image_name=file_name,
+        qimage=q_image,
         ocr_text=[],
         lines=None,
         preview=None,

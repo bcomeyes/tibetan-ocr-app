@@ -3,7 +3,7 @@ from enum import Enum
 import numpy.typing as npt
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
-
+from PySide6.QtGui import QImage
 
 class OpStatus(Enum):
     SUCCESS = 0
@@ -114,6 +114,7 @@ class OCRData:
     guid: UUID
     image_path: str
     image_name: str
+    qimage: QImage
     ocr_text: List[str]
     lines: List[Line] | None
     preview: npt.NDArray | None

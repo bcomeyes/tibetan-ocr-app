@@ -8,6 +8,7 @@ from huggingface_hub import snapshot_download
 
 LINES_CONFIG = "Models/Lines/config.json"
 LAYOUT_CONFIG = "Models/Layout/config.json"
+TMP_DIR = "tmp"
 
 """
 Mappings for each data type

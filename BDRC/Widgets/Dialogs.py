@@ -110,13 +110,19 @@ def build_binary_selection(current_setting: bool) -> Tuple[QButtonGroup, List[QR
     return button_group, buttons
 
 
-class ImportFilesDialog(QFileDialog):
+class ImportImagesDialog(QFileDialog):
     def __init__(self, parent=None):
-        super(ImportFilesDialog, self).__init__(parent)
+        super(ImportImagesDialog, self).__init__(parent)
         self.setFileMode(QFileDialog.FileMode.ExistingFiles)
         self.setNameFilter("Images (*.png *.jpg *.tif *.tiff)")
         self.setViewMode(QFileDialog.ViewMode.List)
 
+class ImportPDFDialog(QFileDialog):
+    def __init__(self, parent=None):
+        super(ImportPDFDialog, self).__init__(parent)
+        self.setFileMode(QFileDialog.FileMode.ExistingFile)
+        self.setNameFilter("PDF file (*.pdf)")
+        self.setViewMode(QFileDialog.ViewMode.List)
 
 class ExportDirDialog(QFileDialog):
     def __init__(self, parent=None):
@@ -301,12 +307,15 @@ class ExportDialog(QDialog):
                 for idx, data in enumerate(self.ocr_data):
                     img = cv2.imread(data.image_path)
 
+                    print(f"Exporting OCR text: {len(data.ocr_text)} => {data.ocr_text} for {len(data.lines)} line data")
+
                     if data.lines is not None and len(data.lines) > 0:
+
                         exporter.export_lines(
-                            img,
-                            data.image_name,
-                            data.lines,
-                            data.ocr_text
+                            image=img,
+                            image_name=data.image_name,
+                            lines=data.lines,
+                            text_lines=data.ocr_text
                         )
 
             elif _exporter == ExportFormat.JSON:
@@ -899,9 +908,9 @@ class BatchOCRDialog(QDialog):
 
 
 class ImportFilesProgress(QProgressDialog):
-    def __init__(self, max_length: int):
+    def __init__(self, title: str, max_length: int):
         super(ImportFilesProgress, self).__init__()
-        self.setWindowTitle("Importing Files...")
+        self.setWindowTitle(title)
         #self.setMinimum(0)
         #self.setMaximum(max_length)
         self.setFixedWidth(420)
@@ -921,7 +930,7 @@ class ImportFilesProgress(QProgressDialog):
                     QProgressBar {
                         background-color: #474747;
                         color: #A40021;
-                        border: 2px solid #343942;
+                        border: 2px solid #fce08e;
                         border-radius: 8px;
                         padding: 4px 4px 4px 4px;
                     }

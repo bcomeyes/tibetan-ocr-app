@@ -307,7 +307,7 @@ class OCRInference:
 
         return text
 
-    def run(self, line_image: npt.NDArray, pre_pad: bool = False) -> str:
+    def run(self, line_image: npt.NDArray, pre_pad: bool = True) -> str:
 
         if pre_pad:
             line_image = self._pre_pad(line_image)
@@ -362,7 +362,6 @@ class OCRPipeline:
         self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
 
     # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
-    # so that the user get's an information if things go wrong
     def run_ocr(self,
                 image: npt.NDArray,
                 k_factor: float = 2.5,
@@ -371,10 +370,6 @@ class OCRPipeline:
                 use_tps: bool = False,
                 tps_mode: TPSMode = TPSMode.GLOBAL,
                 tps_threshold: float = 0.25):
-
-        """
-        TODO: Reintegrate proper data structures into this
-        """
 
         if isinstance(self.line_config, LineDetectionConfig):
             line_mask = self.line_inference.predict(image)
@@ -414,16 +409,13 @@ class OCRPipeline:
                     line_images = extract_line_images(dew_rot_img, sorted_lines, k_factor, bbox_tolerance)
 
                 else:
-                    # print("Running local tps")
                     line_images = get_line_images_via_local_tps(rot_img, tps_line_data)
 
             else:
-                # print("Run without TPS, fallback to normal mode")
                 line_data = [build_line_data(x) for x in filtered_contours]
                 sorted_lines, _ = sort_lines_by_threshold2(rot_mask, line_data, group_lines=merge_lines)
                 line_images = extract_line_images(rot_img, sorted_lines, k_factor, bbox_tolerance)
         else:
-            # print("Running in Normal Mode")
             line_data = [build_line_data(x) for x in filtered_contours]
 
             sorted_lines, _ = sort_lines_by_threshold2(
