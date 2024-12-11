@@ -171,6 +171,8 @@ def read_settings():
     _line_mode = ocr_json_settings["line_mode"]
     _line_merge =  ocr_json_settings["line_merge"]
     _line_sorting = ocr_json_settings["line_sorting"]
+    _k_factor = ocr_json_settings["k_factor"]
+    _bbox_tolerance = ocr_json_settings["bbox_tolerance"]
     _dewarping = ocr_json_settings["dewarp"]
     _tps = ocr_json_settings["tps"]
     _out_encoding = ocr_json_settings["output_encoding"]
@@ -181,6 +183,8 @@ def read_settings():
         line_merge=LINE_MERGE[_line_merge],
         line_sorting=LINE_SORTING[_line_sorting],
         dewarping=True if _dewarping == "yes" else False,
+        k_factor=float(_k_factor),
+        bbox_tolerance=float(_bbox_tolerance),
         tps_mode=TPS_MODE[_tps],
         output_encoding=ENCODINGS[_out_encoding],
         exporter=EXPORTERS[_exporter]
@@ -218,6 +222,8 @@ def save_ocr_settings(settings: OCRSettings):
         "line_merge": _line_merge,
         "line_sorting": _line_sorting,
         "dewarp": _dewarp,
+        "k_factor": settings.k_factor,
+        "bbox_tolerance": settings.bbox_tolerance,
         "tps": _tps,
         "output_encoding": "unicode",
         "exporter": _exporter
@@ -245,6 +251,8 @@ def create_default_ocr_config():
         "line_merge": "merge",
         "line_sorting": "threshold",
         "dewarp": "yes",
+        "k_factor": 2.5,
+        "bbox_tolerance": 2.5,
         "tps": "global",
         "exporter": "text",
         "output_encoding": "unicode"

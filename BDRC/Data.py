@@ -183,6 +183,8 @@ class OCRSettings:
     line_mode: LineMode
     line_merge: LineMerge
     line_sorting: LineSorting
+    k_factor: float
+    bbox_tolerance: float
     dewarping: bool
     tps_mode: TPSMode
     output_encoding: Encoding

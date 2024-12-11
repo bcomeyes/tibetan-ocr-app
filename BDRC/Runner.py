@@ -23,10 +23,12 @@ class OCRunner(QRunnable):
         self.data = data
         self.pipeline = ocr_pipeline
         self.settings = settings
+        self.k_factor =  settings.k_factor
+        self.bbox_tolerance = settings.bbox_tolerance
 
     def run(self):
         img = cv2.imread(self.data.image_path)
-        status, result = self.pipeline.run_ocr(img)
+        status, result = self.pipeline.run_ocr(img, k_factor=self.k_factor, bbox_tolerance=self.bbox_tolerance)
 
         if status == OpStatus.SUCCESS:
             rot_mask, lines, page_text, angle = result

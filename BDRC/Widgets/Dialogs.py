@@ -530,7 +530,7 @@ class SettingsDialog(QDialog):
 
         # OCR Settings Tab
         self.ocr_settings_tab = QWidget()
-        self.ocr_settings_tab.setContentsMargins(0, 0, 0, 0)
+        self.ocr_settings_tab.setContentsMargins(0, 20, 0, 0)
         self.ocr_settings_layout = QVBoxLayout()
         self.ocr_settings_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.ocr_settings_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -539,20 +539,55 @@ class SettingsDialog(QDialog):
         encoding_layout = QHBoxLayout()
         encoding_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         encoding_label = QLabel("Encoding")
+        encoding_label.setFixedWidth(180)
         encoding_label.setObjectName("OptionsLabel")
         encoding_layout.addWidget(encoding_label)
 
         for encoding in self.encoding_buttons:
             encoding_layout.addWidget(encoding)
 
-        #dewarping
+        # dewarping
         dewarping_layout = QHBoxLayout()
         dewarping_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         dewarping_label = QLabel("Dewarping")
+        dewarping_label.setFixedWidth(180)
         dewarping_label.setObjectName("OptionsLabel")
         dewarping_layout.addWidget(dewarping_label)
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
+
+        # specific ocr parameters
+        spacer = QLabel()
+        spacer.setMinimumWidth(200)
+
+        k_factor_layout = QHBoxLayout()
+        k_factor_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        k_factor_label = QLabel("K-Factor")
+        k_factor_label.setFixedWidth(160)
+        k_factor_label.setObjectName("OptionsLabel")
+
+        self.k_factor_edit = QLineEdit()
+        self.k_factor_edit.setFixedWidth(60)
+        self.k_factor_edit.setObjectName("DialogLineEdit")
+        self.k_factor_edit.setText(str(self.ocr_settings.k_factor))
+        self.k_factor_edit.editingFinished.connect(self.validate_kfactor_input)
+        k_factor_layout.addWidget(k_factor_label)
+        k_factor_layout.addWidget(self.k_factor_edit)
+        k_factor_layout.addWidget(spacer)
+
+        bbox_tolerance_layout = QHBoxLayout()
+        bbox_tolerance_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        bbox_tolerance_label = QLabel("Bounding Box Tolerance")
+        bbox_tolerance_label.setFixedWidth(160)
+        bbox_tolerance_label.setObjectName("OptionsLabel")
+        self.bbox_tolerance_edit = QLineEdit()
+        self.bbox_tolerance_edit.setObjectName("DialogLineEdit")
+        self.bbox_tolerance_edit.setFixedWidth(60)
+        self.bbox_tolerance_edit.editingFinished.connect(self.validate_bbox_tolerance_input)
+        self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
+        bbox_tolerance_layout.addWidget(bbox_tolerance_label)
+        bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
+        bbox_tolerance_layout.addWidget(spacer)
 
         #export
         export_layout = QHBoxLayout()
@@ -571,8 +606,9 @@ class SettingsDialog(QDialog):
 
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
+        self.ocr_settings_layout.addLayout(k_factor_layout)
+        self.ocr_settings_layout.addLayout(bbox_tolerance_layout)
         self.ocr_settings_layout.addLayout(export_layout)
-
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
@@ -600,11 +636,7 @@ class SettingsDialog(QDialog):
 
         self.build_model_overview()
         self.setStyleSheet("""
-
-            QLabel {
-                color: #ffffff;
-            }
-                            
+           
             QPushButton {
                 color: #A40021;
                 background-color: #fce08d;
@@ -617,6 +649,23 @@ class SettingsDialog(QDialog):
             }
 
         """)
+
+    def validate_bbox_tolerance_input(self):
+        try:
+            float(self.bbox_tolerance_edit.text())
+            self.ocr_settings.bbox_tolerance = float(self.bbox_tolerance_edit.text())
+
+        except ValueError as e:
+            print(f"Invalid float value: {e}")
+            self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
+
+    def validate_kfactor_input(self):
+        try:
+            float(self.k_factor_edit.text())
+            self.ocr_settings.k_factor = float(self.k_factor_edit.text())
+        except ValueError as e:
+            print(f"Invalid float value: {e}")
+            self.k_factor_edit.setText(str(self.ocr_settings.k_factor))
 
     def handle_accept(self):
         self.accept()
@@ -704,6 +753,13 @@ class SettingsDialog(QDialog):
 
         dewarp_id = self.dewarp_group.checkedId()
         do_dewarp = bool(dewarp_id)
+
+        if self.k_factor_edit.text() != "":
+            self.ocr_settings.k_factor = float(self.k_factor_edit.text())
+
+        if self.bbox_tolerance_edit.text() != "":
+            self.ocr_settings.bbox_tolerance = float(self.bbox_tolerance_edit.text())
+
         self.ocr_settings.dewarping = do_dewarp
 
         return self.app_settings, self.ocr_settings, self.ocr_models
@@ -1038,7 +1094,6 @@ class OCRDialog(QProgressDialog):
         self.show()
 
     def exec(self):
-        print(f"Running Async OCR")
         runner = OCRunner(self.data, self.pipeline, self.settings)
         runner.signals.error.connect(self.handle_error)
         runner.signals.ocr_result.connect(self.handle_ocr_result)
@@ -1049,7 +1104,7 @@ class OCRDialog(QProgressDialog):
         print(f"Encountered Error: {error}")
 
     def handle_ocr_result(self, result: OCResult):
-        print(f"Handling ocr result: {result}")
+        #print(f"Handling ocr result: {result}")
         self.sign_ocr_result.emit(result)
 
     def thread_complete(self):
