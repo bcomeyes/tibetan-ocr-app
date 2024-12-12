@@ -28,6 +28,17 @@ DARK = """
     
     QListWidget#ImageGalleryList {
         background-color: #100f0f;
+        border: 4px solid #100f0f;
+                    
+        QListWidget {
+            color: #ffffff;
+            background-color: #100f0f;
+            border: 4px solid #100f0f; 
+        }
+        
+        QListWidget::item:selected {
+            background: #2d2d46;
+        }
     }
 
     QWidget#MainWindow {
@@ -44,10 +55,9 @@ DARK = """
 
     QFrame#HeaderTools {
         background-color: #100F0F;
-        min-width: 880px;
         margin-left: 0px;
         alignment: left;
-        border: 2px solid #100F0F; 
+        border: 2px solid #100F0F;
         border-radius: 6px;
     }
 
@@ -192,6 +202,10 @@ DARK = """
         image:url(Assets/Textures/qradio_indicator.png);
         width: 12px;
         height: 12px;
+    }
+
+    QLabel#DefaultLabel {
+        color: #ffffff;
     }
     
     QLabel#OptionsLabel {

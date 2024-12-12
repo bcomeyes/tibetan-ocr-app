@@ -63,7 +63,7 @@ class HeaderTools(QFrame):
         self.layout.addWidget(self.page_switcher)
         self.layout.addWidget(self.spacer)
 
-        self.layout.setContentsMargins(0, 10, 10, 10)
+        self.layout.setContentsMargins(0, 4, 4, 4)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.setLayout(self.layout)
 
@@ -942,7 +942,9 @@ class ImageListWidget(QWidget):
 
         self.thumb = ImageThumb(q_image)
         self.label = QLabel()
+        self.label.setObjectName("DefaultLabel")
         self.label.setContentsMargins(0, 0, 0, 0)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setText(self.file_name)
 
         self.btn_delete_icon = "Assets/Textures/delete_icon.png"
@@ -967,13 +969,7 @@ class ImageListWidget(QWidget):
 
         self.setLayout(self.v_layout)
         self.is_active = False
-
-        self.label.setStyleSheet("""
-            color: #ffffff;
-
-        """)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
+        
         # bind delete signal
         self.btn_delete.clicked.connect(self.delete_image)
 
@@ -1048,23 +1044,6 @@ class ImageGallery(QFrame):
         self.layout.addItem(self.spacer)
         self.layout.addWidget(self.image_list)
         self.setLayout(self.layout)
-
-        self.image_list.setStyleSheet(
-            """
-            background-color: #100f0f;
-            border: 4px solid #100f0f;
-                       
-            QListWidget {
-                color: #ffffff;
-                background-color: #100f0f;
-                border: 4px solid #100f0f; 
-            }
-            
-            QListWidget::item:selected {
-                background: #2d2d46;
-            }
-            """
-        )
 
         # connect signals
         self.view_model.dataChanged.connect(self.add_data)
