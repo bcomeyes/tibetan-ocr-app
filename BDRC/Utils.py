@@ -102,6 +102,7 @@ def build_ocr_data(tick: int, file_path: str, target_height: int):
     file_name = get_filename(file_path)
     guid = generate_guid(tick)
     q_image = QImage(file_path).scaledToHeight(target_height)
+    
     ocr_data = OCRData(
         guid=guid,
         image_path=file_path,

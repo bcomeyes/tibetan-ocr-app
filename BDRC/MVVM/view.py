@@ -32,22 +32,24 @@ class MainView(QWidget):
     def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel):
         super().__init__()
         self.setObjectName("MainView")
+        self.setContentsMargins(0, 0, 0, 0)
         self._data_view = data_view
         self._settings_view = settings_view
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
         self.canvas = Canvas()
         self.text_view = TextView()
-        self.splitter = QSplitter(Qt.Orientation.Vertical)
+        self.v_splitter = QSplitter(Qt.Orientation.Vertical)
+        #self.v_splitter.setAutoFillBackground(True)
 
         # build layout
         self.v_layout = QVBoxLayout()
         self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.v_layout.addWidget(self.header_tools)
 
-        self.splitter.addWidget(self.canvas)
-        self.splitter.addWidget(self.text_view)
-        self.v_layout.addWidget(self.splitter)
+        self.v_splitter.addWidget(self.canvas)
+        self.v_splitter.addWidget(self.text_view)
+        self.v_layout.addWidget(self.v_splitter)
 
         self.setLayout(self.v_layout)
 
@@ -68,7 +70,6 @@ class MainView(QWidget):
         self.header_tools.toolbox.s_settings.connect(self.handle_settings)
         self.header_tools.page_switcher.sign_on_page_changed.connect(self.handle_update_page)
         self.current_guid = None
-
 
     def handle_new(self):
         self._data_view.clear_data()
@@ -124,6 +125,7 @@ class AppView(QWidget):
         super().__init__()
         self.setObjectName("MainWindow")
         self.setWindowTitle("BDRC OCR [BETA] 0.1")
+        self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
@@ -131,22 +133,17 @@ class AppView(QWidget):
 
         self.image_gallery = ImageGallery(self._dataview_model, self.threadpool)
         self.main_container = MainView(self._dataview_model, self._settingsview_model)
-        self.main_container.setContentsMargins(0, 0, 0, 0)
+        self.h_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.h_splitter.setAutoFillBackground(True)
+        self.h_splitter.setContentsMargins(0, 0, 0, 0)
+        self.h_splitter.addWidget(self.image_gallery)
+        self.h_splitter.addWidget(self.main_container)
 
         # build layout
-        self.setContentsMargins(0, 0, 0, 0)
-        self.setMinimumWidth(int(max_width * 0.5))
-        self.setMaximumWidth(max_width)
-        self.setMinimumHeight(int(max_height * 0.5))
-        self.setMaximumHeight(max_height)
-
         self.main_layout = QHBoxLayout()
         self.main_layout.setSpacing(0)
-        self.main_layout.setContentsMargins(2, 2, 2, 2)
-        self.main_layout.addWidget(self.image_gallery)
-        self.main_layout.addWidget(self.main_container)
-
-        # self.main_layout.addWidget(self.footer)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.addWidget(self.h_splitter)
         self.setLayout(self.main_layout)
 
         # connect view model signals
@@ -158,15 +155,10 @@ class AppView(QWidget):
         self.main_container.s_handle_page_select.connect(self.select_page)
         self.main_container.s_on_file_save.connect(self.save)
         self.main_container.s_run_ocr.connect(self.run_ocr)
-        #self.main_container.sign_run_ocr.connect(self.run_ocr_async)
         self.main_container.s_run_batch_ocr.connect(self.run_batch_ocr)
         self.main_container.s_handle_settings.connect(self.handle_settings)
 
-        self.text_exporter = TextExporter()
-        self.app_images = {}
-        self.current_image = None
-
-        # inference sessions
+        # ocr inference sessions
         self.line_model_config = read_line_model_config(LINES_CONFIG)
         self.layout_model_config = read_layout_model_config(LAYOUT_CONFIG)
         _ocr_model = self._settingsview_model.get_current_ocr_model()
@@ -180,7 +172,7 @@ class AppView(QWidget):
             QFrame::TextView {
                 color: #ffffff;
                 background-color: #100F0F;
-                border: 2px solid #100F0F; 
+                border: 2px solid #100F0F;
                 border-radius: 8px;
             }
         """)
@@ -324,13 +316,6 @@ class AppView(QWidget):
         else:
             dialog = NotificationDialog("Image not found", "The selected image could not be read from disk.")
             dialog.exec()
-
-    def run_ocr_async(self, guid: UUID):
-        _data = self._dataview_model.get_data_by_guid(guid)
-        _settings = self._settingsview_model.get_ocr_settings()
-        ocr_dialog = OCRDialog(self.ocr_pipeline, _settings, _data, self.threadpool)
-        ocr_dialog.sign_ocr_result.connect(self.update_ocr_result)
-        ocr_dialog.exec()
 
     def run_batch_ocr(self):
         _data = self._dataview_model.get_data()

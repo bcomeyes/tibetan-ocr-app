@@ -7,6 +7,7 @@ from BDRC.Data import OCRData, OCRModel
 from BDRC.Widgets.GraphicItems import ImagePreview
 from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
+from BDRC.Widgets.Dialogs import TextInputDialog
 
 from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool, QRunnable, QObject
 from PySide6.QtGui import (
@@ -563,6 +564,7 @@ class Canvas(QFrame):
         self.default_width = width
         self.default_height = height
         self.setMinimumHeight(200)
+        self.setObjectName("MainCanvas")
 
         self.current_width = self.default_width
         self.current_height = self.default_height
@@ -582,31 +584,34 @@ class Canvas(QFrame):
         self.toggle_prev_btn = MenuButton(
             "Toggle line preview",
             self.toggle_prev_btn_icon,
-            width=20,
-            height=20
+            width=26,
+            height=26
         )
+        self.toggle_prev_btn.setObjectName("CanvasToolButton")
 
         self.fit_in_btn = MenuButton(
             "Fit image in view",
             self.fit_view_icon,
-            width=20,
-            height=20
+            width=26,
+            height=26
         )
-
+        self.fit_in_btn.setObjectName("CanvasToolButton")
 
         self.zoom_in_btn = MenuButton(
             "Zoom in",
             self.zoom_in_icon,
-            width=20,
-            height=20
+            width=26,
+            height=26
         )
+        self.zoom_in_btn.setObjectName("CanvasToolButton")
 
         self.zoom_out_btn = MenuButton(
             "Zoom out",
             self.zoom_out_icon,
-            width=20,
-            height=20
+            width=26,
+            height=26
         )
+        self.zoom_out_btn.setObjectName("CanvasToolButton")
 
         # bind signals
         self.toggle_prev_btn.clicked.connect(self.handle_preview_toggle)
@@ -625,15 +630,6 @@ class Canvas(QFrame):
         self.layout.addLayout(self.canvas_tools_layout)
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
-
-        self.setStyleSheet(
-            """
-                    color: #ffffff;
-                    background-color: #100F0F;
-                    border: 2px solid #100F0F; 
-                    border-radius: 8px;
-                """
-        )
 
     def update_display_position(self, position: QPointF):
         self.current_item_pos = position
@@ -696,7 +692,6 @@ class ImageList(QListWidget):
         super().__init__()
         self.parent = parent
         self.setObjectName("ImageGalleryList")
-        self.setObjectName("ImageGalleryItem")
         self.setFlow(QListView.Flow.TopToBottom)
         self.setMouseTracking(True)
         self.itemClicked.connect(self.on_item_clicked)
@@ -784,11 +779,6 @@ class ImageList(QListWidget):
         self.setHorizontalScrollBar(self.h_scrollbar)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.setStyleSheet(
-            """
-                background-color: #100f0f;
-            """
-        )
 
     def on_item_clicked(self, item: QListWidgetItem):
         _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
@@ -806,16 +796,13 @@ class ImageList(QListWidget):
 class ImageThumb(QFrame):
     def __init__(self, q_image: QImage, max_height: int = 140):
         super().__init__()
-        # TODO: Setting this does actually not work
-        #self.image_path = image_path
         self.setFixedHeight(max_height)
         self.setMinimumWidth(220)
         self.max_height = 140
         self.current_width = 220
         self.round_rect_margin = 6
         self.round_rect_radius = 14
-        self.qimage = q_image
-        #self.qimage = QImage(self.image_path).scaledToHeight(max_height)
+        self.qimage = q_image.scaledToHeight(self.max_height)
         self.pixmap = QPixmap(q_image)
         self.brush = QBrush(self.pixmap)
 
@@ -996,8 +983,6 @@ class ImageListWidget(QWidget):
     def resizeEvent(self, event):
         if isinstance(event, QResizeEvent):
             self.thumb.resize_thumb(event.size().width()-20)
-            # TODO: scale down the entire List..?
-            #self.resize()
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
@@ -1030,29 +1015,33 @@ class ImageListWidget(QWidget):
         self.thumb.update()
 
 
-
 class ImageGallery(QFrame):
     def __init__(self, viewmodel: DataViewModel, pool: QThreadPool):
         super().__init__()
         self.view_model = viewmodel
         self.pool = pool
         self.setObjectName("ImageGallery")
-        self.setMinimumHeight(600)
-        self.setMaximumWidth(456)
-        self.setContentsMargins(20, 20, 20, 20)
         self.setContentsMargins(0, 0, 0, 0)
+        self.setMinimumHeight(600)
+        self.setMinimumWidth(180)
+        self.setMaximumWidth(480)
+        self.current_size = self.sizeHint()
+        self.current_width = self.current_size.width()
+        
         self.import_dialog = None
 
         # build layout
         self.image_label = QLabel(self)
         self.image_label.setContentsMargins(6, 0, 0, 0)
         self.image_pixmap = QPixmap("Assets/Textures/BDRC_Logo.png").scaled(
-            QSize(140, 90), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
-        )
+            QSize(140, 90),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation)
+
         self.image_label.setPixmap(self.image_pixmap)
 
         self.layout = QVBoxLayout()
-        self.spacer = QSpacerItem(320, 10)
+        self.spacer = QSpacerItem(self.current_width, 10)
         self.image_list = ImageList(self)
 
         self.layout.addWidget(self.image_label)
@@ -1067,8 +1056,8 @@ class ImageGallery(QFrame):
                        
             QListWidget {
                 color: #ffffff;
-                background-color: #100f0f; 
-                border: 4px solid #100f0f;    
+                background-color: #100f0f;
+                border: 4px solid #100f0f; 
             }
             
             QListWidget::item:selected {
@@ -1076,8 +1065,6 @@ class ImageGallery(QFrame):
             }
             """
         )
-
-        self.current_width = 320
 
         # connect signals
         self.view_model.dataChanged.connect(self.add_data)
@@ -1090,6 +1077,8 @@ class ImageGallery(QFrame):
         if isinstance(event, QResizeEvent):
             _new_size = event.size()
             self.current_width = _new_size.width()
+            print(f"ImageGaller-> Updated Size: {self.current_width}")
+            #self.image_list.resizeContents(self.current_width)
 
     def handle_item_selection(self, guid: UUID):
         for idx in range(self.image_list.count()):
@@ -1285,7 +1274,6 @@ class TextWidgetList(QListWidget):
     def mouseMoveEvent(self, e):
         item = self.itemAt(e.pos())
         if item is not None:
-            print("TextWidgetList->ITEM")
             _list_item_widget = self.itemWidget(item)
 
         """if isinstance(_list_item_widget, ImageListWidget):
@@ -1304,6 +1292,7 @@ class TextWidgetList(QListWidget):
 
 
 class TextListWidget(QWidget):
+    s_update_label = Signal(str)
     """
     Custom widget holding the actual text data
     """
@@ -1318,13 +1307,20 @@ class TextListWidget(QWidget):
         self.label.setFont(QFont(self.font, font_size))
         self.label.setText(self.text)
         self.is_hovered = False
+
+        self.btn_edit_icon = "Assets/Textures/edit_icon.png"
+        self.btn_edit = MenuButton("Edit Line", self.btn_edit_icon, 14, 14)
+
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.label)
+        self.layout.addWidget(self.btn_edit)
         self.setLayout(self.layout)
 
+        # bind edit signal
+        self.btn_edit.clicked.connect(self.edit_label)
 
-        label_size = self.label.sizeHint()
-        self.setFixedHeight(label_size.height() + 24) # that is a bit hacky, is it possible to inferr the size of the label based on the rendered text..?
+        #label_size = self.label.sizeHint()
+        #self.setFixedHeight(label_size.height() + 24) # that is a bit hacky, is it possible to inferr the size of the label based on the rendered text..?
 
     def event(self, event):
         if event.type() == QEvent.Type.Enter:
@@ -1335,8 +1331,15 @@ class TextListWidget(QWidget):
 
         return super().event(event)
 
-    def update_text(self, text):
-        self.text = text
+    def edit_label(self):
+        dialog = TextInputDialog("Editing Line", self.text, parent=self)
+        
+        if dialog.exec():
+            print("Updating Label..")
+            new_text = dialog.new_text
+            self.text = new_text
+            self.label.setText(self.text)
+            self.s_update_label.emit(new_text)
 
 
 class TextView(QFrame):
@@ -1350,26 +1353,11 @@ class TextView(QFrame):
         self.converter = pyewts.pyewts()
         self.setContentsMargins(10, 0, 10, 0)
         self.text_lines = []
-        #self.setMinimumHeight(80)
-        #self.setMinimumWidth(600)
 
         self.text_widget_list = TextWidgetList()
 
         self.zoom_in_btn = TextToolsButton("+")
-        self.zoom_in_btn.setStyleSheet("""
-            background-color: #3f3f3f;
-            border: 2px solid #1d1d1d;
-            border-radius: 4px;
-        """)
-
         self.zoom_out_btn = TextToolsButton("-")
-        self.zoom_out_btn.setStyleSheet("""
-                    background-color: #3f3f3f;
-                    border: 2px solid #1d1d1d;
-                    border-radius: 4px;
-                """)
-
-
         self.spacer = QLabel()
 
         # bind signals
@@ -1386,14 +1374,6 @@ class TextView(QFrame):
         self.layout.addLayout(self.button_layout)
         self.layout.addWidget(self.text_widget_list)
         self.setLayout(self.layout)
-        self.setStyleSheet(
-            """
-                color: #ffffff;
-                background-color: #100F0F;
-                border: 2px solid #100F0F; 
-                border-radius: 4px;
-            """
-        )
 
     def zoom_in(self):
         if len(self.text_lines) == 0:

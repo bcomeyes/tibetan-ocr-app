@@ -22,17 +22,24 @@ class Dark(BaseTheme):
 
 
 DARK = """
-    QWidget#MainWindow {
-        background-color: #1d1c1c;
-        color: #000000;
-    }
-    
     QFrame#ImageGallery {
         background-color: #1d1c1c;
     }
     
     QListWidget#ImageGalleryList {
-    
+        background-color: #100f0f;
+    }
+
+    QWidget#MainWindow {
+        background-color: #1d1c1c;
+        color: #000000;
+    }
+
+    QFrame#MainCanvas {
+        color: #ffffff;
+        background-color: #100F0F;
+        border: 2px solid #100F0F;
+        border-radius: 8px;
     }
 
     QFrame#HeaderTools {
@@ -42,6 +49,13 @@ DARK = """
         alignment: left;
         border: 2px solid #100F0F; 
         border-radius: 6px;
+    }
+
+    QFrame#TextView {
+        color: #ffffff;
+        background-color: #100F0F;
+        border: 2px solid #100F0F; 
+        border-radius: 4px;
     }
 
     QWidget#ToolBox {
@@ -80,10 +94,16 @@ DARK = """
         border-radius: 4px;
     }
 
+    QPushButton#CanvasToolButton {
+        background-color: #3f3f3f;
+        border: 2px solid #1d1d1d;
+        border-radius: 4px;
+        padding: 4px 4px 4px;
+    }
+
     QPushButton#MenuButton::QIcon {
         color: #d73449;
     }
-
     
     QPushButton#TextToolsButton {
         background-color: #3f3f3f;
@@ -124,10 +144,10 @@ DARK = """
         background: #A40021;
         padding: 4px;
     }
-    
-    QTabWidget::tab-bar {          
+
+    QTabWidget::tab-bar {        
         left: 5px;
-    }  
+    }
     
     QTabBar::tab:selected { 
         background: #730017; 

@@ -11,7 +11,6 @@ class MenuButton(QPushButton):
             width: int = 40,
             height: int = 40,
             object_name: str = "MenuButton",
-
             parent=None):
 
         super().__init__()

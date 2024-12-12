@@ -853,9 +853,7 @@ class BatchOCRDialog(QDialog):
         self.dir_select_btn = QPushButton("select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
 
-        self.form_layout = QFormLayout()
-        self.form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.form_layout.setContentsMargins(10, 10, 10, 10)
+       
         self.model_selection = QComboBox()
         self.model_selection.setStyleSheet("""
                 color: #ffffff;
@@ -870,34 +868,46 @@ class BatchOCRDialog(QDialog):
 
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
 
+        self.ocr_settings_layout = QVBoxLayout()
+
+        spacer = QLabel()
+        spacer.setFixedWidth(60)
+        # encoding
+        encoding_label = QLabel("Encoding")
+        encoding_label.setObjectName("OptionsLabel")
         encoding_layout = QHBoxLayout()
+        encoding_layout.addWidget(encoding_label)
+
         for btn in self.encoding_buttons:
             encoding_layout.addWidget(btn)
+        
 
+        # dewarping
+        dewarping_label = QLabel("Dewarping")
+        dewarping_label.setObjectName("OptionsLabel")
         dewarping_layout = QHBoxLayout()
+        dewarping_layout.addWidget(dewarping_label)
+
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
-
+ 
+        # merging lines
+        merge_label = QLabel("Merge Lines")
+        merge_label.setObjectName("OptionsLabel")
         merge_layout = QHBoxLayout()
+        merge_layout.addWidget(merge_label)
+        
         for btn in self.merge_buttons:
             merge_layout.addWidget(btn)
 
+        # merging lines
+        export_label = QLabel("Export format")
         export_layout = QHBoxLayout()
+        export_layout.addWidget(export_label)
         for btn in self.exporter_buttons:
             export_layout.addWidget(btn)
 
-        encoding_label = QLabel("Encoding")
-        encoding_label.setObjectName("OptionsLabel")
-
-        dewarping_label = QLabel("Dewarping")
-        dewarping_label.setObjectName("OptionsLabel")
-
-        merge_label = QLabel("Merge Lines")
-        merge_label.setObjectName("OptionsLabel")
-
-        other_layout = QHBoxLayout()
-        spacer = QLabel()
-        spacer.setFixedWidth(60)
+        other_settings_layout = QHBoxLayout()
         other_label = QLabel("Other Settings")
         other_label.setObjectName("OptionsLabel")
         k_factor_label = QLabel("K-factor")
@@ -912,17 +922,18 @@ class BatchOCRDialog(QDialog):
         self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
         self.bbox_tolerance_edit.editingFinished.connect(self.validate_bbox_tolerance_input)
 
-        other_layout.addWidget(spacer)
-        other_layout.addWidget(k_factor_label)
-        other_layout.addWidget(self.k_factor_edit)
-        other_layout.addWidget(spacer)
-        other_layout.addWidget(bbox_tolerance_label)
-        other_layout.addWidget(self.bbox_tolerance_edit)
+        other_settings_layout.addWidget(spacer)
+        other_settings_layout.addWidget(k_factor_label)
+        other_settings_layout.addWidget(self.k_factor_edit)
+        other_settings_layout.addWidget(spacer)
+        other_settings_layout.addWidget(bbox_tolerance_label)
+        other_settings_layout.addWidget(self.bbox_tolerance_edit)
 
-        self.form_layout.addRow(encoding_label, encoding_layout)
-        self.form_layout.addRow(dewarping_label, dewarping_layout)
-        self.form_layout.addRow(merge_label, merge_layout)
-        self.form_layout.addRow(other_label, other_layout)
+        # assemble layout
+        self.ocr_settings_layout.addLayout(encoding_layout)
+        self.ocr_settings_layout.addLayout(dewarping_layout)
+        self.ocr_settings_layout.addLayout(merge_layout)
+        self.ocr_settings_layout.addLayout(export_layout)
 
         self.status_layout = QHBoxLayout()
         self.status_label = QLabel("Status")
@@ -938,14 +949,13 @@ class BatchOCRDialog(QDialog):
 
         self.v_layout.addWidget(self.label)
         self.v_layout.addWidget(self.model_selection)
-        self.v_layout.addLayout(self.form_layout)
+        self.v_layout.addLayout(self.ocr_settings_layout)
         self.v_layout.addLayout(self.progress_layout)
         self.v_layout.addLayout(self.status_layout)
         self.v_layout.addLayout(self.button_h_layout)
         self.setLayout(self.v_layout)
 
         # bind signals
-        #self.dir_select_btn.clicked.connect(self.select_export_dir)
         self.start_process_btn.clicked.connect(self.start_process)
         self.cancel_process_btn.clicked.connect(self.cancel_process)
         self.ok_btn.clicked.connect(self.accept)
@@ -966,6 +976,7 @@ class BatchOCRDialog(QDialog):
             }
         
         """)
+
     def validate_bbox_tolerance_input(self):
         try:
             float(self.bbox_tolerance_edit.text())
@@ -1006,7 +1017,6 @@ class BatchOCRDialog(QDialog):
             k_factor=float(k_factor),
             bbox_tolerance=float(bbox_tolerance)
         )
-
 
         self.runner.signals.sample.connect(self.handle_update_progress)
         self.runner.signals.finished.connect(self.finish)
@@ -1049,8 +1059,6 @@ class ImportFilesProgress(QProgressDialog):
     def __init__(self, title: str, max_length: int):
         super(ImportFilesProgress, self).__init__()
         self.setWindowTitle(title)
-        #self.setMinimum(0)
-        #self.setMaximum(max_length)
         self.setFixedWidth(420)
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setContentsMargins(32, 32, 32, 32)
@@ -1192,3 +1200,60 @@ class OCRDialog(QProgressDialog):
     def thread_complete(self):
         print(f"Thread Complete")
         #self.close()
+
+
+
+class TextInputDialog(QDialog):
+    def __init__(self, title: str, edit_text: str, parent: None):
+        super(TextInputDialog, self).__init__()
+        self.parent = parent
+        self.title = title
+        self.edit_text = edit_text
+        self.new_text = ""
+        self.setFixedWidth(480)
+        self.setWindowTitle(title)
+        self.spacer = QLabel()
+        self.spacer.setFixedHeight(36)
+        self.line_edit = QLineEdit(self)
+        self.line_edit.setText(self.edit_text)
+
+        self.line_edit.editingFinished.connect(self.update_text)
+        self.line_edit.setStyleSheet("""
+            color: #ffffff;
+            background-color: #3e5272;
+            border: 2px solid #3e5272;
+            border-radius: 8px;
+            padding: 4px;
+
+        """)
+
+        self.accept_btn = QPushButton("Accept")
+        self.reject_btn = QPushButton("Reject")
+        self.accept_btn.setObjectName("SmallDialogButton")
+        self.reject_btn.setObjectName("SmallDialogButton")
+
+        self.accept_btn.clicked.connect(self.accept_change)
+        self.reject_btn.clicked.connect(self.reject_change)
+
+        self.h_layout = QHBoxLayout()
+        self.h_layout.addWidget(self.accept_btn)
+        self.h_layout.addWidget(self.reject_btn)
+
+        self.v_layout = QVBoxLayout()
+        self.v_layout.addWidget(self.line_edit)
+        self.v_layout.addWidget(self.spacer)
+        self.v_layout.addLayout(self.h_layout)
+
+        self.setLayout(self.v_layout)
+        self.setStyleSheet("""
+            background-color: #08091e;
+        """)
+
+    def update_text(self):
+        self.new_text = self.line_edit.text()
+
+    def accept_change(self):
+        self.accept()
+
+    def reject_change(self):
+        self.reject()
