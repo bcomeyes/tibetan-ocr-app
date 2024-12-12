@@ -40,17 +40,15 @@ class MainView(QWidget):
         self.canvas = Canvas()
         self.text_view = TextView()
         self.v_splitter = QSplitter(Qt.Orientation.Vertical)
-        #self.v_splitter.setAutoFillBackground(True)
+        self.v_splitter.setHandleWidth(10)
+        self.v_splitter.addWidget(self.canvas)
+        self.v_splitter.addWidget(self.text_view)
 
         # build layout
         self.v_layout = QVBoxLayout()
         self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.v_layout.addWidget(self.header_tools)
-
-        self.v_splitter.addWidget(self.canvas)
-        self.v_splitter.addWidget(self.text_view)
         self.v_layout.addWidget(self.v_splitter)
-
         self.setLayout(self.v_layout)
 
         # connect to view model signals
@@ -88,7 +86,6 @@ class MainView(QWidget):
 
     def handle_model_selection(self, ocr_model: OCRModel):
         self._settings_view.select_ocr_model(ocr_model)
-
 
     def handle_run(self):
         if self.current_guid is not None:
@@ -134,14 +131,14 @@ class AppView(QWidget):
         self.image_gallery = ImageGallery(self._dataview_model, self.threadpool)
         self.main_container = MainView(self._dataview_model, self._settingsview_model)
         self.h_splitter = QSplitter(Qt.Orientation.Horizontal)
-        self.h_splitter.setAutoFillBackground(True)
+        self.h_splitter.setHandleWidth(10)
         self.h_splitter.setContentsMargins(0, 0, 0, 0)
         self.h_splitter.addWidget(self.image_gallery)
         self.h_splitter.addWidget(self.main_container)
 
         # build layout
         self.main_layout = QHBoxLayout()
-        self.main_layout.setSpacing(0)
+        self.main_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(self.h_splitter)
         self.setLayout(self.main_layout)

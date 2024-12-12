@@ -61,6 +61,12 @@ DARK = """
         border-radius: 6px;
     }
 
+    QFrame#PageSwitcher {
+        color: #ffffff;
+        border: 2px solid #100F0F;
+        border-radius: 8px;
+    }
+
     QFrame#TextView {
         color: #ffffff;
         background-color: #100F0F;
@@ -74,28 +80,13 @@ DARK = """
         alignment-left;
     }
 
-    QWidget#PageSwitcher {
-        color: #ffffff;
-        background-color: #100F0F;
-        border: 2px solid #100F0F; 
-        border-radius: 8px;
-        
-        QLineEdit {
-            background: #434343;
-        }
-    }
-
-    QWidget#PageSelector {
-        border: 1px solid white;
-        border-radius: 4px;
-    }
-
     QComboBox#ModelSelection {
         background: #434343;
         color: #ffffff;
         min-width: 220px;
         border: 2px solid #ced4da;
         border-radius: 4px;
+        padding: 4px 4px 4px 4px;
     }
     
     QPushButton#MenuButton {
@@ -220,6 +211,14 @@ DARK = """
         padding: 4px 4px 4px 4px;
         width: 80px;
     }
+
+    QLabel#PageNumberLabel {
+        color: #ffffff;
+        font-weight: bold;
+        background: #434343;
+        border: 1px solid white;
+        border-radius: 4px;
+    }
            
     QLineEdit#DialogLineEdit {
         color: #ffffff;
@@ -247,4 +246,24 @@ DARK = """
         background-color: #172832;
         border-radius: 4px;
     }
+
+
+    QScrollBar:vertical {
+        border: none;
+        background: #2d2d46;
+        width: 25px;
+        margin: 10px 5px 15px 10px;
+        border-radius: 0px;
+    }
+
+    QSplitter::handle {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        image: url(Assets/Textures/splitter_handle.png);
+    }
+                                    
+    QSplitter::handle:pressed {
+        image: url(Assets/Textures/splitter_handle_press.png);
+    }
+
 """

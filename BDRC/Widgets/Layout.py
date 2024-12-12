@@ -9,7 +9,7 @@ from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 from BDRC.Widgets.Dialogs import TextInputDialog
 
-from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool, QRunnable, QObject
+from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool
 from PySide6.QtGui import (
     QBrush,
     QColor,
@@ -39,7 +39,8 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView
+    QListView,
+    QPushButton
 )
 
 
@@ -58,10 +59,13 @@ class HeaderTools(QFrame):
 
         # build layout
         self.spacer = QLabel()
+        self.spacer.setFixedWidth(30)
+        self.end_spacer = QLabel()
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.toolbox)
-        self.layout.addWidget(self.page_switcher)
         self.layout.addWidget(self.spacer)
+        self.layout.addWidget(self.page_switcher)
+        self.layout.addWidget(self.end_spacer)
 
         self.layout.setContentsMargins(0, 4, 4, 4)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -73,7 +77,6 @@ class HeaderTools(QFrame):
     def set_page_index(self, data: OCRData):
         _index = self.data_view.get_data_index(data.guid)
         self.page_switcher.update_page(_index)
-
 
     def update_ocr_models(self):
         _ocr_models = self.settings_view.get_ocr_models()
@@ -95,11 +98,10 @@ class ToolBox(QWidget):
         super().__init__()
         self.setObjectName("ToolBox")
         self.ocr_models = ocr_models
-
-        self.setFixedHeight(74)
-        self.setMinimumWidth(720)
         self.icon_size = icon_size
-
+        self.setFixedHeight(self.icon_size+18)
+        self.setMinimumWidth(720)
+        
         self.new_btn_icon = "Assets/Textures/new_light.png"
         self.import_btn_icon = "Assets/Textures/import.png"
         self.import_pdf_icon = "Assets/Textures/pdf_import.png"
@@ -157,23 +159,10 @@ class ToolBox(QWidget):
             height=self.icon_size,
         )
 
-        #spacer
-        self.spacer = QLabel("")
-        self.spacer.setFixedWidth(20)
-
         # model selection
         self.model_selection = QComboBox()
+        self.model_selection.setFixedHeight(self.icon_size)
         self.model_selection.setObjectName("ModelSelection")
-        self.model_selection.setContentsMargins(80, 0, 0, 0)
-
-
-        self.model_selection.setStyleSheet("""
-            QListView {
-                color:white;
-                background-color: #172832;
-                min-width: 150px;      
-        }  
-        """)
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -182,13 +171,7 @@ class ToolBox(QWidget):
         # self.model_selection.activated.connect(self.on_select_ocr_model)
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
 
-        # build layout
-        self.layout = QHBoxLayout()
-        self.layout.setSizeConstraint(
-           QLayout.SizeConstraint.SetMinimumSize)
-
-        #self.layout.setSpacing(14)
-        # hook up button clicks
+        # connect button signals
         self.btn_new.clicked.connect(self.new)
         self.btn_import_images.clicked.connect(self.load_images)
         self.btn_import_pdf.clicked.connect(self.import_pdf)
@@ -198,6 +181,11 @@ class ToolBox(QWidget):
         self.btn_settings.clicked.connect(self.settings)
 
         # build layout
+        self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.layout.setContentsMargins(10, 0, 0, 0)
+
         self.layout.addWidget(self.btn_new)
         self.layout.addWidget(self.btn_import_images)
         self.layout.addWidget(self.btn_import_pdf)
@@ -205,13 +193,8 @@ class ToolBox(QWidget):
         self.layout.addWidget(self.btn_run)
         self.layout.addWidget(self.btn_run_all)
         self.layout.addWidget(self.btn_settings)
-        self.layout.addWidget(self.spacer)
         self.layout.addWidget(self.model_selection)
-
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.layout.setContentsMargins(10, 0, 0, 0)
         self.setLayout(self.layout)
-
 
     def new(self):
         self.s_new.emit()
@@ -250,30 +233,25 @@ class ToolBox(QWidget):
                 self.model_selection.addItem(model.name)
 
 
-class PageSwitcher(QWidget):
+class PageSwitcher(QFrame):
     sign_on_page_changed = Signal(int)
 
-    def __init__(self, pages: int = 0, icon_size: int = 40):
+    def __init__(self, pages: int = 0, icon_size: int = 36):
         super().__init__()
         self.setObjectName("PageSwitcher")
         self.icon_size = icon_size
-        self.setFixedHeight(74)
-        self.setMaximumSize(264, 74)
-        self.setContentsMargins(0, 0, 0, 0)
         self.max_pages = pages
         self.current_index = 0
+
         self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        self.current_page = QLineEdit()
-        self.current_page.setStyleSheet("""
-            color: #ffffff;
-            font-weight: bold;
-            background: #434343;
-        """)
-
-        self.current_page.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.current_page.setObjectName("PageSelector")
-        self.current_page.setFixedSize(100, 40)
+        self.current_page = QLabel("")
+        self.current_page.setObjectName("PageNumberLabel")
+        self.current_page.setFixedWidth(100)
+        self.current_page.setFixedHeight(icon_size)
+        self.current_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.prev_btn_icon = "Assets/Textures/prev.png"
         self.next_btn_icon = "Assets/Textures/next.png"
@@ -439,13 +417,6 @@ class PTGraphicsView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(self.default_scrollbar_policy)
         self.setVerticalScrollBarPolicy(self.default_scrollbar_policy)
 
-    """
-    def viewportEvent(self, event):
-        super().viewportEvent(event)
-        print(f"ViewPortEvent => {event.type()}")
-
-        return True
-    """
     def wheelEvent(self, event):
         if event.source() == Qt.MouseEventSource.MouseEventSynthesizedBySystem:
             self.handle_touch_zoom(event.angleDelta().y())
@@ -772,9 +743,6 @@ class ImageList(QListWidget):
         )
 
         self.setAutoScrollMargin(20)
-        # self.scroll_bar.setObjectName("PalmTreeBar")
-
-        # setting vertical scroll bar to it
         self.setVerticalScrollBar(self.v_scrollbar)
         self.setHorizontalScrollBar(self.h_scrollbar)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
@@ -1160,7 +1128,6 @@ class TextWidgetList(QListWidget):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
-        # self.v_scrollbar = QScrollBar(self)
         self.v_scrollbar = QScrollBar(self)
         self.h_scrollbar = QScrollBar(self)
         self.setVerticalScrollBar(self.v_scrollbar)
@@ -1240,7 +1207,7 @@ class TextWidgetList(QListWidget):
         )
 
     def on_item_clicked(self, item: QListWidgetItem):
-        _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
+        _list_item_widget = self.itemWidget(item) # returns an instance of CanvasHierarchyEntry
 
         if isinstance(_list_item_widget, TextListWidget):
             """
@@ -1249,25 +1216,6 @@ class TextWidgetList(QListWidget):
             pass
             #print("TextWidgetList -> selected Text Widget")
             # self.sign_on_selected_item.emit(_list_item_widget.guid)
-
-    def mouseMoveEvent(self, e):
-        item = self.itemAt(e.pos())
-        if item is not None:
-            _list_item_widget = self.itemWidget(item)
-
-        """if isinstance(_list_item_widget, ImageListWidget):
-            _list_item_widget.is_hovered = True
-        """
-
-    def event(self, event):
-        if event.type() == QEvent.Type.Enter:
-            #print("QFrame->enter")
-            pass
-        elif event.type() == QEvent.Type.Leave:
-            #print("QFrame->leave")
-            pass
-
-        return super().event(event)
 
 
 class TextListWidget(QWidget):
@@ -1314,10 +1262,9 @@ class TextListWidget(QWidget):
         dialog = TextInputDialog("Editing Line", self.text, parent=self)
         
         if dialog.exec():
-            print("Updating Label..")
             new_text = dialog.new_text
             self.text = new_text
-            self.label.setText(self.text)
+            self.label.setText(new_text)
             self.s_update_label.emit(new_text)
 
 
@@ -1332,7 +1279,6 @@ class TextView(QFrame):
         self.converter = pyewts.pyewts()
         self.setContentsMargins(10, 0, 10, 0)
         self.text_lines = []
-
         self.text_widget_list = TextWidgetList()
 
         self.zoom_in_btn = TextToolsButton("+")
