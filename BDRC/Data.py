@@ -147,6 +147,7 @@ class OCRModelConfig:
     encoder: CharsetEncoder
     charset: List[str]
     add_blank: bool
+    version: str
 
 
 @dataclass

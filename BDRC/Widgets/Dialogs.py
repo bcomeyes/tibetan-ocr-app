@@ -4,9 +4,28 @@ from uuid import UUID
 from typing import List, Tuple
 from PySide6.QtCore import Qt, QThreadPool, Signal
 from PySide6.QtGui import QBrush, QColor
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog, QLabel, QVBoxLayout, QHBoxLayout, \
-    QProgressDialog, QPushButton, QListWidget, QListView, QListWidgetItem, QWidget, QTabWidget, QFormLayout, \
-    QRadioButton, QProgressBar, QButtonGroup, QLineEdit, QComboBox
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QMessageBox,
+    QDialog,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QHBoxLayout,
+    QProgressDialog,
+    QPushButton,
+    QListWidget,
+    QListView,
+    QListWidgetItem,
+    QWidget,
+    QTabWidget,
+    QRadioButton,
+    QProgressBar,
+    QButtonGroup,
+    QLineEdit,
+    QComboBox
+    )
 
 from BDRC.Data import OCRData, OCResult, OCRModel, Theme, AppSettings, OCRSettings, \
     ExportFormat, Language, Encoding, OCRSample
@@ -433,8 +452,6 @@ class SettingsDialog(QDialog):
         self.app_settings = app_settings
         self.ocr_settings = ocr_settings
         self.ocr_models = ocr_models
-        self.model_list = ModelList(self)
-
         self.selected_theme = Theme.Dark
         self.selected_exporters = []
 
@@ -472,8 +489,8 @@ class SettingsDialog(QDialog):
         self.merge_group, self.merge_buttons = build_binary_selection(self.ocr_settings.merge_lines)
 
         self.setWindowTitle("BDRC Settings")
-        self.setMinimumHeight(400)
-        self.setMinimumWidth(600)
+        self.setMinimumHeight(460)
+        self.setMinimumWidth(800)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         # define layout
@@ -515,39 +532,23 @@ class SettingsDialog(QDialog):
 
 
         # OCR Models Tab
+        self.ocr_models_tab = QWidget()
+
+        self.data_table = QTableWidget()
+        self.data_table.setObjectName("ModelTable")
+        self.data_table.setColumnCount(5)        
+        self.data_tabel_header = ["Model", "Encoding", "Architecture", "Version", "Model file"]
+        
         self.ocr_label = QLabel("Available OCR Models")
         self.ocr_label.setObjectName("OptionsLabel")
-        self.ocr_models_tab = QWidget()
+
         h_layout = QHBoxLayout()
         h_layout.addWidget(self.ocr_label)
         h_layout.addWidget(self.import_models_btn)
 
-        list_header_layout = QHBoxLayout()
-        list_header_layout.setSpacing(0)
-        list_header_layout.setObjectName("OptionsListHeader")
-        list_header_layout.setContentsMargins(0, 10, 0, 0)
-
-        list_header_model_title = QLabel("Model name")
-        list_header_model_title.setObjectName("HeaderLabel")
-        list_header_encoding = QLabel("Encoding")
-        list_header_encoding.setObjectName("HeaderLabel")
-        list_header_architecture = QLabel("Architecture")
-        list_header_architecture.setObjectName("HeaderLabel")
-        list_header_version = QLabel("Version")
-        list_header_version.setObjectName("HeaderLabel")
-        list_header_file_path = QLabel("Model file")
-        list_header_file_path.setObjectName("HeaderLabel")
-
-        list_header_layout.addWidget(list_header_model_title)
-        list_header_layout.addWidget(list_header_encoding)
-        list_header_layout.addWidget(list_header_architecture)
-        list_header_layout.addWidget(list_header_version)
-        list_header_layout.addWidget(list_header_file_path)
-
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout)
-        v_layout.addLayout(list_header_layout)
-        v_layout.addWidget(self.model_list)
+        v_layout.addWidget(self.data_table)
         self.ocr_models_tab.setLayout(v_layout)
 
         # OCR Settings Tab
@@ -653,7 +654,6 @@ class SettingsDialog(QDialog):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
-        self.build_model_overview()
         self.setStyleSheet("""
             QPushButton {
                 color: #A40021;
@@ -666,6 +666,28 @@ class SettingsDialog(QDialog):
                 color: #ffad00;
             }
         """)
+
+        self.update_model_table(self.ocr_models)
+
+    def update_model_table(self, ocr_models: List[OCRModel]):
+        self.data_table.setRowCount(len(ocr_models))
+        self.data_table.clear()
+        self.data_table.setHorizontalHeaderLabels(self.data_tabel_header)
+
+        for idx, model in enumerate(ocr_models):
+            self.add_ocr_model(idx, model)
+
+    def add_ocr_model(self, row_idx: int, ocr_model: OCRModel):
+
+        encoder_widget = QTableWidgetItem(ocr_model.config.encoder.name)
+        encoder_widget.setBackground(QColor("#172832"))
+
+        self.data_table.setItem(row_idx, 0, QTableWidgetItem(str(ocr_model.name)))
+        self.data_table.setItem(row_idx, 1, encoder_widget)
+        self.data_table.setItem(row_idx, 2, QTableWidgetItem(ocr_model.config.architecture.name))
+        self.data_table.setItem(row_idx, 3, QTableWidgetItem(str(ocr_model.config.version)))
+        self.data_table.setItem(row_idx, 4, QTableWidgetItem(str(ocr_model.path)))
+        self.update()
 
     def validate_bbox_tolerance_input(self):
         try:
@@ -689,40 +711,9 @@ class SettingsDialog(QDialog):
 
     def handle_reject(self):
         self.reject()
-
-    def build_model_overview(self):
-        self.model_list.clear()
-
-        for idx in range(len(self.ocr_models)):
-            model_item = QListWidgetItem(self.model_list)
-            _model = self.ocr_models[idx]
-
-
-            model_widget = ModelEntryWidget(
-                guid=_model.guid,
-                title=_model.name,
-                encoder=_model.config.encoder.name,
-                architecture=_model.config.architecture.name,
-                version="1.0",
-                file_path=_model.config.model_file
-            )
-
-            model_item.setSizeHint(model_widget.sizeHint())
-            self.model_list.addItem(model_item)
-            self.model_list.setItemWidget(model_item, model_widget)
-
-
-            if idx % 2 == 0:
-                _qBrush = QBrush(QColor("#242424"))
-                model_widget.set_dark_background()
-                self.model_list.item(idx).setBackground(_qBrush)
-            else:
-                _qBrush = QBrush(QColor("#3a3a3a"))
-                model_widget.set_light_background()
-                self.model_list.item(idx).setBackground(_qBrush)
-
+        
     def clear_models(self):
-        self.model_list.clear()
+       print(f"SettingsDialog -> ClearModels()")
 
     def handle_model_import(self):
         _dialog = ExportDirDialog()
@@ -744,7 +735,7 @@ class SettingsDialog(QDialog):
 
                     if result == 2:
                         self.ocr_models = imported_models
-                        self.build_model_overview()
+                        self.update_model_table(self.ocr_models)
 
                 except BaseException as e:
                     error_dialog = NotificationDialog("Model import failed", f"Importing Models Failed: {e}")

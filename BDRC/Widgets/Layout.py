@@ -30,7 +30,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QSpacerItem,
     QListWidget,
-    QLineEdit,
     QListWidgetItem,
     QLayout,
     QVBoxLayout,
@@ -39,8 +38,7 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView,
-    QPushButton
+    QListView
 )
 
 
@@ -101,7 +99,7 @@ class ToolBox(QWidget):
         self.icon_size = icon_size
         self.setFixedHeight(self.icon_size+18)
         self.setMinimumWidth(720)
-        
+
         self.new_btn_icon = "Assets/Textures/new_light.png"
         self.import_btn_icon = "Assets/Textures/import.png"
         self.import_pdf_icon = "Assets/Textures/pdf_import.png"
@@ -161,7 +159,7 @@ class ToolBox(QWidget):
 
         # model selection
         self.model_selection = QComboBox()
-        self.model_selection.setFixedHeight(self.icon_size)
+        self.model_selection.setFixedHeight(int(self.icon_size * 0.75))
         self.model_selection.setObjectName("ModelSelection")
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
@@ -279,7 +277,6 @@ class PageSwitcher(QFrame):
         self.prev_button.clicked.connect(self.prev)
         self.next_button.clicked.connect(self.next)
 
-
     def update_page(self, index: int):
         self.current_index = index
         self.current_page.setText(str(self.current_index+1))
@@ -341,16 +338,16 @@ class PTGraphicsView(QGraphicsView):
                 border-radius: 0px;
              }
 
-            QScrollBar::handle:vertical {	
+            QScrollBar::handle:vertical {
                 border: 2px solid #A40021;
                 background-color: #A40021;
                 min-height: 30px;
                 border-radius: 3px;
             }
-            QScrollBar::handle:vertical:hover{	
+            QScrollBar::handle:vertical:hover{
                 background-color: #C80021;
             }
-            QScrollBar::handle:vertical:pressed {	
+            QScrollBar::handle:vertical:pressed {
                 background-color: #C80021;
             }
 
@@ -460,6 +457,13 @@ class PTGraphicsView(QGraphicsView):
         self.resetTransform()
         self.current_zoom_step = self.default_zoom_step
 
+    def resizeEvent(self, event):
+        for item in self.scene.items():
+            if isinstance(item, ImagePreview):
+                b_rect = item.boundingRect()
+                self.fit_in_view(b_rect)
+        return super().resizeEvent(event)
+    
     def fit_in_view(self, brect: QRectF):
         if not self.default_zoom_step < self.current_zoom_step < self.default_zoom_step:
             _target_zoom_step = self.default_zoom_step - self.current_zoom_step
@@ -635,6 +639,13 @@ class Canvas(QFrame):
                     item.show_preview()
 
     def fit_in_view(self):
+        print("Canvas -> fit_in_view")
+        scene_rect = self.gr_scene.sceneRect()
+        print(f"Canvas -> SceneRect: {scene_rect}")
+        view_height = self.view.height()
+        view_width = self.view.width()
+        print(f"Canvas -> ViewSize: {view_width}, {view_height}")
+
         for item in self.gr_scene.items():
             if isinstance(item, ImagePreview):
                 b_rect = item.boundingRect()
@@ -669,9 +680,7 @@ class ImageList(QListWidget):
 
         self.v_scrollbar = QScrollBar(self)
         self.h_scrollbar = QScrollBar(self)
-        self.v_scrollbar.setStyleSheet(
-            """
-            
+        self.v_scrollbar.setStyleSheet("""
             QScrollBar:vertical {
                 border: none;
                 background: #2d2d46;
@@ -679,7 +688,7 @@ class ImageList(QListWidget):
                 margin: 10px 5px 15px 10px;
                 border-radius: 0px;
              }
-            
+
             QScrollBar::handle:vertical {	
                 border: 2px solid #A40021;
                 background-color: #A40021;
@@ -707,8 +716,7 @@ class ImageList(QListWidget):
             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 background: none;
             }
-            """
-        )
+            """)
 
         self.h_scrollbar.setStyleSheet(
             """
@@ -754,22 +762,16 @@ class ImageList(QListWidget):
         if isinstance(_list_item_widget, ImageListWidget):
             self.sign_on_selected_item.emit(_list_item_widget.guid)
 
-    def mouseMoveEvent(self, e):
-        item = self.itemAt(e.pos())
-        if item is not None:
-            _list_item_widget = self.itemWidget(item)
-
-
 
 class ImageThumb(QFrame):
-    def __init__(self, q_image: QImage, max_height: int = 140):
+    def __init__(self, q_image: QImage, width: int = 140, height: int = 80):
         super().__init__()
-        self.setFixedHeight(max_height)
-        self.setMinimumWidth(220)
+        self.target_width = width
+        self.target_height = height
         self.max_height = 140
-        self.current_width = 220
         self.round_rect_margin = 6
         self.round_rect_radius = 14
+        self.current_width = self.target_width - 2 * self.round_rect_margin
         self.qimage = q_image.scaledToHeight(self.max_height)
         self.pixmap = QPixmap(q_image)
         self.brush = QBrush(self.pixmap)
@@ -780,10 +782,10 @@ class ImageThumb(QFrame):
         self._pen_select = QPen(QColor("#ffad00"))
         self._pen_select.setWidth(6)
 
-        self.source_img = QImage(self.current_width, 140, QImage.Format.Format_ARGB32)
+        self.source_img = QImage(self.current_width, self.max_height, QImage.Format.Format_ARGB32)
         self.source_img.fill(Qt.GlobalColor.blue)
 
-        self.dest_img = QImage(self.current_width, 140, QImage.Format.Format_ARGB32)
+        self.dest_img = QImage(self.current_width, self.max_height, QImage.Format.Format_ARGB32)
         self.dest_img.fill(Qt.GlobalColor.transparent)
 
         self.clip_path = QPainterPath()
@@ -908,7 +910,7 @@ class ImageListWidget(QWidget):
         self.base_width = width
         self.base_height = height
 
-        self.thumb = ImageThumb(q_image)
+        self.thumb = ImageThumb(q_image, width=self.base_width)
         self.label = QLabel()
         self.label.setObjectName("DefaultLabel")
         self.label.setContentsMargins(0, 0, 0, 0)
@@ -988,10 +990,7 @@ class ImageGallery(QFrame):
         self.setContentsMargins(0, 0, 0, 0)
         self.setMinimumHeight(600)
         self.setMinimumWidth(180)
-        self.setMaximumWidth(480)
-        self.current_size = self.sizeHint()
-        self.current_width = self.current_size.width()
-        
+        self.setMaximumWidth(420)
         self.import_dialog = None
 
         # build layout
@@ -1005,7 +1004,7 @@ class ImageGallery(QFrame):
         self.image_label.setPixmap(self.image_pixmap)
 
         self.layout = QVBoxLayout()
-        self.spacer = QSpacerItem(self.current_width, 10)
+        self.spacer = QSpacerItem(180, 10)
         self.image_list = ImageList(self)
 
         self.layout.addWidget(self.image_label)
@@ -1020,18 +1019,24 @@ class ImageGallery(QFrame):
         self.view_model.dataAutoSelected.connect(self.focus_page)
         self.image_list.sign_on_selected_item.connect(self.handle_item_selection)
 
+        print(f"Final SizeHint: {self.sizeHint()}")
+        self.current_size = self.sizeHint()
+        self.current_width = self.current_size.width()
+        self.current_height = self.current_size.height()
+        self.image_list.resize(self.current_width, self.current_height)
+        
+
     def resizeEvent(self, event):
         if isinstance(event, QResizeEvent):
             _new_size = event.size()
             self.current_width = _new_size.width()
-            print(f"ImageGaller-> Updated Size: {self.current_width}")
             #self.image_list.resizeContents(self.current_width)
 
     def handle_item_selection(self, guid: UUID):
         for idx in range(self.image_list.count()):
                 item = self.image_list.item(idx)
-
                 item_widget = self.image_list.itemWidget(item)
+
                 if isinstance(item_widget, ImageListWidget):
                     if item_widget.guid == guid:
                         item_widget.select()
@@ -1091,6 +1096,7 @@ class ImageGallery(QFrame):
 
         size_hint = self.sizeHint()
         target_width = size_hint.width()-80
+        print(f"Adding image with target width: {target_width}")
 
         for _data in data:
             self.add_image_widget(_data, target_width)
@@ -1149,10 +1155,10 @@ class TextWidgetList(QListWidget):
                 min-height: 30px;
                 border-radius: 3px;
             }
-            QScrollBar::handle:vertical:hover{	
+            QScrollBar::handle:vertical:hover{
                 background-color: #C80021;
             }
-            QScrollBar::handle:vertical:pressed {	
+            QScrollBar::handle:vertical:pressed {
                 background-color: #C80021;
             }
 
@@ -1260,7 +1266,7 @@ class TextListWidget(QWidget):
 
     def edit_label(self):
         dialog = TextInputDialog("Editing Line", self.text, parent=self)
-        
+
         if dialog.exec():
             new_text = dialog.new_text
             self.text = new_text

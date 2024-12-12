@@ -984,6 +984,7 @@ def read_ocr_model_config(config_file: str):
 
     onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
     architecture = json_content["architecture"]
+    version = json_content["version"]
     input_width = json_content["input_width"]
     input_height = json_content["input_height"]
     input_layer = json_content["input_layer"]
@@ -1007,7 +1008,8 @@ def read_ocr_model_config(config_file: str):
         swap_hw,
         encoder=CHARSETENCODER[encoder],
         charset=characters,
-        add_blank=add_blank
+        add_blank=add_blank,
+        version=version
     )
 
     return config

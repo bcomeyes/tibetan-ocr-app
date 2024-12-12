@@ -8,16 +8,14 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter
 
 from Config import TMP_DIR
 from BDRC.Styles import DARK
-from BDRC.IO import TextExporter
 from BDRC.Inference import OCRPipeline
 from Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
 from BDRC.Utils import read_line_model_config, read_layout_model_config, build_ocr_data, get_filename
-from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, OCRDialog, ExportDialog, \
+from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, ExportDialog, \
     ImportImagesDialog, ImportPDFDialog, ImportFilesProgress
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
-
 
 
 class MainView(QWidget):
@@ -164,15 +162,6 @@ class AppView(QWidget):
             self.ocr_pipeline = OCRPipeline(self.platform, _ocr_model.config, self.layout_model_config)
         else:
             self.ocr_pipeline = None
-
-        self.setStyleSheet("""
-            QFrame::TextView {
-                color: #ffffff;
-                background-color: #100F0F;
-                border: 2px solid #100F0F;
-                border-radius: 8px;
-            }
-        """)
 
         self.show()
 
@@ -366,8 +355,6 @@ class AppView(QWidget):
         self._settingsview_model.update_ocr_models(ocr_models)
 
     def update_ocr_model(self, ocr_model: OCRModel):
-        print(f"Updating OCR Pipeline with OCR model: {ocr_model.name}")
-
         if self.ocr_pipeline is not None:
             self.ocr_pipeline.update_ocr_model(ocr_model.config)
         else:

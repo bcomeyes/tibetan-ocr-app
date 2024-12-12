@@ -25,17 +25,17 @@ DARK = """
     QFrame#ImageGallery {
         background-color: #1d1c1c;
     }
-    
+
     QListWidget#ImageGalleryList {
         background-color: #100f0f;
         border: 4px solid #100f0f;
-                    
+
         QListWidget {
             color: #ffffff;
             background-color: #100f0f;
             border: 4px solid #100f0f; 
         }
-        
+
         QListWidget::item:selected {
             background: #2d2d46;
         }
@@ -70,7 +70,7 @@ DARK = """
     QFrame#TextView {
         color: #ffffff;
         background-color: #100F0F;
-        border: 2px solid #100F0F; 
+        border: 2px solid #100F0F;
         border-radius: 4px;
     }
 
@@ -261,7 +261,7 @@ DARK = """
         padding-bottom: 4px;
         image: url(Assets/Textures/splitter_handle.png);
     }
-                                    
+
     QSplitter::handle:pressed {
         image: url(Assets/Textures/splitter_handle_press.png);
     }
