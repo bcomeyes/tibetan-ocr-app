@@ -36,9 +36,7 @@ if __name__ == "__main__":
     app_view = AppView(
         dataview_model,
         settingsview_model,
-        platform,
-        screen_data.max_width,
-        screen_data.max_height
+        platform
     )
 
     app_view.resize(screen_data.start_width, screen_data.start_height)

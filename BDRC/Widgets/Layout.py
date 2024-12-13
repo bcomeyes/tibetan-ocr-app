@@ -1095,7 +1095,8 @@ class ImageGallery(QFrame):
         self.clear_data()
 
         size_hint = self.sizeHint()
-        target_width = size_hint.width()-80
+        target_width = size_hint.width()-120
+        print(f"Original size hint: {size_hint}")
         print(f"Adding image with target width: {target_width}")
 
         for _data in data:

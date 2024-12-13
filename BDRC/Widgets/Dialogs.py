@@ -536,8 +536,9 @@ class SettingsDialog(QDialog):
 
         self.data_table = QTableWidget()
         self.data_table.setObjectName("ModelTable")
-        self.data_table.setColumnCount(5)        
+        self.data_table.setColumnCount(5)  
         self.data_tabel_header = ["Model", "Encoding", "Architecture", "Version", "Model file"]
+        self.data_table.setAutoScroll(True)
         
         self.ocr_label = QLabel("Available OCR Models")
         self.ocr_label.setObjectName("OptionsLabel")
@@ -588,9 +589,6 @@ class SettingsDialog(QDialog):
             merge_layout.addWidget(btn)
 
         # specific ocr parameters
-        spacer = QLabel()
-        spacer.setMinimumWidth(200)
-
         k_factor_layout = QHBoxLayout()
         k_factor_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         k_factor_label = QLabel("K-Factor")
@@ -604,7 +602,6 @@ class SettingsDialog(QDialog):
         self.k_factor_edit.editingFinished.connect(self.validate_kfactor_input)
         k_factor_layout.addWidget(k_factor_label)
         k_factor_layout.addWidget(self.k_factor_edit)
-        k_factor_layout.addWidget(spacer)
 
         bbox_tolerance_layout = QHBoxLayout()
         bbox_tolerance_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -618,17 +615,28 @@ class SettingsDialog(QDialog):
         self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
         bbox_tolerance_layout.addWidget(bbox_tolerance_label)
         bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
-        bbox_tolerance_layout.addWidget(spacer)
 
         encoding_label.setFixedWidth(160)
         dewarping_label.setFixedWidth(160)
         merge_label.setFixedWidth(160)
+
+        explanation = QLabel("""
+            The above settings give some control over the OCR process. The <b>k Factor</b> is a parameter to control the intensity of the
+            line extraction if adjustments are needed. If you get poor OCR results, try to increase or decrease the value.
+            Similarly, the <b>bbox tolerance</b> parameter is the amount of the 'initial line detection' (highlighted in orange after OCR)
+            is admissive in order to interpret the rest of the line such as descenders or vowels. A high value can cause problems on pages with a tight
+            layout.""")
+        explanation.setWordWrap(True)
+        explanation.setObjectName("OptionsExplanation")
 
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
         self.ocr_settings_layout.addLayout(merge_layout)
         self.ocr_settings_layout.addLayout(k_factor_layout)
         self.ocr_settings_layout.addLayout(bbox_tolerance_layout)
+        self.ocr_settings_layout.addWidget(explanation)
+
+
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
@@ -678,15 +686,24 @@ class SettingsDialog(QDialog):
             self.add_ocr_model(idx, model)
 
     def add_ocr_model(self, row_idx: int, ocr_model: OCRModel):
-
+        model_widget = QTableWidgetItem(str(ocr_model.name))
         encoder_widget = QTableWidgetItem(ocr_model.config.encoder.name)
-        encoder_widget.setBackground(QColor("#172832"))
+        architecture_widget = QTableWidgetItem(ocr_model.config.architecture.name)
+        version_widget = QTableWidgetItem(str(ocr_model.config.version))
+        path_widget = QTableWidgetItem(str(ocr_model.path))
 
-        self.data_table.setItem(row_idx, 0, QTableWidgetItem(str(ocr_model.name)))
+        if row_idx % 2 != 0:
+            model_widget.setBackground(QColor("#172832"))
+            encoder_widget.setBackground(QColor("#172832"))
+            architecture_widget.setBackground(QColor("#172832"))
+            version_widget.setBackground(QColor("#172832"))
+            path_widget.setBackground(QColor("#172832"))
+
+        self.data_table.setItem(row_idx, 0, model_widget)
         self.data_table.setItem(row_idx, 1, encoder_widget)
-        self.data_table.setItem(row_idx, 2, QTableWidgetItem(ocr_model.config.architecture.name))
-        self.data_table.setItem(row_idx, 3, QTableWidgetItem(str(ocr_model.config.version)))
-        self.data_table.setItem(row_idx, 4, QTableWidgetItem(str(ocr_model.path)))
+        self.data_table.setItem(row_idx, 2, architecture_widget)
+        self.data_table.setItem(row_idx, 3, version_widget)
+        self.data_table.setItem(row_idx, 4, path_widget)
         self.update()
 
     def validate_bbox_tolerance_input(self):

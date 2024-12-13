@@ -33,7 +33,7 @@ DARK = """
         QListWidget {
             color: #ffffff;
             background-color: #100f0f;
-            border: 4px solid #100f0f; 
+            border: 4px solid #100f0f;
         }
 
         QListWidget::item:selected {
@@ -111,42 +111,42 @@ DARK = """
         border: 2px solid #1d1d1d;
         border-radius: 4px;
     }
-    
+
     QPushButton#TextToolsButton:hover {
         color: #ffad00;
     }
-    
+
     QDialog#ExportDialog {
         color: #ffffff;
         background-color: #1d1c1c;
     }
-    
+
     QDialog#BatchOCRDialog {
         color: #ffffff;
         background-color: #172832;
     }
-    
+
     QDialog#SettingsDialog {
         background-color: #172832;
     }
-    
+
     QTabWidget::pane {
-        background-color: #242424;             
-        border-width: 0px;                 
-        border-radius: 6px;        
+        background-color: #242424;
+        border-width: 0px;         
+        border-radius: 6px;
     }
-    
-    QTabWidget::tab-bar {          
-        left: 5px;                 
-    } 
-            
+
+    QTabWidget::tab-bar {
+        left: 5px;
+    }
+
     QTabBar::tab {
         color: #ffffff;
         background: #A40021;
         padding: 4px;
     }
 
-    QTabWidget::tab-bar {        
+    QTabWidget::tab-bar {
         left: 5px;
     }
     
@@ -202,6 +202,13 @@ DARK = """
     QLabel#OptionsLabel {
         color: #ffffff;
         width: 100px;
+    }
+
+      QLabel#OptionsExplanation {
+        color: #CCCCCC;
+        font-size: 9px;
+        font-style: italic;
+        width: 100%;
     }
     
     QLabel#HeaderLabel {

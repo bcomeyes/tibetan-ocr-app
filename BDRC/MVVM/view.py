@@ -44,7 +44,7 @@ class MainView(QWidget):
 
         # build layout
         self.v_layout = QVBoxLayout()
-        self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        #self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.v_layout.addWidget(self.header_tools)
         self.v_layout.addWidget(self.v_splitter)
         self.setLayout(self.v_layout)
@@ -114,9 +114,7 @@ class AppView(QWidget):
     def __init__(self,
                  dataview_model: DataViewModel,
                  settingsview_model: SettingsViewModel,
-                 platform: Platform,
-                 max_width: int,
-                 max_height: int):
+                 platform: Platform):
         super().__init__()
         self.setObjectName("MainWindow")
         self.setWindowTitle("BDRC OCR [BETA] 0.1")
@@ -282,7 +280,6 @@ class AppView(QWidget):
         data = self._dataview_model.get_data_by_guid(guid)
 
         if os.path.isfile(data.image_path):
-
             img = cv2.imread(data.image_path)
             ocr_settings = self._settingsview_model.get_ocr_settings()
             status, result = self.ocr_pipeline.run_ocr(
