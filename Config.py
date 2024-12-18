@@ -9,6 +9,7 @@ from huggingface_hub import snapshot_download
 LINES_CONFIG = "Models/Lines/config.json"
 LAYOUT_CONFIG = "Models/Layout/config.json"
 TMP_DIR = "tmp"
+DEFAULT_FONT = "Assets/Fonts/TibMachUni-1.901b.ttf"
 
 """
 Mappings for each data type

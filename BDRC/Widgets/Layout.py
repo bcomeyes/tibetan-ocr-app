@@ -1,6 +1,7 @@
 import pyewts
 from uuid import UUID
 from typing import List
+from Config import DEFAULT_FONT
 from BDRC.Data import Encoding
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
@@ -13,13 +14,14 @@ from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, Q
 from PySide6.QtGui import (
     QBrush,
     QColor,
+    QFont,
     QPen,
-    QPixmap,
-    QResizeEvent,
-    QPainter,
     QImage,
+    QPixmap,
+    QPainter,
     QPainterPath,
-    QFont
+    QResizeEvent,
+    QFontDatabase
 )
 
 from PySide6.QtWidgets import (
@@ -595,6 +597,7 @@ class Canvas(QFrame):
         self.zoom_out_btn.clicked.connect(self.zoom_out)
 
         self.canvas_tools_layout = QHBoxLayout()
+        self.canvas_tools_layout.setContentsMargins(0, 0, 0, 6)
         self.canvas_tools_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.canvas_tools_layout.addWidget(self.toggle_prev_btn)
         self.canvas_tools_layout.addWidget(self.fit_in_btn)
@@ -1130,8 +1133,6 @@ class TextWidgetList(QListWidget):
         self.setObjectName("TextListWidget")
         self.setFlow(QListView.Flow.TopToBottom)
         self.setMouseTracking(True)
-        self.itemClicked.connect(self.on_item_clicked)
-
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
@@ -1213,17 +1214,6 @@ class TextWidgetList(QListWidget):
         """
         )
 
-    def on_item_clicked(self, item: QListWidgetItem):
-        _list_item_widget = self.itemWidget(item) # returns an instance of CanvasHierarchyEntry
-
-        if isinstance(_list_item_widget, TextListWidget):
-            """
-            TODO: enable highlighting of the selected text line in the canvas preview
-            """
-            pass
-            #print("TextWidgetList -> selected Text Widget")
-            # self.sign_on_selected_item.emit(_list_item_widget.guid)
-
 
 class TextListWidget(QWidget):
     s_update_label = Signal(str)
@@ -1231,16 +1221,14 @@ class TextListWidget(QWidget):
     Custom widget holding the actual text data
     """
 
-    def __init__(self, text: str, font: str, font_size: int = 24):
+    def __init__(self, text: str, qfont: QFont):
         super().__init__()
         self.text = text
-        self.font = font
-        self.font_size = font_size
+        self.qfont = qfont
         self.label = QLabel()
         self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.label.setFont(QFont(self.font, font_size))
+        self.label.setFont(qfont)
         self.label.setText(self.text)
-        self.is_hovered = False
 
         self.btn_edit_icon = "Assets/Textures/edit_icon.png"
         self.btn_edit = MenuButton("Edit Line", self.btn_edit_icon, 14, 14)
@@ -1256,14 +1244,9 @@ class TextListWidget(QWidget):
         #label_size = self.label.sizeHint()
         #self.setFixedHeight(label_size.height() + 24) # that is a bit hacky, is it possible to inferr the size of the label based on the rendered text..?
 
-    def event(self, event):
-        if event.type() == QEvent.Type.Enter:
-            self.is_hovered = True
-
-        elif event.type() == QEvent.Type.Leave:
-            self.is_hovered = False
-
-        return super().event(event)
+        self.label.setStyleSheet("""
+            color: #ffffff;
+        """)
 
     def edit_label(self):
         dialog = TextInputDialog("Editing Line", self.text, parent=self)
@@ -1281,8 +1264,22 @@ class TextView(QFrame):
         self.setObjectName("TextView")
         self.font_size = font_size
         self.encoding = encoding
-        self.default_font = "Assets/Fonts/Monlam/Monlam-bodyig Regular.ttf"
-        self.current_font = self.default_font
+        self.default_font_path = DEFAULT_FONT
+        
+        font_id = QFontDatabase.addApplicationFont(self.default_font_path)
+        
+        if font_id == -1:
+            print("Failed to load font")
+        else:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                tibetan_font_family = font_families[0]
+            else:
+                tibetan_font_family = "Sans"  # Fallback font
+
+        self.qfont = QFont(tibetan_font_family, self.font_size)
+
+
         self.converter = pyewts.pyewts()
         self.setContentsMargins(10, 0, 10, 0)
         self.text_lines = []
@@ -1312,13 +1309,13 @@ class TextView(QFrame):
             return
 
         self.text_widget_list.clear()
+        self.qfont.setPointSize(self.qfont.pointSize()+1)
 
         for text_line in self.text_lines:
             text_line = self.converter.toUnicode(text_line)
             list_item = QListWidgetItem()
 
-            self.font_size = self.font_size+1
-            text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+            text_widget = TextListWidget(text_line, self.qfont)
             text_size = text_widget.sizeHint()
 
             if text_size.width() < 800:
@@ -1341,13 +1338,13 @@ class TextView(QFrame):
             return
 
         self.text_widget_list.clear()
+        self.qfont.setPointSize(self.qfont.pointSize()-1)
 
         for text_line in self.text_lines:
             text_line = self.converter.toUnicode(text_line)
             list_item = QListWidgetItem()
-            self.font_size = self.font_size - 1
-
-            text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+            
+            text_widget = TextListWidget(text_line, self.qfont)
             text_size = text_widget.sizeHint()
 
             if text_size.width() < 800:
@@ -1372,7 +1369,7 @@ class TextView(QFrame):
         for text_line in text_lines:
             text_line = self.converter.toUnicode(text_line)
             list_item = QListWidgetItem()
-            text_widget = TextListWidget(text_line, self.current_font, self.font_size)
+            text_widget = TextListWidget(text_line, self.qfont)
 
             text_size = text_widget.sizeHint()
 

@@ -88,7 +88,7 @@ DARK = """
         border-radius: 4px;
         padding: 4px 4px 4px 4px;
     }
-    
+
     QPushButton#MenuButton {
         background-color: #172832;
         border: 1px solid #1d1d1d;
@@ -105,8 +105,9 @@ DARK = """
     QPushButton#MenuButton::QIcon {
         color: #d73449;
     }
-    
+  
     QPushButton#TextToolsButton {
+        color: #ffffff;
         background-color: #3f3f3f;
         border: 2px solid #1d1d1d;
         border-radius: 4px;
@@ -149,12 +150,12 @@ DARK = """
     QTabWidget::tab-bar {
         left: 5px;
     }
-    
-    QTabBar::tab:selected { 
-        background: #730017; 
+
+    QTabBar::tab:selected {
+        background: #730017;
         margin-bottom: -1px;
-    }    
-    
+    }  
+
     QPushButton#DialogButton {
         color: #ffffff;
         background-color: #A40021;
@@ -165,7 +166,7 @@ DARK = """
     QPushButton#DialogButton:hover {
         color: #ffad00;
     }
-    
+
     QPushButton#SmallDialogButton {
         color: #ffffff;
         background-color: #A40021;
@@ -173,22 +174,22 @@ DARK = """
         height: 20;
         width: 80px;
     }
-    
+
     QPushButton#SmallDialogButton:hover {
         color: #ffad00;
     }
-    
+
     QRadioButton#OptionsRadio {
         color: #ffffff;
         border: none;
     }
-    
+
     QRadioButton#OptionsRadio:indicator:checked {
         image:url(Assets/Textures/qradio_indicator_checked.png);
         width: 12px;
         height: 12px;
     }
-    
+
     QRadioButton#OptionsRadio:indicator:unchecked {
         image:url(Assets/Textures/qradio_indicator.png);
         width: 12px;
@@ -198,7 +199,7 @@ DARK = """
     QLabel#DefaultLabel {
         color: #ffffff;
     }
-    
+
     QLabel#OptionsLabel {
         color: #ffffff;
         width: 100px;
@@ -210,7 +211,7 @@ DARK = """
         font-style: italic;
         width: 100%;
     }
-    
+
     QLabel#HeaderLabel {
         color: #ffffff;
         background-color: #172832;
@@ -226,7 +227,7 @@ DARK = """
         border: 1px solid white;
         border-radius: 4px;
     }
-           
+       
     QLineEdit#DialogLineEdit {
         color: #ffffff;
         background-color: #474747;
@@ -234,7 +235,7 @@ DARK = """
         border-radius: 2px;
         text-align: left;
     }
-    
+
     QProgressBar#DialogProgressBar {
         background-color: #474747;
         color: #A40021;
@@ -242,7 +243,7 @@ DARK = """
         border-radius: 8px;
         padding: 4px 4px 4px 4px;
     }
-    
+
     QProgressBar#DialogProgressBar::chunk {
         background-color: #fcc104;
         border-radius: 5px;
@@ -254,6 +255,10 @@ DARK = """
         border-radius: 4px;
     }
 
+    QListWidget#TextListWidget {
+        background-color: #172832;
+    }
+
 
     QScrollBar:vertical {
         border: none;
@@ -261,6 +266,10 @@ DARK = """
         width: 25px;
         margin: 10px 5px 15px 10px;
         border-radius: 0px;
+    }
+
+    QSplitter {
+        background-color: #100F0F;
     }
 
     QSplitter::handle {
