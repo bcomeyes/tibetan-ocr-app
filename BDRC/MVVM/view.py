@@ -27,16 +27,17 @@ class MainView(QWidget):
     s_run_batch_ocr = Signal()
     s_handle_settings = Signal()
 
-    def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel):
+    def __init__(self, data_view: DataViewModel, settings_view: SettingsViewModel, platform: Platform):
         super().__init__()
         self.setObjectName("MainView")
         self.setContentsMargins(0, 0, 0, 0)
         self._data_view = data_view
         self._settings_view = settings_view
+        self.platform = platform
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
         self.canvas = Canvas()
-        self.text_view = TextView()
+        self.text_view = TextView(platform=self.platform)
         self.v_splitter = QSplitter(Qt.Orientation.Vertical)
         self.v_splitter.setHandleWidth(10)
         self.v_splitter.addWidget(self.canvas)
@@ -125,7 +126,7 @@ class AppView(QWidget):
         self._settingsview_model = settingsview_model
 
         self.image_gallery = ImageGallery(self._dataview_model, self.threadpool)
-        self.main_container = MainView(self._dataview_model, self._settingsview_model)
+        self.main_container = MainView(self._dataview_model, self._settingsview_model, self.platform)
         self.h_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.h_splitter.setHandleWidth(10)
         self.h_splitter.setContentsMargins(0, 0, 0, 0)

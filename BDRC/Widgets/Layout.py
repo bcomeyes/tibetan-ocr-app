@@ -2,7 +2,7 @@ import pyewts
 from uuid import UUID
 from typing import List
 from Config import DEFAULT_FONT
-from BDRC.Data import Encoding
+from BDRC.Data import Encoding, Platform
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
 from BDRC.Widgets.GraphicItems import ImagePreview
@@ -1255,26 +1255,33 @@ class TextListWidget(QWidget):
 
 
 class TextView(QFrame):
-    def __init__(self, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
+    def __init__(self, platform: Platform, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
         super().__init__()
         self.setObjectName("TextView")
+        self.platform = platform
         self.font_size = font_size
         self.encoding = encoding
         self.default_font_path = DEFAULT_FONT
-        
-        font_id = QFontDatabase.addApplicationFont(self.default_font_path)
-        
-        if font_id == -1:
-            print("Failed to load font")
-        else:
-            font_families = QFontDatabase.applicationFontFamilies(font_id)
-            if font_families:
-                tibetan_font_family = font_families[0]
+
+        print(f"Try loading font from path: {self.default_font_path}")
+
+        if self.platform == 0: 
+            font_id = QFontDatabase.addApplicationFont(self.default_font_path)
+
+            print(f"FontID: {font_id}")
+            
+            if font_id == -1:
+                print("Failed to load font")
             else:
-                tibetan_font_family = "Sans"  # Fallback font
+                font_families = QFontDatabase.applicationFontFamilies(font_id)
+                if font_families:
+                    tibetan_font_family = font_families[0]
+                else:
+                    tibetan_font_family = "Sans"  # Fallback font
 
-        self.qfont = QFont(tibetan_font_family, self.font_size)
-
+            self.qfont = QFont(tibetan_font_family, self.font_size)
+        else:
+            self.qfont = QFont(self.default_font_path, self.font_size)
 
         self.converter = pyewts.pyewts()
         self.setContentsMargins(10, 0, 10, 0)

@@ -635,8 +635,6 @@ class SettingsDialog(QDialog):
         self.ocr_settings_layout.addLayout(k_factor_layout)
         self.ocr_settings_layout.addLayout(bbox_tolerance_layout)
         self.ocr_settings_layout.addWidget(explanation)
-
-
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
