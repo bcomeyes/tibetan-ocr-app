@@ -71,5 +71,5 @@ class ModelEntryWidget(QWidget):
     def set_light_background(self):
         self.setStyleSheet("""
             color: #ffffff;
-            background-color: #3a3a3a;         
+            background-color: #3a3a3a;    
         """)

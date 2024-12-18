@@ -2,7 +2,7 @@ import os
 from uuid import UUID
 import numpy.typing as npt
 from typing import List, Dict
-from BDRC.Data import OCRData, Line, AppSettings, OCRSettings, OCRModel
+from BDRC.Data import OCRData, Line, AppSettings, OCRLine, OCRLineUpdate, OCRSettings, OCRModel
 from BDRC.Utils import import_local_models
 
 
@@ -58,17 +58,13 @@ class OCRDataModel:
         self.data[guid].preview = preview_image
         self.data[guid].angle = angle
 
-    def add_ocr_text(self, guid: UUID, text: List[str]):
-        self.data[guid].ocr_text = text
+    def add_ocr_text(self, guid: UUID, ocr_lines: List[OCRLine]):
+        self.data[guid].ocr_lines = ocr_lines
 
     def delete_image(self, guid: UUID):
-        """del_k = None
-        for k, data in self.data.items():
-            if data.guid == guid:
-                del_k = k
-                break
-
-        if del_k is not None:
-            del self.data[del_k]
-        """
         del self.data[guid]
+
+    def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
+        for ocr_line in self.data[ocr_line_update.page_guid].lines:
+            if ocr_line.guid == ocr_line_update.ocr_line.guid:
+                ocr_line.text = ocr_line_update.ocr_line.text

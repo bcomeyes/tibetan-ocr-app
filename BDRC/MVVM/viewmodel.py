@@ -3,7 +3,7 @@ import numpy.typing as npt
 from typing import List, Dict
 from PySide6.QtCore import QObject, Signal
 from BDRC.MVVM.model import OCRDataModel, SettingsModel
-from BDRC.Data import OCRData, Line, OCRModel, AppSettings, OCRSettings
+from BDRC.Data import OCRData, Line, OCRLine, OCRLineUpdate, OCRModel, AppSettings, OCRSettings
 
 
 class SettingsViewModel(QObject):
@@ -51,9 +51,10 @@ class SettingsViewModel(QObject):
 
 class DataViewModel(QObject):
     recordChanged = Signal(OCRData)
+    dataSelected = Signal(OCRData)
     dataChanged = Signal(list)
     dataSizeChanged = Signal(list)
-    dataSelected = Signal(OCRData)
+    s_ocrLineUpdate = Signal(OCRData) # for TextView
     """
     Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
     via the page switcher in the header, which focuses and scrolls to the respective image in the ImageGallery. 
@@ -96,8 +97,10 @@ class DataViewModel(QObject):
         current_data = list(self._model.data.values())
         self.dataAutoSelected.emit(current_data[index])
 
-    def update_ocr_data(self, uuid: UUID, text: List[str], silent: bool = False):
-        self._model.add_ocr_text(uuid, text)
+    def update_ocr_data(self, uuid: UUID, ocr_lines: List[OCRLine], silent: bool = False):
+        print(f"DataViewModel -> updating OCR Results: {ocr_lines}")
+
+        self._model.add_ocr_text(uuid, ocr_lines)
 
         if not silent:
             data = self.get_data_by_guid(uuid)
@@ -106,6 +109,8 @@ class DataViewModel(QObject):
     def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float, silent: bool = False):
         """
         The silent flag is set to True when running OCR in batch mode to avoid triggering the recordChanged event for every image
+        TODO: THis function invkokes also self.recordChanged which causes a refresh of the text lines widget, so this function is called twice
+        TODO: This should be redesigned...
         """
 
         self._model.add_page_data(uuid, lines, preview_image, angle)
@@ -113,6 +118,10 @@ class DataViewModel(QObject):
         if not silent:
             data = self.get_data_by_guid(uuid)
             self.recordChanged.emit(data)
+
+    def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
+        print(f"ViewModel -> update_ocr_line: {ocr_line_update}")
+        self.s_ocrLineUpdate.emit(self._model.data[ocr_line_update.page_guid])
 
     def clear_data(self):
         self._model.clear_data()

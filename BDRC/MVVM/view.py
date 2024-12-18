@@ -37,7 +37,7 @@ class MainView(QWidget):
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
         self.canvas = Canvas()
-        self.text_view = TextView(platform=self.platform)
+        self.text_view = TextView(platform=self.platform, dataview=self._data_view)
         self.v_splitter = QSplitter(Qt.Orientation.Vertical)
         self.v_splitter.setHandleWidth(10)
         self.v_splitter.addWidget(self.canvas)
@@ -45,16 +45,16 @@ class MainView(QWidget):
 
         # build layout
         self.v_layout = QVBoxLayout()
-        #self.v_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.v_layout.addWidget(self.header_tools)
         self.v_layout.addWidget(self.v_splitter)
         self.setLayout(self.v_layout)
 
         # connect to view model signals
         self._data_view.dataSelected.connect(self.set_data)
+        self._data_view.recordChanged.connect(self.set_data)
         self._data_view.dataChanged.connect(self.update_data)
         self._data_view.dataCleared.connect(self.clear_data)
-        self._data_view.recordChanged.connect(self.set_data)
+
 
         # connect to tool signals
         self.header_tools.toolbox.s_new.connect(self.handle_new)
@@ -66,6 +66,7 @@ class MainView(QWidget):
         self.header_tools.toolbox.s_run_all.connect(self.handle_batch_run)
         self.header_tools.toolbox.s_settings.connect(self.handle_settings)
         self.header_tools.page_switcher.sign_on_page_changed.connect(self.handle_update_page)
+
         self.current_guid = None
 
     def handle_new(self):
@@ -104,7 +105,6 @@ class MainView(QWidget):
 
     def set_data(self, data: OCRData):
         self.canvas.set_preview(data)
-        self.text_view.update_text(data.ocr_text)
         self.current_guid = data.guid
 
     def clear_data(self):
@@ -117,6 +117,7 @@ class AppView(QWidget):
                  settingsview_model: SettingsViewModel,
                  platform: Platform):
         super().__init__()
+
         self.setObjectName("MainWindow")
         self.setWindowTitle("BDRC OCR [BETA] 0.1")
         self.setContentsMargins(0, 0, 0, 0)
@@ -158,7 +159,10 @@ class AppView(QWidget):
         _ocr_model = self._settingsview_model.get_current_ocr_model()
 
         if _ocr_model is not None:
-            self.ocr_pipeline = OCRPipeline(self.platform, _ocr_model.config, self.layout_model_config)
+            self.ocr_pipeline = OCRPipeline(
+                self.platform,
+                _ocr_model.config,
+                self.layout_model_config)
         else:
             self.ocr_pipeline = None
 
@@ -251,7 +255,7 @@ class AppView(QWidget):
         ocred_lines = 0
 
         for k, data in _ocr_data.items():
-            if data.ocr_text is not None and len(data.ocr_text) > 0:
+            if data.ocr_lines is not None and len(data.ocr_lines) > 0:
                 ocred_lines += 1
 
         if not len(_ocr_data) > 0:
@@ -270,7 +274,7 @@ class AppView(QWidget):
 
         else:
             _ocr_settings = self._settingsview_model.get_ocr_settings()
-            dialog = ExportDialog(list(_ocr_data.values()), _ocr_settings.exporter, _ocr_settings.output_encoding)
+            dialog = ExportDialog(list(_ocr_data.values()), _ocr_settings.output_encoding)
             dialog.setStyleSheet(DARK)
             dialog.exec()
 
@@ -322,6 +326,8 @@ class AppView(QWidget):
             dialog.exec()
 
     def update_ocr_result(self, result: OCResult, silent: bool = False):
+        print(f"Got BAtch OCR Result: {result}")
+
         if result is not None:
             self._dataview_model.update_ocr_data(result.guid, result.text, silent)
             self._dataview_model.update_page_data(result.guid, result.lines, result.mask, result.angle, silent)

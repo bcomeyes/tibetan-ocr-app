@@ -2,7 +2,7 @@ import pyewts
 from uuid import UUID
 from typing import List
 from Config import DEFAULT_FONT
-from BDRC.Data import Encoding, Platform
+from BDRC.Data import Encoding, OCRLine, OCRLineUpdate, Platform
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
 from BDRC.Widgets.GraphicItems import ImagePreview
@@ -1024,7 +1024,6 @@ class ImageGallery(QFrame):
         self.view_model.dataAutoSelected.connect(self.focus_page)
         self.image_list.sign_on_selected_item.connect(self.handle_item_selection)
 
-        print(f"Final SizeHint: {self.sizeHint()}")
         self.current_size = self.sizeHint()
         self.current_width = self.current_size.width()
         self.current_height = self.current_size.height()
@@ -1101,8 +1100,6 @@ class ImageGallery(QFrame):
 
         size_hint = self.sizeHint()
         target_width = size_hint.width()-120
-        print(f"Original size hint: {size_hint}")
-        print(f"Adding image with target width: {target_width}")
 
         for _data in data:
             self.add_image_widget(_data, target_width)
@@ -1217,21 +1214,23 @@ class TextWidgetList(QListWidget):
         )
 
 
-class TextListWidget(QWidget):
-    s_update_label = Signal(str)
+class TextWidget(QWidget):
+    s_update_label = Signal(OCRLine)
     """
     Custom widget holding the actual text data
     """
 
-    def __init__(self, text: str, qfont: QFont):
+    def __init__(self, ocr_line: OCRLine, qfont: QFont, converter: pyewts.pyewts):
         super().__init__()
-        self.setObjectName("TextListWidget")
-        self.text = text
+        self.setObjectName("TextWidget")
+        self.ocr_line = ocr_line
         self.qfont = qfont
+        self.converter = converter
         self.label = QLabel()
+        self.label.setObjectName("TextLine")
         self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.label.setFont(qfont)
-        self.label.setText(self.text)
+        self.label.setText(self.ocr_line.text)
 
         self.btn_edit_icon = "Assets/Textures/edit_icon.png"
         self.btn_edit = MenuButton("Edit Line", self.btn_edit_icon, 14, 14)
@@ -1244,31 +1243,31 @@ class TextListWidget(QWidget):
         # bind edit signal
         self.btn_edit.clicked.connect(self.edit_label)
 
+
     def edit_label(self):
-        dialog = TextInputDialog("Editing Line", self.text, parent=self)
+        dialog = TextInputDialog("Editing Line", self.ocr_line.text, self.qfont, parent=self)
 
         if dialog.exec():
             new_text = dialog.new_text
-            self.text = new_text
+            self.ocr_line.text = new_text
             self.label.setText(new_text)
-            self.s_update_label.emit(new_text)
+            self.s_update_label.emit(self.ocr_line)
 
 
 class TextView(QFrame):
-    def __init__(self, platform: Platform, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
+    def __init__(self, platform: Platform, dataview: DataViewModel, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
         super().__init__()
         self.setObjectName("TextView")
+        self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
+        self._dataview = dataview
         self.font_size = font_size
         self.encoding = encoding
         self.default_font_path = DEFAULT_FONT
 
-        print(f"Try loading font from path: {self.default_font_path}")
-
-        if self.platform == 0: 
+        if self.platform == Platform.Windows:
+            
             font_id = QFontDatabase.addApplicationFont(self.default_font_path)
-
-            print(f"FontID: {font_id}")
             
             if font_id == -1:
                 print("Failed to load font")
@@ -1279,13 +1278,13 @@ class TextView(QFrame):
                 else:
                     tibetan_font_family = "Sans"  # Fallback font
 
-            self.qfont = QFont(tibetan_font_family, self.font_size)
+                self.qfont = QFont(tibetan_font_family, self.font_size)
         else:
             self.qfont = QFont(self.default_font_path, self.font_size)
 
         self.converter = pyewts.pyewts()
-        self.setContentsMargins(10, 0, 10, 0)
-        self.text_lines = []
+        self.page_guid = None
+        self.ocr_lines = []
         self.text_widget_list = TextWidgetList()
 
         self.zoom_in_btn = TextToolsButton("+")
@@ -1293,6 +1292,9 @@ class TextView(QFrame):
         self.spacer = QLabel()
 
         # bind signals
+        self._dataview.dataSelected.connect(self.handle_text_update)
+        self._dataview.recordChanged.connect(self.handle_text_update)
+        self._dataview.s_ocrLineUpdate.connect(self.handle_line_update)
         self.zoom_in_btn.clicked.connect(self.zoom_in)
         self.zoom_out_btn.clicked.connect(self.zoom_out)
 
@@ -1308,91 +1310,107 @@ class TextView(QFrame):
         self.setLayout(self.layout)
 
     def zoom_in(self):
-        if len(self.text_lines) == 0:
+        if len(self.ocr_lines) == 0:
             return
 
         self.text_widget_list.clear()
         self.qfont.setPointSize(self.qfont.pointSize()+1)
 
-        for text_line in self.text_lines:
-            text_line = self.converter.toUnicode(text_line)
-            list_item = QListWidgetItem()
+        if self.ocr_lines is not None:
+            for ocr_line in self.ocr_lines:
+                list_item = QListWidgetItem()
 
-            text_widget = TextListWidget(text_line, self.qfont)
-            text_size = text_widget.sizeHint()
+                text_widget = TextWidget(ocr_line, self.qfont, self.converter)
+                text_size = text_widget.sizeHint()
+                text_widget.s_update_label.connect(self.handle_line_edit)
 
-            if text_size.width() < 800:
-                list_item.setSizeHint(QSize(800, text_size.height()))
-            else:
-                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
+                if text_size.width() < 800:
+                    list_item.setSizeHint(QSize(800, text_size.height()))
+                else:
+                    list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
 
-            self.text_widget_list.addItem(list_item)
-            self.text_widget_list.setItemWidget(list_item, text_widget)
+                self.text_widget_list.addItem(list_item)
+                self.text_widget_list.setItemWidget(list_item, text_widget)
 
-        for idx in range(self.text_widget_list.count()):
-            if idx % 2 == 0:
-                _qBrush = QBrush(QColor("#172832"))
-            else:
-                _qBrush = QBrush(QColor("#1d1c1c"))
-            self.text_widget_list.item(idx).setBackground(_qBrush)
+            for idx in range(self.text_widget_list.count()):
+                if idx % 2 == 0:
+                    _qBrush = QBrush(QColor("#172832"))
+                else:
+                    _qBrush = QBrush(QColor("#1d1c1c"))
+                self.text_widget_list.item(idx).setBackground(_qBrush)
 
     def zoom_out(self):
-        if len(self.text_lines) == 0:
+        if len(self.ocr_lines) == 0:
             return
 
         self.text_widget_list.clear()
         self.qfont.setPointSize(self.qfont.pointSize()-1)
 
-        for text_line in self.text_lines:
-            text_line = self.converter.toUnicode(text_line)
-            list_item = QListWidgetItem()
-            
-            text_widget = TextListWidget(text_line, self.qfont)
-            text_size = text_widget.sizeHint()
+        if self.ocr_lines is not None:
+            for text_line in self.ocr_lines:
+                text_line = self.converter.toUnicode(text_line)
+                list_item = QListWidgetItem()
 
-            if text_size.width() < 800:
-                list_item.setSizeHint(QSize(800, text_size.height()))
-            else:
-                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
+                text_widget = TextWidget(text_line, self.qfont, self.converter)
+                text_size = text_widget.sizeHint()
 
-            self.text_widget_list.addItem(list_item)
-            self.text_widget_list.setItemWidget(list_item, text_widget)
+                if text_size.width() < 800:
+                    list_item.setSizeHint(QSize(800, text_size.height()))
+                else:
+                    list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
 
-        for idx in range(self.text_widget_list.count()):
-            if idx % 2 == 0:
-                _qBrush = QBrush(QColor("#172832"))
-            else:
-                _qBrush = QBrush(QColor("#1d1c1c"))
-            self.text_widget_list.item(idx).setBackground(_qBrush)
+                self.text_widget_list.addItem(list_item)
+                self.text_widget_list.setItemWidget(list_item, text_widget)
 
-    def update_text(self, text_lines: List[str]):
-        self.text_lines = text_lines
+            for idx in range(self.text_widget_list.count()):
+                if idx % 2 == 0:
+                    _qBrush = QBrush(QColor("#172832"))
+                else:
+                    _qBrush = QBrush(QColor("#1d1c1c"))
+                self.text_widget_list.item(idx).setBackground(_qBrush)
+
+    def handle_text_update(self, ocr_data: OCRData):
+        self.update_text(ocr_data.guid, ocr_data.ocr_lines)
+
+    def update_text(self, page_guid: UUID, ocr_lines: List[OCRLine]):
+        self.page_guid = page_guid
+        self.ocr_lines = ocr_lines
         self.text_widget_list.clear()
 
-        for text_line in text_lines:
-            text_line = self.converter.toUnicode(text_line)
-            list_item = QListWidgetItem()
-            text_widget = TextListWidget(text_line, self.qfont)
+        if ocr_lines is not None:
+            for ocr_line in ocr_lines:
+                list_item = QListWidgetItem()
+                text_widget = TextWidget(ocr_line, self.qfont, self.converter)
 
-            text_size = text_widget.sizeHint()
+                text_size = text_widget.sizeHint()
 
-            if text_size.width() < 800:
-                list_item.setSizeHint(QSize(800, text_size.height()))
-            else:
-                list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
+                if text_size.width() < 800:
+                    list_item.setSizeHint(QSize(800, text_size.height()))
+                else:
+                    list_item.setSizeHint(QSize(text_size.width(), text_size.height()))
 
-            self.text_widget_list.addItem(list_item)
-            self.text_widget_list.setItemWidget(list_item, text_widget)
+                self.text_widget_list.addItem(list_item)
+                self.text_widget_list.setItemWidget(list_item, text_widget)
 
-        for idx in range(self.text_widget_list.count()):
-            if idx % 2 == 0:
-                _qBrush = QBrush(QColor("#172832"))
-            else:
-                _qBrush = QBrush(QColor("#1d1c1c"))
-            self.text_widget_list.item(idx).setBackground(_qBrush)
+            for idx in range(self.text_widget_list.count()):
+                if idx % 2 == 0:
+                    _qBrush = QBrush(QColor("#172832"))
+                else:
+                    _qBrush = QBrush(QColor("#1d1c1c"))
+                self.text_widget_list.item(idx).setBackground(_qBrush)
 
     def update_font(self, font_path: str):
         self.current_font = font_path
 
     def update_font_size(self, font_size: int):
         self.font_size = font_size
+
+    def handle_line_edit(self, ocr_line: OCRLine):
+        ocr_line_uppdate = OCRLineUpdate(
+            self.page_guid,
+            ocr_line
+        )
+        self._dataview.update_ocr_line(ocr_line_uppdate)
+
+    def handle_line_update(self, ocr_data: OCRData):
+        self.update_text(ocr_data.guid, ocr_data.ocr_lines)

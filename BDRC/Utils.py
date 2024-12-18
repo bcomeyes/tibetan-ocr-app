@@ -24,7 +24,7 @@ from PySide6.QtGui import QImage
 
 # TODO: read this from the global Config
 page_classes = {
-                "background" : "0, 0, 0",
+                "background": "0, 0, 0",
                 "image": "45, 255, 0",
                 "line": "255, 100, 0",
                 "margin": "255, 0, 0",
@@ -108,7 +108,7 @@ def build_ocr_data(tick: int, file_path: str, target_height: int):
         image_path=file_path,
         image_name=file_name,
         qimage=q_image,
-        ocr_text=[],
+        ocr_lines=None,
         lines=None,
         preview=None,
         angle=0.0
@@ -325,7 +325,6 @@ def get_text_area(
     else:
         return None, None, None
 
-
 def get_text_bbox(lines: List[Line]):
     all_bboxes = [x.bbox for x in lines]
     min_x = min(a.x for a in all_bboxes)
@@ -337,8 +336,6 @@ def get_text_bbox(lines: List[Line]):
     bbox = BBox(min_x, min_y, max_w, max_h)
 
     return bbox
-
-
 
 def mask_n_crop(image: np.array, mask: np.array) -> np.array:
     image = image.astype(np.uint8)
@@ -527,7 +524,8 @@ def build_line_data(contour: np.array, optimize: bool = True) -> Line:
     y_center = y + (h // 2)
 
     bbox = BBox(x, y, w, h)
-    return Line(contour, bbox, (x_center, y_center))
+    guid = generate_guid(clock_seq=23)
+    return Line(guid, contour, bbox, (x_center, y_center))
 
 
 def get_line_threshold(line_prediction: npt.NDArray, slice_width: int = 20):
@@ -656,7 +654,10 @@ def group_line_chunks(sorted_bbox_centers, lines: List[Line], adaptive_grouping:
             y_center = _bbox.y + (_bbox.h // 2)
 
             new_line = Line(
-                contour=stacked_contour, bbox=_bbox, center=(x_center, y_center)
+                guid=generate_guid(clock_seq=23),
+                contour=stacked_contour,
+                bbox=_bbox,
+                center=(x_center, y_center)
             )
 
             new_line_data.append(new_line)
@@ -814,7 +815,6 @@ def filter_line_contours(image: npt.NDArray, line_contours, threshold: float = 0
 
 
 def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: float = 1.2) -> npt.NDArray:
-    iterations = 2
     k_size = int(bbox_h * k_factor)
     morph_multiplier = k_factor
 

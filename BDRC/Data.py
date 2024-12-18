@@ -81,12 +81,18 @@ class BBox:
     w: int
     h: int
 
-
 @dataclass
 class Line:
+    guid: UUID
     contour: npt.NDArray
     bbox: BBox
     center: Tuple[int, int]
+
+
+@dataclass
+class OCRLine:
+    guid: UUID
+    text: str
 
 @dataclass
 class LayoutData:
@@ -99,7 +105,7 @@ class LayoutData:
     margins: List[BBox]
     predictions: Dict[str, npt.NDArray]
 
-
+# NOT IMPLEMENTED
 @dataclass
 class ThemeData:
     name: str
@@ -115,7 +121,7 @@ class OCRData:
     image_path: str
     image_name: str
     qimage: QImage
-    ocr_text: List[str]
+    ocr_lines: List[OCRLine] | None
     lines: List[Line] | None
     preview: npt.NDArray | None
     angle: float
@@ -157,11 +163,16 @@ class LineDataResult:
 
 
 @dataclass
+class OCRLineUpdate:
+    page_guid: UUID
+    ocr_line: OCRLine
+
+@dataclass
 class OCResult:
     guid: UUID
     mask: npt.NDArray
     lines: List[Line]
-    text: List[str]
+    text: List[OCRLine]
     angle: float
 
 @dataclass

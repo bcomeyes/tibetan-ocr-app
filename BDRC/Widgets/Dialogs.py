@@ -3,7 +3,7 @@ import cv2
 from uuid import UUID
 from typing import List, Tuple
 from PySide6.QtCore import Qt, QThreadPool, Signal
-from PySide6.QtGui import QBrush, QColor
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
@@ -24,16 +24,25 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QButtonGroup,
     QLineEdit,
-    QComboBox
-    )
+    QComboBox,
+)
 
-from BDRC.Data import OCRData, OCResult, OCRModel, Theme, AppSettings, OCRSettings, \
-    ExportFormat, Language, Encoding, OCRSample
+from BDRC.Data import (
+    OCRData,
+    OCResult,
+    OCRModel,
+    Theme,
+    AppSettings,
+    OCRSettings,
+    ExportFormat,
+    Language,
+    Encoding,
+    OCRSample,
+)
 from BDRC.Exporter import PageXMLExporter, JsonExporter, TextExporter
 from BDRC.Inference import OCRPipeline
 from BDRC.Runner import OCRBatchRunner, OCRunner
 from BDRC.Utils import import_local_models
-from BDRC.Widgets.Entries import ModelEntryWidget
 
 """
 Boiler plate to construct the Button groups based on the available settings
@@ -41,7 +50,9 @@ Boiler plate to construct the Button groups based on the available settings
 
 
 # Languages
-def build_languages(active_language: Language) -> Tuple[QButtonGroup, List[QRadioButton]]:
+def build_languages(
+    active_language: Language,
+) -> Tuple[QButtonGroup, List[QRadioButton]]:
     buttons = []
     button_group = QButtonGroup()
     button_group.setExclusive(True)
@@ -71,7 +82,7 @@ def build_exporter_settings() -> Tuple[QButtonGroup, List[QRadioButton]]:
         button.setObjectName("OptionsRadio")
         exporter_buttons.append(button)
 
-        if idx == 0: # just select the first exporter
+        if idx == 0:  # just select the first exporter
             button.setChecked(True)
 
         exporters_group.addButton(button)
@@ -81,7 +92,9 @@ def build_exporter_settings() -> Tuple[QButtonGroup, List[QRadioButton]]:
 
 
 # Encodigns
-def build_encodings(active_encoding: Encoding) -> Tuple[QButtonGroup, List[QRadioButton]]:
+def build_encodings(
+    active_encoding: Encoding,
+) -> Tuple[QButtonGroup, List[QRadioButton]]:
     encoding_buttons = []
     encodings_group = QButtonGroup()
     encodings_group.setExclusive(True)
@@ -102,7 +115,9 @@ def build_encodings(active_encoding: Encoding) -> Tuple[QButtonGroup, List[QRadi
 
 
 # Dewarping
-def build_binary_selection(current_setting: bool) -> Tuple[QButtonGroup, List[QRadioButton]]:
+def build_binary_selection(
+    current_setting: bool,
+) -> Tuple[QButtonGroup, List[QRadioButton]]:
     buttons = []
     button_group = QButtonGroup()
     button_group.setExclusive(True)
@@ -136,12 +151,14 @@ class ImportImagesDialog(QFileDialog):
         self.setNameFilter("Images (*.png *.jpg *.tif *.tiff)")
         self.setViewMode(QFileDialog.ViewMode.List)
 
+
 class ImportPDFDialog(QFileDialog):
     def __init__(self, parent=None):
         super(ImportPDFDialog, self).__init__(parent)
         self.setFileMode(QFileDialog.FileMode.ExistingFile)
         self.setNameFilter("PDF file (*.pdf)")
         self.setViewMode(QFileDialog.ViewMode.List)
+
 
 class ExportDirDialog(QFileDialog):
     def __init__(self, parent=None):
@@ -165,7 +182,8 @@ class ConfirmationDialog(QMessageBox):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
-        self.ok_btn.setStyleSheet("""
+        self.ok_btn.setStyleSheet(
+            """
                 color: #ffffff;
                 font: bold 12px;
                 width: 240px;
@@ -178,11 +196,13 @@ class ConfirmationDialog(QMessageBox):
                     color: #ff0000;
                 }
 
-            """)
+            """
+        )
 
-        self.cancel_btn.setStyleSheet("""
+        self.cancel_btn.setStyleSheet(
+            """
                 color: #ffffff;
-                font: bold 12px; 
+                font: bold 12px;
                 width: 240px;
                 height: 32px;
                 background-color: #A40021;
@@ -192,7 +212,8 @@ class ConfirmationDialog(QMessageBox):
                 QPushButton::hover {
                     color: #ff0000;
                 }
-            """)
+            """
+        )
 
         if show_cancel:
             self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
@@ -213,7 +234,8 @@ class NotificationDialog(QMessageBox):
         self.setText(message)
 
         self.ok_btn = QPushButton("Ok")
-        self.ok_btn.setStyleSheet("""
+        self.ok_btn.setStyleSheet(
+            """
                                color: #ffffff;
                                font: bold 12px;
                                width: 240px;
@@ -224,32 +246,26 @@ class NotificationDialog(QMessageBox):
                                QPushButton::hover { 
                                    color: #ff0000;
                                }
-                           """)
+                           """
+        )
 
         self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
 
-        self.setStyleSheet("""
-                    background-color: #1d1c1c;
-                    color: #ffffff;
-                    QPushButton {
-                        width: 200px;
-                        padding: 5px;
-                        background-color: #A40021;
-                    }
-                """)
-
 
 class ExportDialog(QDialog):
-    def __init__(self, ocr_data: List[OCRData], active_exporter: ExportFormat, active_encoding: Encoding):
+    def __init__(
+        self,
+        ocr_data: List[OCRData],
+        active_encoding: Encoding,
+    ):
         super().__init__()
         self.setObjectName("ExportDialog")
         self.ocr_data = ocr_data
-        self.exporter = active_exporter
         self.encoding = active_encoding
         self.output_dir = "/"
         self.main_label = QLabel("Export OCR Data")
         self.main_label.setObjectName("OptionsLabel")
-        self.exporter_group, self.exporter_buttons = build_exporter_settings(self.exporter)
+        self.exporter_group, self.exporter_buttons = build_exporter_settings()
         self.encodings_group, self.encoding_buttons = build_encodings(self.encoding)
 
         # build layout
@@ -309,13 +325,14 @@ class ExportDialog(QDialog):
             QLabel {
                 color: #000000;
             }
-            """)
+            """
+        )
 
     def export(self):
         if os.path.isdir(self.output_dir):
             encoding_id = self.encodings_group.checkedId()
             exporters_id = self.exporter_group.checkedId()
-            #converter = pyewts.pyewts()
+            # converter = pyewts.pyewts()
 
             _encoding = Encoding(encoding_id)
             _exporter = ExportFormat(exporters_id)
@@ -326,14 +343,13 @@ class ExportDialog(QDialog):
                 for idx, data in enumerate(self.ocr_data):
                     img = cv2.imread(data.image_path)
 
-                    print(f"Exporting OCR text: {len(data.ocr_text)} => {data.ocr_text} for {len(data.lines)} line data")
                     if data.lines is not None and len(data.lines) > 0:
 
                         exporter.export_lines(
                             image=img,
                             image_name=data.image_name,
                             lines=data.lines,
-                            text_lines=data.ocr_text
+                            text_lines=data.ocr_lines,
                         )
 
             elif _exporter == ExportFormat.JSON:
@@ -344,10 +360,7 @@ class ExportDialog(QDialog):
 
                     if data.lines is not None and len(data.lines) > 0:
                         exporter.export_lines(
-                            img,
-                            data.image_name,
-                            data.lines,
-                            data.ocr_text
+                            img, data.image_name, data.lines, data.ocr_lines
                         )
             else:
                 exporter = TextExporter(self.output_dir)
@@ -355,15 +368,15 @@ class ExportDialog(QDialog):
                 for idx, data in enumerate(self.ocr_data):
 
                     if data.lines is not None and len(data.lines) > 0:
-                        exporter.export_text(
-                            data.image_name,
-                            data.ocr_text
-                        )
+                        exporter.export_text(data.image_name, data.ocr_lines)
 
             self.accept()
 
         else:
-            dialog = NotificationDialog("Invalid Export Directory", "The selected output directory is not valid.")
+            dialog = NotificationDialog(
+                "Invalid Export Directory",
+                "The selected output directory is not valid.",
+            )
             dialog.exec()
 
     def cancel(self):
@@ -378,15 +391,18 @@ class ExportDialog(QDialog):
 
             if os.path.isdir(_selected_dir):
                 self.dir_edit.setText(_selected_dir)
-                self.output_dir=_selected_dir
+                self.output_dir = _selected_dir
         else:
-            note_dialog = NotificationDialog("Invalid Directory", "The selected directory is not valid.")
+            note_dialog = NotificationDialog(
+                "Invalid Directory", "The selected directory is not valid."
+            )
             note_dialog.exec()
 
 
 class ModelListWidget(QWidget):
     def __init__(self, guid: UUID, title: str, encoder: str, architecture: str):
         super().__init__()
+        self.setObjectName("QModelList")
         self.guid = guid
         self.title = str(title)
         self.encoder = str(encoder)
@@ -395,8 +411,8 @@ class ModelListWidget(QWidget):
         self.title_label = QLabel(self.title)
         self.encoder_label = QLabel(self.encoder)
         self.architecture_label = QLabel(self.architecture)
-        self.download_btn = QPushButton('Download')
-        self.delete_btn = QPushButton('Delete')
+        self.download_btn = QPushButton("Download")
+        self.delete_btn = QPushButton("Delete")
 
         # build layout
         self.h_layout = QHBoxLayout()
@@ -407,14 +423,13 @@ class ModelListWidget(QWidget):
         self.h_layout.addWidget(self.delete_btn)
         self.setLayout(self.h_layout)
 
-        self.setStyleSheet("""
-            color: #ffffff;
-            width: 80%;
-        """)
-
-
 
 class ModelList(QListWidget):
+    """
+    This Widget is currently not used and is just here in case the table view in the SettingsDialog shall
+    be replaced by a QListWidget that supports custom ListQWigets with delete buttons etc.
+    """
+
     sign_on_selected_item = Signal(UUID)
 
     def __init__(self, parent=None):
@@ -425,15 +440,6 @@ class ModelList(QListWidget):
         self.setMouseTracking(True)
         self.itemClicked.connect(self.on_item_clicked)
         self.itemEntered.connect(self.on_item_entered)
-
-        self.setStyleSheet("""
-            border 4px solid yellow;
-            background-color: #464646;
-        
-        """)
-
-    def on_item_entered(self, item: QListWidgetItem):
-        print(f"Entered Item: {item}")
 
     def on_item_clicked(self, item: QListWidgetItem):
         _list_item_widget = self.itemWidget(
@@ -446,7 +452,12 @@ class ModelList(QListWidget):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, app_settings: AppSettings, ocr_settings: OCRSettings, ocr_models: List[OCRModel]):
+    def __init__(
+        self,
+        app_settings: AppSettings,
+        ocr_settings: OCRSettings,
+        ocr_models: List[OCRModel],
+    ):
         super().__init__()
         self.setObjectName("SettingsDialog")
         self.app_settings = app_settings
@@ -471,7 +482,6 @@ class SettingsDialog(QDialog):
         self.theme_group.setId(self.dark_theme_btn, Theme.Dark.value)
         self.theme_group.setId(self.light_theme_btn, Theme.Light.value)
 
-
         if self.app_settings.theme == Theme.Dark:
             self.dark_theme_btn.setChecked(True)
             self.light_theme_btn.setChecked(False)
@@ -483,10 +493,18 @@ class SettingsDialog(QDialog):
         self.import_models_btn.setObjectName("SmallDialogButton")
         self.import_models_btn.clicked.connect(self.handle_model_import)
 
-        self.encodings_group, self.encoding_buttons = build_encodings(self.app_settings.encoding)
-        self.language_group, self.language_buttons = build_languages(self.app_settings.language)
-        self.dewarp_group, self.dewarp_buttons = build_binary_selection(self.ocr_settings.dewarping)
-        self.merge_group, self.merge_buttons = build_binary_selection(self.ocr_settings.merge_lines)
+        self.encodings_group, self.encoding_buttons = build_encodings(
+            self.app_settings.encoding
+        )
+        self.language_group, self.language_buttons = build_languages(
+            self.app_settings.language
+        )
+        self.dewarp_group, self.dewarp_buttons = build_binary_selection(
+            self.ocr_settings.dewarping
+        )
+        self.merge_group, self.merge_buttons = build_binary_selection(
+            self.ocr_settings.merge_lines
+        )
 
         self.setWindowTitle("BDRC Settings")
         self.setMinimumHeight(460)
@@ -530,16 +548,22 @@ class SettingsDialog(QDialog):
         self.general_settings_layout.addLayout(language_layout)
         self.general_settings_tab.setLayout(self.general_settings_layout)
 
-
         # OCR Models Tab
         self.ocr_models_tab = QWidget()
 
         self.data_table = QTableWidget()
         self.data_table.setObjectName("ModelTable")
-        self.data_table.setColumnCount(5)  
-        self.data_tabel_header = ["Model", "Encoding", "Architecture", "Version", "Model file"]
+        self.data_table.setColumnCount(5)
+        self.data_tabel_header = [
+            "Model",
+            "Encoding",
+            "Architecture",
+            "Version",
+            "Model file",
+        ]
         self.data_table.setAutoScroll(True)
-        
+        self.data_table.horizontalHeader().setStretchLastSection(True)
+
         self.ocr_label = QLabel("Available OCR Models")
         self.ocr_label.setObjectName("OptionsLabel")
 
@@ -611,7 +635,9 @@ class SettingsDialog(QDialog):
         self.bbox_tolerance_edit = QLineEdit()
         self.bbox_tolerance_edit.setObjectName("DialogLineEdit")
         self.bbox_tolerance_edit.setFixedWidth(60)
-        self.bbox_tolerance_edit.editingFinished.connect(self.validate_bbox_tolerance_input)
+        self.bbox_tolerance_edit.editingFinished.connect(
+            self.validate_bbox_tolerance_input
+        )
         self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
         bbox_tolerance_layout.addWidget(bbox_tolerance_label)
         bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
@@ -620,12 +646,14 @@ class SettingsDialog(QDialog):
         dewarping_label.setFixedWidth(160)
         merge_label.setFixedWidth(160)
 
-        explanation = QLabel("""
+        explanation = QLabel(
+            """
             The above settings give some control over the OCR process. The <b>k Factor</b> is a parameter to control the intensity of the
             line extraction if adjustments are needed. If you get poor OCR results, try to increase or decrease the value.
             Similarly, the <b>bbox tolerance</b> parameter is the amount of the 'initial line detection' (highlighted in orange after OCR)
             is admissive in order to interpret the rest of the line such as descenders or vowels. A high value can cause problems on pages with a tight
-            layout.""")
+            layout."""
+        )
         explanation.setWordWrap(True)
         explanation.setObjectName("OptionsExplanation")
 
@@ -638,7 +666,7 @@ class SettingsDialog(QDialog):
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
-        #self.settings_tabs.addTab(self.general_settings_tab, "General")
+        # self.settings_tabs.addTab(self.general_settings_tab, "General")
         self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
         self.settings_tabs.addTab(self.ocr_settings_tab, "OCR Settings")
 
@@ -659,19 +687,6 @@ class SettingsDialog(QDialog):
         # bind signals
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
-
-        self.setStyleSheet("""
-            QPushButton {
-                color: #A40021;
-                background-color: #fce08d;
-                border-radius: 4px;
-                height: 18;
-            }
-
-            QPushButton::hover {
-                color: #ffad00;
-            }
-        """)
 
         self.update_model_table(self.ocr_models)
 
@@ -726,9 +741,9 @@ class SettingsDialog(QDialog):
 
     def handle_reject(self):
         self.reject()
-        
+
     def clear_models(self):
-       print(f"SettingsDialog -> ClearModels()")
+        print("SettingsDialog -> ClearModels()")
 
     def handle_model_import(self):
         _dialog = ExportDirDialog()
@@ -743,7 +758,7 @@ class SettingsDialog(QDialog):
 
                     confirm_dialog = ConfirmationDialog(
                         title="Confirm Model Import",
-                        message="Do you want to import the selected models? Existing models will be replaced."
+                        message="Do you want to import the selected models? Existing models will be replaced.",
                     )
                     confirm_dialog.exec()
                     result = confirm_dialog.result()
@@ -753,7 +768,9 @@ class SettingsDialog(QDialog):
                         self.update_model_table(self.ocr_models)
 
                 except BaseException as e:
-                    error_dialog = NotificationDialog("Model import failed", f"Importing Models Failed: {e}")
+                    error_dialog = NotificationDialog(
+                        "Model import failed", f"Importing Models Failed: {e}"
+                    )
                     error_dialog.exec()
 
             self.app_settings.model_path = _selected_dir
@@ -792,13 +809,14 @@ class SettingsDialog(QDialog):
 class BatchOCRDialog(QDialog):
     sign_ocr_result = Signal(OCResult)
 
-    def __init__(self,
-                 data: List[OCRData],
-                 ocr_pipeline: OCRPipeline,
-                 ocr_models: List[OCRModel],
-                 ocr_settings: OCRSettings,
-                 threadpool: QThreadPool
-                 ):
+    def __init__(
+        self,
+        data: List[OCRData],
+        ocr_pipeline: OCRPipeline,
+        ocr_models: List[OCRModel],
+        ocr_settings: OCRSettings,
+        threadpool: QThreadPool,
+    ):
         super().__init__()
         self.setObjectName("BatchOCRDialog")
         self.data = data
@@ -819,7 +837,7 @@ class BatchOCRDialog(QDialog):
         self.progress_bar.setObjectName("DialogProgressBar")
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(len(self.data)-1)
+        self.progress_bar.setMaximum(len(self.data) - 1)
 
         self.start_process_btn = QPushButton("Start")
         self.start_process_btn.setObjectName("SmallDialogButton")
@@ -829,9 +847,15 @@ class BatchOCRDialog(QDialog):
         # settings elements
         # Exports
         self.exporter_group, self.exporter_buttons = build_exporter_settings()
-        self.encodings_group, self.encoding_buttons = build_encodings(self.ocr_settings.output_encoding)
-        self.dewarp_group, self.dewarp_buttons = build_binary_selection(self.ocr_settings.dewarping)
-        self.merge_group, self.merge_buttons = build_binary_selection(self.ocr_settings.merge_lines)
+        self.encodings_group, self.encoding_buttons = build_encodings(
+            self.ocr_settings.output_encoding
+        )
+        self.dewarp_group, self.dewarp_buttons = build_binary_selection(
+            self.ocr_settings.dewarping
+        )
+        self.merge_group, self.merge_buttons = build_binary_selection(
+            self.ocr_settings.merge_lines
+        )
 
         # build layout
         self.progress_layout = QHBoxLayout()
@@ -851,22 +875,25 @@ class BatchOCRDialog(QDialog):
         self.v_layout = QVBoxLayout()
         self.label = QLabel("Batch Processing")
         self.label.setObjectName("OptionsLabel")
-        self.label.setStyleSheet("""
+        self.label.setStyleSheet(
+            """
             font-weight: bold;
-        """)
+        """
+        )
 
         self.export_dir_layout = QHBoxLayout()
         self.dir_select_btn = QPushButton("select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
 
-       
         self.model_selection = QComboBox()
-        self.model_selection.setStyleSheet("""
+        self.model_selection.setStyleSheet(
+            """
                 color: #ffffff;
                 background: #434343;
                 border: 2px solid #ced4da;
                 border-radius: 4px;
-            """)
+            """
+        )
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -886,7 +913,6 @@ class BatchOCRDialog(QDialog):
 
         for btn in self.encoding_buttons:
             encoding_layout.addWidget(btn)
-        
 
         # dewarping
         dewarping_label = QLabel("Dewarping")
@@ -896,13 +922,13 @@ class BatchOCRDialog(QDialog):
 
         for btn in self.dewarp_buttons:
             dewarping_layout.addWidget(btn)
- 
+
         # merging lines
         merge_label = QLabel("Merge Lines")
         merge_label.setObjectName("OptionsLabel")
         merge_layout = QHBoxLayout()
         merge_layout.addWidget(merge_label)
-        
+
         for btn in self.merge_buttons:
             merge_layout.addWidget(btn)
 
@@ -926,7 +952,9 @@ class BatchOCRDialog(QDialog):
         bbox_tolerance_label.setObjectName("OptionsLabel")
         self.bbox_tolerance_edit = QLineEdit()
         self.bbox_tolerance_edit.setText(str(self.ocr_settings.bbox_tolerance))
-        self.bbox_tolerance_edit.editingFinished.connect(self.validate_bbox_tolerance_input)
+        self.bbox_tolerance_edit.editingFinished.connect(
+            self.validate_bbox_tolerance_input
+        )
 
         other_settings_layout.addWidget(spacer)
         other_settings_layout.addWidget(k_factor_label)
@@ -967,22 +995,6 @@ class BatchOCRDialog(QDialog):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
-        self.setStyleSheet(
-            """
-            background-color: #1d1c1c;
-            color: #ffffff;
-            
-            QLineEdit {
-                color: #ffffff;
-                background-color: #474747;
-                border: 2px solid #343942;
-                border-radius: 8px;
-                padding: 6px;
-                text-align: left;
-            }
-        
-        """)
-
     def validate_bbox_tolerance_input(self):
         try:
             float(self.bbox_tolerance_edit.text())
@@ -1021,16 +1033,18 @@ class BatchOCRDialog(QDialog):
             dewarp=do_dewarp,
             merge_lines=do_merge,
             k_factor=float(k_factor),
-            bbox_tolerance=float(bbox_tolerance)
+            bbox_tolerance=float(bbox_tolerance),
         )
 
         self.runner.signals.sample.connect(self.handle_update_progress)
         self.runner.signals.finished.connect(self.finish)
         self.threadpool.start(self.runner)
         self.status.setText("Running")
-        self.status.setStyleSheet("""
+        self.status.setStyleSheet(
+            """
             background-color: #ff9100;
-        """)
+        """
+        )
 
     def handle_update_progress(self, sample: OCRSample):
         self.progress_bar.setValue(sample.cnt)
@@ -1048,17 +1062,21 @@ class BatchOCRDialog(QDialog):
         print(f"Thread Completed")
         self.runner = None
         self.status.setText("Finished")
-        self.status.setStyleSheet("""
+        self.status.setStyleSheet(
+            """
                     background-color: #63ff00;
-                """)
+                """
+        )
 
     def cancel_process(self):
         if self.runner is not None:
             self.runner.stop = True
             self.status.setText("Canceled")
-            self.status.setStyleSheet("""
+            self.status.setStyleSheet(
+                """
                                 background-color: #e80000;
-                            """)
+                            """
+            )
 
 
 class ImportFilesProgress(QProgressDialog):
@@ -1066,6 +1084,7 @@ class ImportFilesProgress(QProgressDialog):
         super(ImportFilesProgress, self).__init__()
         self.setWindowTitle(title)
         self.setFixedWidth(420)
+        self.setFixedHeight(210)
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setContentsMargins(32, 32, 32, 32)
         self.cancel_btn = QPushButton("Cancel")
@@ -1078,7 +1097,8 @@ class ImportFilesProgress(QProgressDialog):
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(max_length)
         self.progress_bar.setObjectName("DialogProgressBar")
-        self.progress_bar.setStyleSheet("""
+        self.progress_bar.setStyleSheet(
+            """
                     QProgressBar {
                         background-color: #474747;
                         color: #A40021;
@@ -1091,12 +1111,13 @@ class ImportFilesProgress(QProgressDialog):
                         background-color: #A40021;
                         width: 20px;
                     }
-                """)
+                """
+        )
 
         self.setBar(self.progress_bar)
 
-
-        self.cancel_btn.setStyleSheet("""
+        self.cancel_btn.setStyleSheet(
+            """
             QPushButton {
                 color: #ffffff;
                 background-color: #A40021;
@@ -1105,9 +1126,11 @@ class ImportFilesProgress(QProgressDialog):
                 margin-right: 24px;
             }
         
-        """)
+        """
+        )
 
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             color: #ffffff;
             background-color: #1d1c1c;
             QPushButton {
@@ -1134,11 +1157,16 @@ class ImportFilesProgress(QProgressDialog):
         )
 
 
-
 class OCRDialog(QProgressDialog):
     sign_ocr_result = Signal(OCResult)
 
-    def __init__(self, pipeline: OCRPipeline, settings: OCRSettings, data: OCRData, pool: QThreadPool):
+    def __init__(
+        self,
+        pipeline: OCRPipeline,
+        settings: OCRSettings,
+        data: OCRData,
+        pool: QThreadPool,
+    ):
         super(OCRDialog, self).__init__()
         self.setObjectName("OCRDialog")
         self.setMinimumWidth(500)
@@ -1154,22 +1182,14 @@ class OCRDialog(QProgressDialog):
 
         # build layout
         self.start_btn = QPushButton("Start")
+        self.start_btn.setObjectName("DialogButton")
+
         self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet("""
-
-                QPushButton {
-                    margin-top: 15px;
-                    background-color: #ff0000;
-                }
-
-                QPushButton::hover {
-                    color: #ffad00;
-                }
-
-            """)
+        self.cancel_btn.setObjectName("DialogButton")
 
         self.setCancelButton(self.cancel_btn)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
 
             background-color: #08081f;
 
@@ -1185,7 +1205,8 @@ class OCRDialog(QProgressDialog):
                 border-radius: 5px;
                 margin: 3px 3px 3px 3px;
             }
-        """)
+        """
+        )
 
         self.show()
 
@@ -1200,38 +1221,33 @@ class OCRDialog(QProgressDialog):
         print(f"Encountered Error: {error}")
 
     def handle_ocr_result(self, result: OCResult):
-        #print(f"Handling ocr result: {result}")
+        # print(f"Handling ocr result: {result}")
         self.sign_ocr_result.emit(result)
 
     def thread_complete(self):
         print(f"Thread Complete")
-        #self.close()
-
 
 
 class TextInputDialog(QDialog):
-    def __init__(self, title: str, edit_text: str, parent: None):
+    def __init__(self, title: str, edit_text: str, qfont: QFont, parent: QWidget | None):
         super(TextInputDialog, self).__init__()
+        self.setObjectName("TextInputDialog")
         self.parent = parent
         self.title = title
         self.edit_text = edit_text
         self.new_text = ""
-        self.setFixedWidth(480)
+        self.qfont = qfont
+        self.setMinimumWidth(480)
+        self.setMinimumHeight(180)
         self.setWindowTitle(title)
         self.spacer = QLabel()
         self.spacer.setFixedHeight(36)
+
         self.line_edit = QLineEdit(self)
+        self.line_edit.setObjectName("DialogLineEdit")
+        self.line_edit.setFont(self.qfont)
         self.line_edit.setText(self.edit_text)
-
         self.line_edit.editingFinished.connect(self.update_text)
-        self.line_edit.setStyleSheet("""
-            color: #ffffff;
-            background-color: #3e5272;
-            border: 2px solid #3e5272;
-            border-radius: 8px;
-            padding: 4px;
-
-        """)
 
         self.accept_btn = QPushButton("Accept")
         self.reject_btn = QPushButton("Reject")
@@ -1251,9 +1267,6 @@ class TextInputDialog(QDialog):
         self.v_layout.addLayout(self.h_layout)
 
         self.setLayout(self.v_layout)
-        self.setStyleSheet("""
-            background-color: #08091e;
-        """)
 
     def update_text(self):
         self.new_text = self.line_edit.text()

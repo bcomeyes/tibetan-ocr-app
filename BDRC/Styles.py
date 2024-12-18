@@ -122,13 +122,37 @@ DARK = """
         background-color: #1d1c1c;
     }
 
+    QDialog#TextInputDialog {
+        background-color: #1d1c1c;
+    }
+
     QDialog#BatchOCRDialog {
         color: #ffffff;
-        background-color: #172832;
+        background-color: #1d1c1c;
+
+        QLineEdit {
+                color: #ffffff;
+                background-color: #474747;
+                border: 2px solid #343942;
+                border-radius: 8px;
+                padding: 6px;
+                text-align: left;
+            }
     }
 
     QDialog#SettingsDialog {
         background-color: #172832;
+
+        QPushButton {
+                color: #A40021;
+                background-color: #fce08d;
+                border-radius: 4px;
+                height: 18;
+            }
+
+            QPushButton::hover {
+                color: #ffad00;
+            }
     }
 
     QTabWidget::pane {
@@ -207,7 +231,7 @@ DARK = """
 
       QLabel#OptionsExplanation {
         color: #CCCCCC;
-        font-size: 9px;
+        font-size: 11px;
         font-style: italic;
         width: 100%;
     }
@@ -250,14 +274,27 @@ DARK = """
         margin: 3px 3px 3px 3px;
     }
 
+    QWidget#QModelList {
+        color: #ffffff;
+        width: 80%;
+    }
+
     QListWidget#ModelList {
-        background-color: #172832;
-        border-radius: 4px;
+        border 4px solid yellow;
+        background-color: #464646;
     }
 
     QListWidget#TextListWidget {
         color: #ffffff;
         background-color: #172832;
+    }
+
+    QWidget#TextWidget {
+        color: #ffffff;
+    }
+
+    QLabel#TextLine {
+        color: #ffffff;
     }
 
     QGraphicsView#PTGraphicsView {
@@ -285,5 +322,20 @@ DARK = """
     QSplitter::handle:pressed {
         image: url(Assets/Textures/splitter_handle_press.png);
     }
+
+    QTableWidget#ModelTable {
+        color: #ffffff;
+        background-color: #172832;
+    }
+
+    QMessageBox#NotificationWindow {
+        background-color: #1d1c1c;
+        color: #ffffff;
+                    
+        QPushButton {
+            width: 200px;
+            padding: 5px;
+            background-color: #A40021;
+        }
 
 """

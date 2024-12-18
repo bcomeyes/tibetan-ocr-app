@@ -6,6 +6,7 @@ from typing import List
 from scipy.special import softmax
 from Config import COLOR_DICT
 from BDRC.Data import (
+    OCRLine,
     OpStatus,
     TPSMode,
     OCRModelConfig,
@@ -18,7 +19,6 @@ from BDRC.Utils import (
     apply_global_tps,
     build_line_data,
     extract_line_images,
-    get_line_images_via_local_tps,
     optimize_countour,
     preprocess_image,
     binarize,
@@ -73,7 +73,7 @@ class Detection:
             self._onnx_model_file, providers=self._execution_providers
         )
 
-    def _preprocess_image(self, image: npt.NDArray, patch_size: int = 512, denoise: bool = True):
+    def _preprocess_image(self, image: npt.NDArray, patch_size: int = 512):
         padded_img, pad_x, pad_y = preprocess_image(image, patch_size)
         tiles, y_steps = tile_image(padded_img, patch_size)
         tiles = [binarize(x) for x in tiles]
@@ -103,7 +103,7 @@ class Detection:
 
         return prediction
 
-    def predict(self, image: npt.NDArray, class_threshold: float = 0.8, denoise: bool = False) -> npt.NDArray:
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.8) -> npt.NDArray:
         pass
 
 
@@ -111,10 +111,9 @@ class LineDetection(Detection):
     def __init__(self, platform: Platform, config: LineDetectionConfig) -> None:
         super().__init__(platform, config)
 
-    def predict(self, image: npt.NDArray, class_threshold: float = 0.9, denoise: bool = False) -> npt.NDArray:
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.9) -> npt.NDArray:
         _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(
-            image, patch_size=self._patch_size, denoise=denoise
-        )
+            image, patch_size=self._patch_size)
         prediction = self._predict(tiles)
         prediction = np.squeeze(prediction, axis=1)
         prediction = sigmoid(prediction)
@@ -133,7 +132,7 @@ class LayoutDetection(Detection):
         self._classes = config.classes
         self._debug = debug
 
-    def _get_contours(self, prediction: npt.NDArray, optimize: bool = True, size_tresh: int = 200) -> list:
+    def _get_contours(self, prediction: npt.NDArray, optimize: bool = True, size_tresh: int = 200) -> List:
         prediction = np.where(prediction > 200, 255, 0)
         prediction = prediction.astype(np.uint8)
 
@@ -154,7 +153,7 @@ class LayoutDetection(Detection):
                              image: npt.NDArray,
                              prediction: npt.NDArray,
                              alpha: float = 0.4,
-                             ) -> npt.NDArray:
+                             ) -> npt.NDArray | None:
 
         if image is None:
             return None
@@ -202,9 +201,9 @@ class LayoutDetection(Detection):
 
         return image
 
-    def predict(self, image: npt.NDArray, class_threshold: float = 0.8, denoise: bool = False) -> npt.NDArray:
+    def predict(self, image: npt.NDArray, class_threshold: float = 0.8) -> npt.NDArray:
         _, tiles, y_steps, pad_x, pad_y = self._preprocess_image(
-            image, patch_size=self._patch_size, denoise=denoise)
+            image, patch_size=self._patch_size)
         prediction = self._predict(tiles)
         prediction = np.transpose(prediction, axes=[0, 2, 3, 1])
         prediction = softmax(prediction, axis=-1)
@@ -422,13 +421,20 @@ class OCRPipeline:
 
         if line_images is not None and len(line_images) > 0:
             page_text = []
+            ocr_lines = []
 
             for line_img, line_info in zip(line_images, sorted_lines):
                 pred = self.ocr_inference.run(line_img)
                 pred = pred.strip()
                 pred = pred.replace("§", " ")
+
+                ocr_line = OCRLine(
+                    guid=line_info.guid,
+                    text=pred
+                )
+                ocr_lines.append(ocr_line)
                 page_text.append(pred)
 
-            return OpStatus.SUCCESS, (rot_mask, sorted_lines, page_text, page_angle)
+            return OpStatus.SUCCESS, (rot_mask, sorted_lines, ocr_lines, page_angle)
         else:
             return OpStatus.FAILED, None

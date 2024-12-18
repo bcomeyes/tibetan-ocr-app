@@ -31,13 +31,13 @@ class OCRunner(QRunnable):
         status, result = self.pipeline.run_ocr(img, k_factor=self.k_factor, bbox_tolerance=self.bbox_tolerance)
 
         if status == OpStatus.SUCCESS:
-            rot_mask, lines, page_text, angle = result
-            print(f"OCRunner -> Result: lines: {len(lines)}, Textlines: {len(page_text)}")
+            rot_mask, lines, ocr_lines, angle = result
+        
             ocr_result = OCResult(
                 guid=self.data.guid,
                 mask=rot_mask,
                 lines=lines,
-                text=page_text,
+                text=ocr_lines,
                 angle=angle
             )
             self.signals.ocr_result.emit(ocr_result)
@@ -70,7 +70,7 @@ class OCRBatchRunner(QRunnable):
         self.stop = False
 
     def kill(self):
-        print(f"OCRunner -> kill")
+        print("OCRunner -> kill")
         self.stop = True
 
     def run(self):
@@ -88,13 +88,13 @@ class OCRBatchRunner(QRunnable):
                 )
 
                 if status == OpStatus.SUCCESS:
-                    rot_mask, lines, page_text, angle = result
+                    rot_mask, lines, ocr_lines, angle = result
 
                     ocr_result = OCResult(
                         guid=data.guid,
                         mask=rot_mask,
                         lines=lines,
-                        text=page_text,
+                        text=ocr_lines,
                         angle=angle
                     )
                     results[data.guid] = ocr_result
@@ -105,7 +105,6 @@ class OCRBatchRunner(QRunnable):
                         result=ocr_result
                     )
                     self.signals.sample.emit(sample)
-
             else:
                 self.signals.finished.emit()
 

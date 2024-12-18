@@ -1,5 +1,5 @@
 {
- "model_path": "/Users/eric/Desktop/Projects/tibetan-ocr-app2/Models/OCR",
+ "model_path": "C:/Users/Eric/Desktop/AppModels/Models/OCR",
  "language": "ch",
  "encoding": "wylie",
  "theme": "dark"

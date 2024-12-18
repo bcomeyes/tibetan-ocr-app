@@ -1,13 +1,13 @@
 import abc
 import json
-from typing import List, Tuple
+from typing import List
 import pyewts
 import logging
 import numpy as np
 import numpy.typing as npt
 from xml.dom import minidom
 import xml.etree.ElementTree as etree
-from BDRC.Data import BBox, Line
+from BDRC.Data import BBox, Line, OCRLine
 from BDRC.Utils import (
     get_utc_time,
     rotate_contour,
@@ -99,8 +99,8 @@ class PageXMLExporter(Exporter):
         image: npt.NDArray,
         image_name: str,
         text_bbox: str,
-        lines: List[Line],
-        text_lines: List[str] | None,
+        lines: List[str],
+        text_lines: List[OCRLine] | None,
     ):
         root = etree.Element("PcGts")
         root.attrib["xmlns"] = (
@@ -146,7 +146,7 @@ class PageXMLExporter(Exporter):
             if text_lines is not None and len(text_lines) > 0:
                 text_region.append(
                     self.get_text_line_block(
-                        coordinate=line, index=l_idx, unicode_text=text_lines[l_idx]
+                        coordinate=line, index=l_idx, unicode_text=text_lines[l_idx].text
                     )
                 )
             else:
@@ -166,7 +166,7 @@ class PageXMLExporter(Exporter):
         image: np.array,
         image_name: str,
         lines: List[Line],
-        text_lines: List[str],
+        text_lines: List[OCRLine],
         optimize: bool = True,
         bbox: bool = False,
         angle: float = 0.0
@@ -218,7 +218,7 @@ class TextExporter(Exporter):
             image: np.array,
             image_name: str,
             lines: List[Line],
-            text_lines: list[str],
+            text_lines: list[OCRLine],
             optimize: bool = True,
             bbox: bool = False,
             angle: float = 0.0):
@@ -227,14 +227,14 @@ class TextExporter(Exporter):
 
         with open(out_file, "w", encoding="UTF-8") as f:
             for _line in text_lines:
-                f.write(f"{_line}\n")
+                f.write(f"{_line.text}\n")
 
-    def export_text(self, image_name: str, lines: List[str]):
+    def export_text(self, image_name: str, lines: List[OCRLine]):
         out_file = f"{self.output_dir}/{image_name}.txt"
 
         with open(out_file, "w", encoding="UTF-8") as f:
             for _line in lines:
-                f.write(f"{_line}\n")
+                f.write(f"{_line.text}\n")
 
 
 class JsonExporter(Exporter):
@@ -247,7 +247,7 @@ class JsonExporter(Exporter):
         image: np.array,
         image_name: str,
         lines: List[Line],
-        text_lines: list[str],
+        text_lines: list[OCRLine],
         optimize: bool = True,
         bbox: bool = False,
         angle: float = 0.0
@@ -259,7 +259,7 @@ class JsonExporter(Exporter):
 
             for line in lines:
                 line.contour = rotate_contour(
-                    line.contour, x_center, y_center, angle
+                    line.contour, (x_center, y_center), angle
                 )
 
         if optimize:
@@ -273,12 +273,12 @@ class JsonExporter(Exporter):
 
         text_bbox = get_text_bbox(lines)
         plain_box = self.get_bbox_points(text_bbox)
-
+        _text_lines = [x.text for x in text_lines]
         json_record = {
             "image": image_name,
             "textbox": plain_box,
             "lines": plain_lines,
-            "text": text_lines,
+            "text": _text_lines,
         }
 
         out_file = f"{self.output_dir}/{image_name}.jsonl"
