@@ -301,6 +301,7 @@ class PageSwitcher(QFrame):
 class PTGraphicsView(QGraphicsView):
     def __init__(self, scene: QGraphicsScene, parent=None):
         super().__init__(parent)
+        self.setObjectName("PTGraphicsView")
         self.scene = scene
         self.setScene(self.scene)
         self.setMinimumHeight(200)
@@ -401,6 +402,7 @@ class PTGraphicsView(QGraphicsView):
             }
         """
         )
+
 
     def enable_rubberband(self):
         self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
@@ -1223,6 +1225,7 @@ class TextListWidget(QWidget):
 
     def __init__(self, text: str, qfont: QFont):
         super().__init__()
+        self.setObjectName("TextListWidget")
         self.text = text
         self.qfont = qfont
         self.label = QLabel()
@@ -1240,13 +1243,6 @@ class TextListWidget(QWidget):
 
         # bind edit signal
         self.btn_edit.clicked.connect(self.edit_label)
-
-        #label_size = self.label.sizeHint()
-        #self.setFixedHeight(label_size.height() + 24) # that is a bit hacky, is it possible to inferr the size of the label based on the rendered text..?
-
-        self.label.setStyleSheet("""
-            color: #ffffff;
-        """)
 
     def edit_label(self):
         dialog = TextInputDialog("Editing Line", self.text, parent=self)

@@ -256,10 +256,14 @@ DARK = """
     }
 
     QListWidget#TextListWidget {
+        color: #ffffff;
         background-color: #172832;
     }
 
-
+    QGraphicsView#PTGraphicsView {
+        background-color: #172832;
+    }
+    
     QScrollBar:vertical {
         border: none;
         background: #2d2d46;
