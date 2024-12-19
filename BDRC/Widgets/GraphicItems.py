@@ -25,10 +25,7 @@ class ImagePreview(QGraphicsPixmapItem):
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable |
             QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
 
-        if self.lines is not None and len(self.lines) > 0:
-            self.show_preview()
-        else:
-            self.show_image()
+        self.show_image()
 
     def show_image(self):
         q_image = QImage(self.image_path)
