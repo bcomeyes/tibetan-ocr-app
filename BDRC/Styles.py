@@ -157,7 +157,7 @@ DARK = """
 
     QTabWidget::pane {
         background-color: #242424;
-        border-width: 0px;         
+        border-width: 0px;  
         border-radius: 6px;
     }
 
@@ -337,5 +337,11 @@ DARK = """
             padding: 5px;
             background-color: #A40021;
         }
+    }
+
+    QAbstractScrollArea::corner {
+        background: none;
+        border: none;
+    }
 
 """

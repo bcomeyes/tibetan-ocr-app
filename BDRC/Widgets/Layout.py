@@ -684,6 +684,9 @@ class ImageList(QListWidget):
         self.v_scrollbar = QScrollBar(self)
         self.h_scrollbar = QScrollBar(self)
         self.v_scrollbar.setStyleSheet("""
+                                       
+
+                                       
             QScrollBar:vertical {
                 border: none;
                 background: #2d2d46;

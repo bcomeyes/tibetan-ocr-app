@@ -189,7 +189,6 @@ class AppView(QWidget):
                         progress.setValue(idx)
 
                         if progress.wasCanceled():
-                            print("Progress was canceled")
                             progress.close()
                             break
 

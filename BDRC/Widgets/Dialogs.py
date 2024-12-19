@@ -1074,17 +1074,17 @@ class ImportFilesProgress(QProgressDialog):
         self.setWindowTitle(title)
         self.setFixedWidth(420)
         self.setFixedHeight(140)
+        self.setContentsMargins(10, 10, 10, 10)
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setObjectName("SmallDialogButton")
         self.cancel_btn.setStyleSheet("""
                 color: #ffffff;
                 background-color: #A40021;
                 border-radius: 4px;
                 height: 20;
                 width: 80px;
+                margin-top: 10px;
         """)
-
 
         self.cancel_btn.setFixedWidth(80)
         self.cancel_btn.setFixedHeight(32)
@@ -1105,7 +1105,6 @@ class ImportFilesProgress(QProgressDialog):
                 color: #ffffff;
                 background-color: #1d1c1c;
                 padding: 4px 4px 4px 4px;
-    
             """
         )
 
