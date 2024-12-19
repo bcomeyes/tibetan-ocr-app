@@ -49,8 +49,8 @@ DARK = """
     QFrame#MainCanvas {
         color: #ffffff;
         background-color: #100F0F;
-        border: 2px solid #100F0F;
-        border-radius: 8px;
+        border: 1px solid #ffad00;
+        border-radius: 2px;
     }
 
     QFrame#HeaderTools {
@@ -70,8 +70,8 @@ DARK = """
     QFrame#TextView {
         color: #ffffff;
         background-color: #100F0F;
-        border: 2px solid #100F0F;
-        border-radius: 4px;
+        border: 1px solid #ffad00;
+        border-radius: 2px;
     }
 
     QWidget#ToolBox {
