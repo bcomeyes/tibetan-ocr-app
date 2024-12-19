@@ -326,8 +326,6 @@ class AppView(QWidget):
             dialog.exec()
 
     def update_ocr_result(self, result: OCResult, silent: bool = False):
-        print(f"Got BAtch OCR Result: {result}")
-
         if result is not None:
             self._dataview_model.update_ocr_data(result.guid, result.text, silent)
             self._dataview_model.update_page_data(result.guid, result.lines, result.mask, result.angle, silent)

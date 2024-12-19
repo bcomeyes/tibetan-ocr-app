@@ -1,17 +1,21 @@
 import cv2
+import pyewts
 import numpy as np
 import numpy.typing as npt
 import onnxruntime as ort
 from typing import List
+
+
 from scipy.special import softmax
-from Config import COLOR_DICT
+from Config import COLOR_DICT, CHARSETENCODER
 from BDRC.Data import (
     OCRLine,
     OpStatus,
     TPSMode,
+    Encoding,
     OCRModelConfig,
     LineDetectionConfig,
-    LayoutDetectionConfig, Platform
+    LayoutDetectionConfig, Platform, CharsetEncoder
 )
 
 from pyctcdecode import build_ctcdecoder
@@ -343,6 +347,7 @@ class OCRPipeline:
         self.line_config = line_config
         self.encoder = ocr_config.encoder
         self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
+        self.converter = pyewts.pyewts()
 
         if isinstance(self.line_config, LineDetectionConfig):
             print("Running OCR in Line Mode")
@@ -369,7 +374,9 @@ class OCRPipeline:
                 merge_lines: bool = True,
                 use_tps: bool = False,
                 tps_mode: TPSMode = TPSMode.GLOBAL,
-                tps_threshold: float = 0.25):
+                tps_threshold: float = 0.25,
+                target_encoding: Encoding = Encoding.Unicode
+                ):
 
         if isinstance(self.line_config, LineDetectionConfig):
             line_mask = self.line_inference.predict(image)
@@ -428,10 +435,16 @@ class OCRPipeline:
                 pred = pred.strip()
                 pred = pred.replace("§", " ")
 
+                if self.encoder == CharsetEncoder.Wylie and target_encoding == Encoding.Unicode:
+                    pred = self.converter.toUnicode(pred)
+
+                elif self.encoder == CharsetEncoder.Stack and target_encoding == Encoding.Wylie:
+                    pred = self.converter.toWylie(pred)
+
                 ocr_line = OCRLine(
                     guid=line_info.guid,
                     text=pred,
-                    encoder=self.encoder
+                    encoding=Encoding.Wylie if target_encoding == Encoding.Wylie else Encoding.Unicode
                 )
                 ocr_lines.append(ocr_line)
                 page_text.append(pred)

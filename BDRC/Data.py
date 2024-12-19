@@ -93,7 +93,7 @@ class Line:
 class OCRLine:
     guid: UUID
     text: str
-    encoder: CharsetEncoder
+    encoding: Encoding
 
 @dataclass
 class LayoutData:

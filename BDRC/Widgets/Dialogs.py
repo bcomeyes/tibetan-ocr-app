@@ -439,7 +439,7 @@ class ModelList(QListWidget):
         self.setFlow(QListView.Flow.TopToBottom)
         self.setMouseTracking(True)
         self.itemClicked.connect(self.on_item_clicked)
-        self.itemEntered.connect(self.on_item_entered)
+        #self.itemEntered.connect(self.on_item_entered)
 
     def on_item_clicked(self, item: QListWidgetItem):
         _list_item_widget = self.itemWidget(
@@ -932,13 +932,7 @@ class BatchOCRDialog(QDialog):
         for btn in self.merge_buttons:
             merge_layout.addWidget(btn)
 
-        # merging lines
-        export_label = QLabel("Export format")
-        export_layout = QHBoxLayout()
-        export_layout.addWidget(export_label)
-        for btn in self.exporter_buttons:
-            export_layout.addWidget(btn)
-
+        # other settings
         other_settings_layout = QHBoxLayout()
         other_label = QLabel("Other Settings")
         other_label.setObjectName("OptionsLabel")
@@ -967,7 +961,6 @@ class BatchOCRDialog(QDialog):
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
         self.ocr_settings_layout.addLayout(merge_layout)
-        self.ocr_settings_layout.addLayout(export_layout)
 
         self.status_layout = QHBoxLayout()
         self.status_label = QLabel("Status")
@@ -1034,6 +1027,7 @@ class BatchOCRDialog(QDialog):
             merge_lines=do_merge,
             k_factor=float(k_factor),
             bbox_tolerance=float(bbox_tolerance),
+            target_encoding=encoding
         )
 
         self.runner.signals.sample.connect(self.handle_update_progress)

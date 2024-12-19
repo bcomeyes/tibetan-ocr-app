@@ -55,6 +55,7 @@ class OCRBatchRunner(QRunnable):
             merge_lines: bool = True,
             k_factor: float = 1.7,
             bbox_tolerance: float = 3.0,
+            target_encoding: Encoding = Encoding.Unicode
             ):
 
         super(OCRBatchRunner, self).__init__()
@@ -67,6 +68,7 @@ class OCRBatchRunner(QRunnable):
         self.merge_lines = merge_lines
         self.k_factor = k_factor
         self.bbox_tolerance = bbox_tolerance
+        self.target_encoding = target_encoding
         self.stop = False
 
     def kill(self):
@@ -84,7 +86,8 @@ class OCRBatchRunner(QRunnable):
                     k_factor=self.k_factor,
                     bbox_tolerance=self.bbox_tolerance,
                     merge_lines=self.merge_lines,
-                    use_tps=self.do_dewarp
+                    use_tps=self.do_dewarp,
+                    target_encoding=self.target_encoding
                 )
 
                 if status == OpStatus.SUCCESS:

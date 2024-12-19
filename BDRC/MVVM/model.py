@@ -6,14 +6,14 @@ from uuid import UUID
 from typing import List, Dict
 from BDRC.Utils import import_local_models
 from BDRC.Data import (
+    AppSettings,
+    Encoding,
     OCRData,
     Line,
-    AppSettings,
     OCRLine,
     OCRLineUpdate,
     OCRSettings,
-    OCRModel,
-    CharsetEncoder,
+    OCRModel
 )
 
 
@@ -80,17 +80,17 @@ class OCRDataModel:
 
     def convert_wylie_unicode(self, guid: UUID):
         for ocr_line in self.data[guid].ocr_lines:
-            if ocr_line.encoder == CharsetEncoder.Wylie:
+            if ocr_line.encoding == Encoding.Wylie:
                 new_text = self.converter.toUnicode(ocr_line.text)
                 ocr_line.text = new_text
-                ocr_line.encoder = CharsetEncoder.Stack
+                ocr_line.encoding = Encoding.Unicode
             else:
                 new_text = self.converter.toWylie(ocr_line.text)
                 ocr_line.text = new_text
-                ocr_line.encoder = CharsetEncoder.Wylie
+                ocr_line.encoding = Encoding.Wylie
 
     def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
         for ocr_line in self.data[ocr_line_update.page_guid].lines:
             if ocr_line.guid == ocr_line_update.ocr_line.guid:
                 ocr_line.text = ocr_line_update.ocr_line.text
-                ocr_line.encoder = ocr_line_update.ocr_line.encoder
+                ocr_line.encoding = ocr_line_update.ocr_line.encoding
