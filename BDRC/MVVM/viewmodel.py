@@ -49,17 +49,20 @@ class SettingsViewModel(QObject):
 
 
 class DataViewModel(QObject):
+    """
+   Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
+   via the page switcher in the header, which focuses and scrolls to the respective image in the ImageGallery.
+   This is for time being a separate signal to avoid having a cycling signal when an image gets selected in the ImageGallery
+   via seleced_by_guid which would be focused afterwards as well - which is a weird behaviour
+    """
+
     s_record_changed = Signal(OCRData)
+    s_page_data_update = Signal(OCRData)
     s_data_selected = Signal(OCRData)
     s_data_changed = Signal(list)
     s_data_size_changed = Signal(list)
     s_ocr_line_update = Signal(OCRData) # for TextView
-    """
-    Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
-    via the page switcher in the header, which focuses and scrolls to the respective image in the ImageGallery. 
-    This is for time being a separate signal to avoid having a cycling signal when an image get's selected in the ImageGallery
-    via seleced_by_guid which would be focused afterwards as well - which is a weird behaviour
-    """
+
     s_data_auto_selected = Signal(OCRData)
     s_data_cleared = Signal()
 
@@ -104,16 +107,11 @@ class DataViewModel(QObject):
             self.s_record_changed.emit(data)
 
     def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float, silent: bool = False):
-        """
-        The silent flag is set to True when running OCR in batch mode to avoid triggering the recordChanged event for every image
-        TODO: THis function invkokes also self.recordChanged which causes a refresh of the text lines widget, so this function is called twice
-        TODO: This should be redesigned...
-        """
         self._model.add_page_data(uuid, lines, preview_image, angle)
 
         if not silent:
             data = self.get_data_by_guid(uuid)
-            self.s_record_changed.emit(data)
+            self.s_page_data_update.emit(data)
 
     def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
         self._model.update_ocr_line(ocr_line_update)

@@ -1380,7 +1380,6 @@ class TextView(QFrame):
         self.update_text(ocr_data.guid, ocr_data.ocr_lines)
 
     def update_text(self, page_guid: UUID, ocr_lines: List[OCRLine]):
-        print("TextView -> update_text")
         self.page_guid = page_guid
         self.ocr_lines = ocr_lines
         self.text_widget_list.clear()

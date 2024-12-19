@@ -51,7 +51,7 @@ class MainView(QWidget):
 
         # connect to view model signals
         self._data_view.s_data_selected.connect(self.set_data)
-        self._data_view.s_record_changed.connect(self.set_data)
+        self._data_view.s_page_data_update.connect(self.set_data)
         self._data_view.s_data_changed.connect(self.update_data)
         self._data_view.s_data_cleared.connect(self.clear_data)
 
