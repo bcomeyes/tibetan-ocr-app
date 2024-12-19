@@ -221,6 +221,11 @@ class ConfirmationDialog(QMessageBox):
         else:
             self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
 
+        self.setStyleSheet("""
+                    color: #ffffff;
+                    background-color: #1d1c1c;
+            """)
+
 
 class NotificationDialog(QMessageBox):
     def __init__(self, title: str, message: str):
