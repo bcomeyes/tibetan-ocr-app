@@ -227,30 +227,33 @@ class NotificationDialog(QMessageBox):
         super().__init__()
         self.setObjectName("NotificationWindow")
         self.setWindowTitle(title)
-        self.setMinimumWidth(600)
-        self.setMinimumHeight(440)
+        self.setFixedWidth(320)
+        self.setFixedHeight(120)
         self.setIcon(QMessageBox.Icon.Information)
 
         self.setText(message)
 
         self.ok_btn = QPushButton("Ok")
-        self.ok_btn.setStyleSheet(
-            """
-                               color: #ffffff;
-                               font: bold 12px;
-                               width: 240px;
-                               height: 32px;
-                               background-color: #A40021;
-                               border-radius: 4px;
+        self.ok_btn.setStyleSheet("""
+           
+            color: #ffffff;
+            background-color: #A40021;
+            border-radius: 4px;
+            height: 20;
+            width: 80px;
 
-                               QPushButton::hover { 
-                                   color: #ff0000;
-                               }
-                           """
+            QPushButton::hover { 
+               color: #ff0000;
+           }
+        """
         )
 
         self.addButton(self.ok_btn, QMessageBox.ButtonRole.YesRole)
 
+        self.setStyleSheet("""
+            color: #ffffff;
+            background-color: #1d1c1c;
+        """)
 
 class ExportDialog(QDialog):
     def __init__(
@@ -1036,20 +1039,12 @@ class BatchOCRDialog(QDialog):
         self.status.setText("Running")
         self.status.setStyleSheet(
             """
-            background-color: #ff9100;
-        """
+                background-color: #ff9100;
+            """
         )
 
     def handle_update_progress(self, sample: OCRSample):
         self.progress_bar.setValue(sample.cnt)
-        """ 
-        file_name = self.data[sample.cnt].image_name
-        out_file = os.path.join(self.output_dir, f"{file_name}.txt")
-
-        with open(out_file, "w", encoding="utf-8") as f:
-            for line in sample.result.text:
-                f.write(f"{line}\n")
-        """
         self.sign_ocr_result.emit(sample.result)
 
     def finish(self):
@@ -1058,8 +1053,8 @@ class BatchOCRDialog(QDialog):
         self.status.setText("Finished")
         self.status.setStyleSheet(
             """
-                    background-color: #63ff00;
-                """
+                background-color: #63ff00;
+            """
         )
 
     def cancel_process(self):
@@ -1067,9 +1062,9 @@ class BatchOCRDialog(QDialog):
             self.runner.stop = True
             self.status.setText("Canceled")
             self.status.setStyleSheet(
-                """
-                                background-color: #e80000;
-                            """
+            """
+                background-color: #e80000;
+            """
             )
 
 
@@ -1078,75 +1073,39 @@ class ImportFilesProgress(QProgressDialog):
         super(ImportFilesProgress, self).__init__()
         self.setWindowTitle(title)
         self.setFixedWidth(420)
-        self.setFixedHeight(210)
+        self.setFixedHeight(140)
         self.setWindowModality(Qt.WindowModality.NonModal)
-        self.setContentsMargins(32, 32, 32, 32)
         self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setObjectName("SmallDialogButton")
+        self.cancel_btn.setStyleSheet("""
+                color: #ffffff;
+                background-color: #A40021;
+                border-radius: 4px;
+                height: 20;
+                width: 80px;
+        """)
+
+
         self.cancel_btn.setFixedWidth(80)
         self.cancel_btn.setFixedHeight(32)
         self.setCancelButton(self.cancel_btn)
+
+        self.cancel_btn.clicked.connect(self.cancel)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(max_length)
         self.progress_bar.setObjectName("DialogProgressBar")
-        self.progress_bar.setStyleSheet(
-            """
-                    QProgressBar {
-                        background-color: #474747;
-                        color: #A40021;
-                        border: 2px solid #fce08e;
-                        border-radius: 8px;
-                        padding: 4px 4px 4px 4px;
-                    }
-
-                    QProgressBar::chunk {
-                        background-color: #A40021;
-                        width: 20px;
-                    }
-                """
-        )
 
         self.setBar(self.progress_bar)
 
-        self.cancel_btn.setStyleSheet(
-            """
-            QPushButton {
-                color: #ffffff;
-                background-color: #A40021;
-                border-radius: 4px;
-                height: 24;
-                margin-right: 24px;
-            }
-        
-        """
-        )
-
         self.setStyleSheet(
             """
-            color: #ffffff;
-            background-color: #1d1c1c;
-            QPushButton {
                 color: #ffffff;
-                background-color: #A40021;
-                border-radius: 4px;
-                height: 24;
-            }
-            
-            QProgressBar {
-                background-color: #24272c;
-                border-radius: 5px;
-                border-width: 2px;
-            }
-
-            QProgressBar::chunk
-            {
-                background-color: #003d66;
-                border-radius: 5px;
-                margin: 3px 3px 3px 3px;
-            }
-            
+                background-color: #1d1c1c;
+                padding: 4px 4px 4px 4px;
+    
             """
         )
 

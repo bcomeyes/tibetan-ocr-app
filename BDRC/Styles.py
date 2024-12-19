@@ -329,8 +329,8 @@ DARK = """
     }
 
     QMessageBox#NotificationWindow {
-        background-color: #1d1c1c;
         color: #ffffff;
+        background-color: #1d1c1c;
                     
         QPushButton {
             width: 200px;

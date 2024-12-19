@@ -188,6 +188,11 @@ class AppView(QWidget):
                         imported_data[ocr_data.guid] = ocr_data
                         progress.setValue(idx)
 
+                        if progress.wasCanceled():
+                            print("Progress was canceled")
+                            progress.close()
+                            break
+
             else:
                 for idx, file_path in enumerate(file_list):
                     if os.path.isfile(file_path):
