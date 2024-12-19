@@ -1,9 +1,20 @@
 import os
-from uuid import UUID
+import pyewts
 import numpy.typing as npt
+
+from uuid import UUID
 from typing import List, Dict
-from BDRC.Data import OCRData, Line, AppSettings, OCRLine, OCRLineUpdate, OCRSettings, OCRModel
 from BDRC.Utils import import_local_models
+from BDRC.Data import (
+    OCRData,
+    Line,
+    AppSettings,
+    OCRLine,
+    OCRLineUpdate,
+    OCRSettings,
+    OCRModel,
+    CharsetEncoder,
+)
 
 
 class SettingsModel:
@@ -41,6 +52,7 @@ class SettingsModel:
 class OCRDataModel:
     def __init__(self):
         self.data = {}
+        self.converter = pyewts.pyewts()
 
     def add_data(self, data: Dict[UUID, OCRData]):
         self.data.clear()
@@ -53,7 +65,9 @@ class OCRDataModel:
     def clear_data(self):
         self.data.clear()
 
-    def add_page_data(self, guid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float) -> None:
+    def add_page_data(
+        self, guid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float
+    ) -> None:
         self.data[guid].lines = lines
         self.data[guid].preview = preview_image
         self.data[guid].angle = angle
@@ -64,7 +78,19 @@ class OCRDataModel:
     def delete_image(self, guid: UUID):
         del self.data[guid]
 
+    def convert_wylie_unicode(self, guid: UUID):
+        for ocr_line in self.data[guid].ocr_lines:
+            if ocr_line.encoder == CharsetEncoder.Wylie:
+                new_text = self.converter.toUnicode(ocr_line.text)
+                ocr_line.text = new_text
+                ocr_line.encoder = CharsetEncoder.Stack
+            else:
+                new_text = self.converter.toWylie(ocr_line.text)
+                ocr_line.text = new_text
+                ocr_line.encoder = CharsetEncoder.Wylie
+
     def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
         for ocr_line in self.data[ocr_line_update.page_guid].lines:
             if ocr_line.guid == ocr_line_update.ocr_line.guid:
                 ocr_line.text = ocr_line_update.ocr_line.text
+                ocr_line.encoder = ocr_line_update.ocr_line.encoder

@@ -93,6 +93,7 @@ class Line:
 class OCRLine:
     guid: UUID
     text: str
+    encoder: CharsetEncoder
 
 @dataclass
 class LayoutData:
@@ -166,6 +167,11 @@ class LineDataResult:
 class OCRLineUpdate:
     page_guid: UUID
     ocr_line: OCRLine
+
+@dataclass
+class OCRLineEncodingUpdate:
+    page_guid: UUID
+    ocr_lines: List[OCRLine]
 
 @dataclass
 class OCResult:

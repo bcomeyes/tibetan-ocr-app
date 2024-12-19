@@ -7,11 +7,10 @@ from BDRC.Data import OCRData, Line, OCRLine, OCRLineUpdate, OCRModel, AppSettin
 
 
 class SettingsViewModel(QObject):
-    appSettingsChanged = Signal(AppSettings)
-    ocrSettingsChanged = Signal(OCRSettings)
-    ocrModelsChanged = Signal()
-    ocrModelChanged = Signal(OCRModel)
-
+    s_app_settings_changed = Signal(AppSettings)
+    s_ocr_settings_changed = Signal(OCRSettings)
+    s_ocr_models_changed = Signal()
+    s_ocr_model_changed = Signal(OCRModel)
 
     def __init__(self, model: SettingsModel):
         super().__init__()
@@ -31,38 +30,38 @@ class SettingsViewModel(QObject):
 
     def update_ocr_settings(self, settings: OCRSettings):
         self._model.update_ocr_settings(settings)
-        self.ocrSettingsChanged.emit(settings)
+        self.s_ocr_settings_changed.emit(settings)
 
     def update_app_settings(self, settings: AppSettings):
         self._model.update_app_settings(settings)
-        self.appSettingsChanged.emit(settings)
+        self.s_app_settings_changed.emit(settings)
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
         if len(ocr_models) > 0:
             self._model.ocr_models = ocr_models
             self._model.current_ocr_model = self._model.ocr_models[0]
             self.select_ocr_model(self._model.current_ocr_model)
-            self.ocrModelsChanged.emit()
+            self.s_ocr_models_changed.emit()
 
     def select_ocr_model(self, ocr_model: OCRModel):
         self._model.set_current_ocr_model(ocr_model)
-        self.ocrModelChanged.emit(ocr_model)
+        self.s_ocr_model_changed.emit(ocr_model)
 
 
 class DataViewModel(QObject):
-    recordChanged = Signal(OCRData)
-    dataSelected = Signal(OCRData)
-    dataChanged = Signal(list)
-    dataSizeChanged = Signal(list)
-    s_ocrLineUpdate = Signal(OCRData) # for TextView
+    s_record_changed = Signal(OCRData)
+    s_data_selected = Signal(OCRData)
+    s_data_changed = Signal(list)
+    s_data_size_changed = Signal(list)
+    s_ocr_line_update = Signal(OCRData) # for TextView
     """
     Note: The dataAutoSelected Signal is a temporary workaround to handle the case of a data record being selected
     via the page switcher in the header, which focuses and scrolls to the respective image in the ImageGallery. 
     This is for time being a separate signal to avoid having a cycling signal when an image get's selected in the ImageGallery
     via seleced_by_guid which would be focused afterwards as well - which is a weird behaviour
     """
-    dataAutoSelected = Signal(OCRData)
-    dataCleared = Signal()
+    s_data_auto_selected = Signal(OCRData)
+    s_data_cleared = Signal()
 
     def __init__(self, model: OCRDataModel):
         super().__init__()
@@ -79,14 +78,14 @@ class DataViewModel(QObject):
         self._model.add_data(data)
 
         current_data = self._model.get_data()
-        self.dataChanged.emit(current_data)
+        self.s_data_changed.emit(current_data)
 
     def select_data_by_guid(self, uuid: UUID):
-        self.dataSelected.emit(self._model.data[uuid])
+        self.s_data_selected.emit(self._model.data[uuid])
 
     def delete_image_by_guid(self, guid: UUID):
         self._model.delete_image(guid)
-        self.dataSizeChanged.emit(self._model.get_data())
+        self.s_data_size_changed.emit(self._model.get_data())
 
     def get_data_index(self, uuid: UUID):
         _entries = list(self._model.data.keys())
@@ -95,16 +94,14 @@ class DataViewModel(QObject):
     def select_data_by_index(self, index: int):
         # This is the case when an index is fed by the PageSwitcher
         current_data = list(self._model.data.values())
-        self.dataAutoSelected.emit(current_data[index])
+        self.s_data_auto_selected.emit(current_data[index])
 
     def update_ocr_data(self, uuid: UUID, ocr_lines: List[OCRLine], silent: bool = False):
-        print(f"DataViewModel -> updating OCR Results: {ocr_lines}")
-
         self._model.add_ocr_text(uuid, ocr_lines)
 
         if not silent:
             data = self.get_data_by_guid(uuid)
-            self.recordChanged.emit(data)
+            self.s_record_changed.emit(data)
 
     def update_page_data(self, uuid: UUID, lines: List[Line], preview_image: npt.NDArray, angle: float, silent: bool = False):
         """
@@ -112,17 +109,22 @@ class DataViewModel(QObject):
         TODO: THis function invkokes also self.recordChanged which causes a refresh of the text lines widget, so this function is called twice
         TODO: This should be redesigned...
         """
-
         self._model.add_page_data(uuid, lines, preview_image, angle)
 
         if not silent:
             data = self.get_data_by_guid(uuid)
-            self.recordChanged.emit(data)
+            self.s_record_changed.emit(data)
 
     def update_ocr_line(self, ocr_line_update: OCRLineUpdate):
-        print(f"ViewModel -> update_ocr_line: {ocr_line_update}")
-        self.s_ocrLineUpdate.emit(self._model.data[ocr_line_update.page_guid])
+        self._model.update_ocr_line(ocr_line_update)
+        self.s_ocr_line_update.emit(self._model.data[ocr_line_update.page_guid])
+
+    def convert_wylie_unicode(self, page_guid: UUID):
+        self._model.convert_wylie_unicode(page_guid)
+
+        data = self.get_data_by_guid(page_guid)
+        self.s_record_changed.emit(data)
 
     def clear_data(self):
         self._model.clear_data()
-        self.dataCleared.emit()
+        self.s_data_cleared.emit()

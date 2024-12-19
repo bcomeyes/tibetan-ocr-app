@@ -50,10 +50,10 @@ class MainView(QWidget):
         self.setLayout(self.v_layout)
 
         # connect to view model signals
-        self._data_view.dataSelected.connect(self.set_data)
-        self._data_view.recordChanged.connect(self.set_data)
-        self._data_view.dataChanged.connect(self.update_data)
-        self._data_view.dataCleared.connect(self.clear_data)
+        self._data_view.s_data_selected.connect(self.set_data)
+        self._data_view.s_record_changed.connect(self.set_data)
+        self._data_view.s_data_changed.connect(self.update_data)
+        self._data_view.s_data_cleared.connect(self.clear_data)
 
 
         # connect to tool signals
@@ -65,7 +65,7 @@ class MainView(QWidget):
         self.header_tools.toolbox.s_run.connect(self.handle_run)
         self.header_tools.toolbox.s_run_all.connect(self.handle_batch_run)
         self.header_tools.toolbox.s_settings.connect(self.handle_settings)
-        self.header_tools.page_switcher.sign_on_page_changed.connect(self.handle_update_page)
+        self.header_tools.page_switcher.s_on_page_changed.connect(self.handle_update_page)
 
         self.current_guid = None
 
@@ -142,7 +142,7 @@ class AppView(QWidget):
         self.setLayout(self.main_layout)
 
         # connect view model signals
-        self._settingsview_model.ocrModelChanged.connect(self.update_ocr_model)
+        self._settingsview_model.s_ocr_model_changed.connect(self.update_ocr_model)
 
         # connect layout signals
         self.main_container.s_handle_import.connect(self.handle_file_import)

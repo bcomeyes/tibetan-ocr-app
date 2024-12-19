@@ -1,4 +1,3 @@
-import pyewts
 from uuid import UUID
 from typing import List
 from Config import DEFAULT_FONT
@@ -54,8 +53,8 @@ class HeaderTools(QFrame):
         self.page_switcher = PageSwitcher(icon_size=icon_size)
 
         # bind signals
-        self.data_view.dataSelected.connect(self.set_page_index)
-        self.settings_view.ocrModelsChanged.connect(self.update_ocr_models)
+        self.data_view.s_data_selected.connect(self.set_page_index)
+        self.settings_view.s_ocr_models_changed.connect(self.update_ocr_models)
 
         # build layout
         self.spacer = QLabel()
@@ -234,7 +233,7 @@ class ToolBox(QWidget):
 
 
 class PageSwitcher(QFrame):
-    sign_on_page_changed = Signal(int)
+    s_on_page_changed = Signal(int)
 
     def __init__(self, pages: int = 0, icon_size: int = 36):
         super().__init__()
@@ -288,14 +287,14 @@ class PageSwitcher(QFrame):
 
         if next_index >= 0:
             self.update_page(next_index)
-            self.sign_on_page_changed.emit(next_index)
+            self.s_on_page_changed.emit(next_index)
 
     def next(self):
         next_index = self.current_index + 1
 
         if not next_index > self.max_pages-1:
             self.update_page(next_index)
-            self.sign_on_page_changed.emit(next_index)
+            self.s_on_page_changed.emit(next_index)
 
 
 class PTGraphicsView(QGraphicsView):
@@ -482,12 +481,11 @@ class PTGraphicsView(QGraphicsView):
 
 class PTGraphicsScene(QGraphicsScene):
     # see: https://forum.qt.io/topic/101616/pyside2-qtcore-signal-object-has-no-attribute-emit/4
-    left_click_signal = Signal(QPoint)
-    left_release_signal = Signal(QPoint)
-    right_click_signal = Signal(QPoint)
-    right_release_signal = Signal(QPoint)
-
-    clear_selections = Signal()
+    s_left_click_signal = Signal(QPoint)
+    s_left_release_signal = Signal(QPoint)
+    s_right_click_signal = Signal(QPoint)
+    s_right_release_signal = Signal(QPoint)
+    s_clear_selections = Signal()
 
     def __init__(self, scene, width: int = 2000, height: int = 2000, parent=None):
         super().__init__(parent)
@@ -670,7 +668,7 @@ class Canvas(QFrame):
 
 
 class ImageList(QListWidget):
-    sign_on_selected_item = Signal(UUID)
+    s_on_selected_item = Signal(UUID)
     """
     https://stackoverflow.com/questions/64576846/how-to-paint-an-outline-when-hovering-over-a-qlistwidget-item
     """
@@ -765,7 +763,7 @@ class ImageList(QListWidget):
         _list_item_widget = self.itemWidget(item)  # returns an instance of CanvasHierarchyEntry
 
         if isinstance(_list_item_widget, ImageListWidget):
-            self.sign_on_selected_item.emit(_list_item_widget.guid)
+            self.s_on_selected_item.emit(_list_item_widget.guid)
 
 
 class ImageThumb(QFrame):
@@ -1018,11 +1016,11 @@ class ImageGallery(QFrame):
         self.setLayout(self.layout)
 
         # connect signals
-        self.view_model.dataChanged.connect(self.add_data)
-        self.view_model.dataSizeChanged.connect(self.refresh_data)
-        self.view_model.dataCleared.connect(self.clear_data)
-        self.view_model.dataAutoSelected.connect(self.focus_page)
-        self.image_list.sign_on_selected_item.connect(self.handle_item_selection)
+        self.view_model.s_data_changed.connect(self.add_data)
+        self.view_model.s_data_size_changed.connect(self.refresh_data)
+        self.view_model.s_data_cleared.connect(self.clear_data)
+        self.view_model.s_data_auto_selected.connect(self.focus_page)
+        self.image_list.s_on_selected_item.connect(self.handle_item_selection)
 
         self.current_size = self.sizeHint()
         self.current_width = self.current_size.width()
@@ -1220,12 +1218,11 @@ class TextWidget(QWidget):
     Custom widget holding the actual text data
     """
 
-    def __init__(self, ocr_line: OCRLine, qfont: QFont, converter: pyewts.pyewts):
+    def __init__(self, ocr_line: OCRLine, qfont: QFont):
         super().__init__()
         self.setObjectName("TextWidget")
         self.ocr_line = ocr_line
         self.qfont = qfont
-        self.converter = converter
         self.label = QLabel()
         self.label.setObjectName("TextLine")
         self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -1242,7 +1239,6 @@ class TextWidget(QWidget):
 
         # bind edit signal
         self.btn_edit.clicked.connect(self.edit_label)
-
 
     def edit_label(self):
         dialog = TextInputDialog("Editing Line", self.ocr_line.text, self.qfont, parent=self)
@@ -1282,26 +1278,38 @@ class TextView(QFrame):
         else:
             self.qfont = QFont(self.default_font_path, self.font_size)
 
-        self.converter = pyewts.pyewts()
         self.page_guid = None
         self.ocr_lines = []
+        self.current_font = ""
         self.text_widget_list = TextWidgetList()
 
         self.zoom_in_btn = TextToolsButton("+")
         self.zoom_out_btn = TextToolsButton("-")
+
+        self.convert_wylie_btn_icon = "Assets/Textures/convert_wylie_unicode.png"
+        self.convert_wylie_btn = MenuButton(
+            "convert between Wylie and Unicode",
+            self.convert_wylie_btn_icon,
+            width=32,
+            height=32,
+            object_name="TextToolsButton"
+        )
+
         self.spacer = QLabel()
 
         # bind signals
-        self._dataview.dataSelected.connect(self.handle_text_update)
-        self._dataview.recordChanged.connect(self.handle_text_update)
-        self._dataview.s_ocrLineUpdate.connect(self.handle_line_update)
+        self._dataview.s_data_selected.connect(self.handle_text_update)
+        self._dataview.s_record_changed.connect(self.handle_text_update)
+        self._dataview.s_ocr_line_update.connect(self.handle_line_update)
         self.zoom_in_btn.clicked.connect(self.zoom_in)
         self.zoom_out_btn.clicked.connect(self.zoom_out)
+        self.convert_wylie_btn.clicked.connect(self.convert_wylie_unicode)
 
         # build layout
         self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.zoom_in_btn)
         self.button_layout.addWidget(self.zoom_out_btn)
+        self.button_layout.addWidget(self.convert_wylie_btn)
         self.button_layout.addWidget(self.spacer)
 
         self.layout = QVBoxLayout()
@@ -1320,7 +1328,7 @@ class TextView(QFrame):
             for ocr_line in self.ocr_lines:
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(ocr_line, self.qfont, self.converter)
+                text_widget = TextWidget(ocr_line, self.qfont)
                 text_size = text_widget.sizeHint()
                 text_widget.s_update_label.connect(self.handle_line_edit)
 
@@ -1348,10 +1356,9 @@ class TextView(QFrame):
 
         if self.ocr_lines is not None:
             for text_line in self.ocr_lines:
-                text_line = self.converter.toUnicode(text_line)
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(text_line, self.qfont, self.converter)
+                text_widget = TextWidget(text_line, self.qfont)
                 text_size = text_widget.sizeHint()
 
                 if text_size.width() < 800:
@@ -1373,6 +1380,7 @@ class TextView(QFrame):
         self.update_text(ocr_data.guid, ocr_data.ocr_lines)
 
     def update_text(self, page_guid: UUID, ocr_lines: List[OCRLine]):
+        print("TextView -> update_text")
         self.page_guid = page_guid
         self.ocr_lines = ocr_lines
         self.text_widget_list.clear()
@@ -1380,7 +1388,7 @@ class TextView(QFrame):
         if ocr_lines is not None:
             for ocr_line in ocr_lines:
                 list_item = QListWidgetItem()
-                text_widget = TextWidget(ocr_line, self.qfont, self.converter)
+                text_widget = TextWidget(ocr_line, self.qfont)
 
                 text_size = text_widget.sizeHint()
 
@@ -1406,11 +1414,15 @@ class TextView(QFrame):
         self.font_size = font_size
 
     def handle_line_edit(self, ocr_line: OCRLine):
-        ocr_line_uppdate = OCRLineUpdate(
+        ocr_line_update = OCRLineUpdate(
             self.page_guid,
             ocr_line
         )
-        self._dataview.update_ocr_line(ocr_line_uppdate)
+        self._dataview.update_ocr_line(ocr_line_update)
 
     def handle_line_update(self, ocr_data: OCRData):
         self.update_text(ocr_data.guid, ocr_data.ocr_lines)
+
+    def convert_wylie_unicode(self):
+        if self.page_guid is not None:
+            self._dataview.convert_wylie_unicode(self.page_guid)

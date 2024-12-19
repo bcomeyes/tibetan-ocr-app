@@ -11,7 +11,7 @@ from BDRC.Data import (
     TPSMode,
     OCRModelConfig,
     LineDetectionConfig,
-    LayoutDetectionConfig, Platform,
+    LayoutDetectionConfig, Platform
 )
 
 from pyctcdecode import build_ctcdecoder
@@ -327,9 +327,8 @@ class OCRInference:
 class OCRPipeline:
     """
     Note: The handling of line model vs. layout model is kind of provisional here and totally depends on the way you want to run this.
-    You could also pass both configs to the the pipeline, run both models and merge the (partially) overlapping output before extracting the line images to compensate for the strengths/weaknesses
+    You could also pass both configs to the pipeline, run both models and merge the (partially) overlapping output before extracting the line images to compensate for the strengths/weaknesses
     of either model. So that is basically up to you.
-
     """
 
     def __init__(
@@ -342,6 +341,7 @@ class OCRPipeline:
         self.platform = platform
         self.ocr_model_config = ocr_config
         self.line_config = line_config
+        self.encoder = ocr_config.encoder
         self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
 
         if isinstance(self.line_config, LineDetectionConfig):
@@ -430,7 +430,8 @@ class OCRPipeline:
 
                 ocr_line = OCRLine(
                     guid=line_info.guid,
-                    text=pred
+                    text=pred,
+                    encoder=self.encoder
                 )
                 ocr_lines.append(ocr_line)
                 page_text.append(pred)
