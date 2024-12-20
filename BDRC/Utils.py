@@ -68,12 +68,8 @@ def get_platform() -> Platform:
 
     return _platform
 
-def set_resource_dir(platform: Platform):
-    if platform == Platform.Mac:
-        Config.RESOURCE_DIR = "Contents/Resources"
-    else:
-        Config.RESOURCE_DIR = "/"
-
+def set_user_dir(directory_path: str):
+        Config.USER_DIR = directory_path
 
 def get_utc_time():
     utc_time = datetime.now()

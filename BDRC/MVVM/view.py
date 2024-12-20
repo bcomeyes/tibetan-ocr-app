@@ -159,8 +159,8 @@ class AppView(QWidget):
         self.main_container.s_handle_settings.connect(self.handle_settings)
 
         # ocr inference sessions
-        self.line_model_config = read_line_model_config(LINES_CONFIG)
-        self.layout_model_config = read_layout_model_config(LAYOUT_CONFIG)
+        self.line_model_config = read_line_model_config(LINES_CONFIG.path())
+        self.layout_model_config = read_layout_model_config(LAYOUT_CONFIG.path())
         _ocr_model = self._settingsview_model.get_current_ocr_model()
 
         if _ocr_model is not None:

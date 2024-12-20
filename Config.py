@@ -1,14 +1,16 @@
 import os
 import json
 import logging
+import resources
+from PySide6.QtCore import QResource, QFile, QUrl
 from BDRC.Data import OpStatus, AppSettings, Encoding, ExportFormat, Language, Theme, OCRSettings, LineMode, \
     LineMerge, LineSorting, TPSMode, CharsetEncoder, OCRArchitecture
 from huggingface_hub import snapshot_download
 
-RESOURCE_DIR = "Resources"
-LINES_CONFIG = f"{RESOURCE_DIR}/Models/Lines/config.json"
-LAYOUT_CONFIG = f"{RESOURCE_DIR}/Models/Layout/config.json"
-DEFAULT_FONT = f"{RESOURCE_DIR}/Assets/Fonts/TibMachUni-1.901b.ttf"
+USER_DIR = ""
+LINES_CONFIG = QUrl("qrc:Resources/Models/Lines/config.json")
+LAYOUT_CONFIG = QUrl("qrc:Resources/Models/Layout/config.json")
+DEFAULT_FONT = QUrl("qrc:Resources/Assets/Fonts/TibMachUni-1.901b.ttf")
 
 """
 Mappings for each data type
@@ -80,11 +82,11 @@ TPS_MODE = {
     "global": TPSMode.GLOBAL
 }
 
-DEFAULT_MODELS_PATH = f"{RESOURCE_DIR}/Models"
+DEFAULT_MODELS_PATH = f"{USER_DIR}/Models"
 USER_MODEL_PATH = "/"
 
 DEFAULT_PHOTI_MODEL = "BDRC/Photi"
-DEFAULT_PHOTI_LOCAL_PATH = f"{RESOURCE_DIR}/Models/Photi/Default"
+DEFAULT_PHOTI_LOCAL_PATH = f"{USER_DIR}/Models/Photi/Default"
 
 
 OCR_MODEL_STORE = {
@@ -93,7 +95,7 @@ OCR_MODEL_STORE = {
     "Betsug": "Models/OCR/Betsug"
 }
 
-DEFAULT_OCR_LOCAL_PATH = f"{RESOURCE_DIR}/Models/OCR/Default"
+DEFAULT_OCR_LOCAL_PATH = f"{USER_DIR}/Models/OCR/Default"
 DEFAULT_OCR_MODEL = "BDRC/Woodblock"
 
 
@@ -241,7 +243,7 @@ def save_ocr_settings(settings: OCRSettings, user_dir: str):
 
 def create_default_app_config(user_dir: str):
     _settings = {
-            "model_path": f"{RESOURCE_DIR}/Models",
+            "model_path": f"{USER_DIR}/Models",
             "language": "en",
             "encoding": "unicode",
             "theme": "dark"

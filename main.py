@@ -12,25 +12,24 @@ from PySide6.QtCore import QPoint
 from BDRC.MVVM.view import AppView
 from BDRC.MVVM.model import OCRDataModel, SettingsModel
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
-from Config import read_settings
-from BDRC.Utils import get_screen_center, get_platform, create_dir
+from Config import read_settings, LINES_CONFIG
+from BDRC.Utils import get_screen_center, set_user_dir, get_platform, create_dir
 from PySide6.QtWidgets import QApplication
 from BDRC.Styles import DARK
 
+APP_NAME = "OCR"
+APP_AUTHOR = "BDRC"
 
 if __name__ == "__main__":
     platform = get_platform()
+    user_data_dir = user_data_dir(APP_NAME, APP_AUTHOR)
+    set_user_dir(user_data_dir)
+    create_dir(user_data_dir)
 
     app = QApplication()
     app.setStyleSheet(DARK)
 
-    app_name = "OCR"
-    app_author = "BDRC"
-    user_data_dir = user_data_dir(app_name, app_author)
-    create_dir(user_data_dir)
-
     app_settings, ocr_settings = read_settings(user_data_dir)
-    print(f"starting with model_path: {app_settings.model_path}")
 
     data_model = OCRDataModel()
     settings_model = SettingsModel(app_settings, ocr_settings)
@@ -48,6 +47,7 @@ if __name__ == "__main__":
     )
     app_view.resize(screen_data.start_width, screen_data.start_height)
     app_view.move(QPoint(screen_data.start_x, screen_data.start_y))
+
 
     # just delete tmp files on startup
     tmp_img_dir = os.path.join(user_data_dir, "tmp", "images")
