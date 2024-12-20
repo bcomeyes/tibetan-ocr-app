@@ -6,12 +6,11 @@ from typing import Dict, List
 from PySide6.QtCore import Signal, Qt, QThreadPool
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter
 
-from Config import TMP_DIR
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
 from Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
-from BDRC.Utils import read_line_model_config, read_layout_model_config, build_ocr_data, get_filename
+from BDRC.Utils import read_line_model_config, read_layout_model_config, build_ocr_data, get_filename, create_dir
 from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, ExportDialog, \
     ImportImagesDialog, ImportPDFDialog, ImportFilesProgress
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
@@ -115,13 +114,15 @@ class AppView(QWidget):
     def __init__(self,
                  dataview_model: DataViewModel,
                  settingsview_model: SettingsViewModel,
-                 platform: Platform):
+                 platform: Platform,
+                 user_dir: str):
         super().__init__()
 
         self.setObjectName("MainWindow")
         self.setWindowTitle("BDRC OCR [BETA] 0.1")
         self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
+        self.user_dir = user_dir
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
         self._settingsview_model = settingsview_model
@@ -165,6 +166,10 @@ class AppView(QWidget):
                 self.layout_model_config)
         else:
             self.ocr_pipeline = None
+
+        # create temp dir
+        self.tmp_dir = os.path.join(self.user_dir, "tmp")
+        create_dir(self.tmp_dir)
 
         self.show()
 
@@ -220,13 +225,16 @@ class AppView(QWidget):
                             progress = ImportFilesProgress("Reading PDF file...", max_length=len(reader.pages))
                             progress.setWindowModality(Qt.WindowModality.WindowModal)
 
+                            tmp_image_dir = os.path.join(self.tmp_dir, "images")
+                            create_dir(tmp_image_dir)
+
                             for idx, page in enumerate(reader.pages):
                                 if progress.wasCanceled():
                                     break
 
                                 if len(page.images) > 0:
                                     data = page.images[0].data
-                                    tmp_img_path = f"{TMP_DIR}/{file_n}_{idx}.jpg"
+                                    tmp_img_path = f"{tmp_image_dir}/{file_n}_{idx}.jpg"
 
                                     with open(str(tmp_img_path), "wb") as f:
                                         f.write(data)
@@ -355,8 +363,8 @@ class AppView(QWidget):
         dialog.setStyleSheet(DARK)
 
         app_settings, ocr_settings, ocr_models = dialog.exec()
-        save_app_settings(app_settings)
-        save_ocr_settings(ocr_settings)
+        save_app_settings(app_settings, self.user_dir)
+        save_ocr_settings(ocr_settings, self.user_dir)
 
         self._settingsview_model.update_ocr_models(ocr_models)
 

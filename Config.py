@@ -8,7 +8,6 @@ from huggingface_hub import snapshot_download
 
 LINES_CONFIG = "Models/Lines/config.json"
 LAYOUT_CONFIG = "Models/Layout/config.json"
-TMP_DIR = "tmp"
 DEFAULT_FONT = "Assets/Fonts/TibMachUni-1.901b.ttf"
 
 """
@@ -144,15 +143,18 @@ def init_default_ocr_model(model_dir: str = DEFAULT_OCR_LOCAL_PATH):
         assert os.path.isfile(_config_path)
 
 
-def read_settings():
-    if not os.path.isfile("app_settings.json"):
+def read_settings(user_dir: str):
+    app_settings_file = os.path.join(user_dir, "app_settings.json")
+    ocr_settings_file = os.path.join(user_dir, "ocr_settings.json")
+
+    if not os.path.isfile(app_settings_file):
         print("Creating Default app settings...")
-        create_default_app_config()
+        create_default_app_config(user_dir)
 
-    if not os.path.isfile("ocr_settings.json"):
-        create_default_ocr_config()
+    if not os.path.isfile(ocr_settings_file):
+        create_default_ocr_config(user_dir)
 
-    file = open("app_settings.json", encoding="utf-8")
+    file = open(app_settings_file, encoding="utf-8")
     app_json_settings = json.loads(file.read())
 
     _model_path = app_json_settings["model_path"]
@@ -167,7 +169,7 @@ def read_settings():
         theme=THEMES[_theme]
     )
 
-    file = open("ocr_settings.json", encoding="utf-8")
+    file = open(ocr_settings_file, encoding="utf-8")
     ocr_json_settings = json.loads(file.read())
     _line_mode = ocr_json_settings["line_mode"]
     _line_merge =  ocr_json_settings["line_merge"]
@@ -194,7 +196,7 @@ def read_settings():
     return app_settings, ocr_settings
 
 
-def save_app_settings(settings: AppSettings):
+def save_app_settings(settings: AppSettings, user_dir: str):
     _model_path = settings.model_path
     _language = [x for x in LANGUAGES if LANGUAGES[x] == settings.language][0]
     _encoding = [x for x in ENCODINGS if ENCODINGS[x] == settings.encoding][0]
@@ -206,11 +208,13 @@ def save_app_settings(settings: AppSettings):
                 "encoding": _encoding,
                 "theme": _theme
             }
-    with open("app_settings.json", "w", encoding="utf-8") as f:
+
+    app_settings_file = os.path.join(user_dir, "app_settings.json")
+    with open(app_settings_file, "w", encoding="utf-8") as f:
         json.dump(_settings, f, ensure_ascii=False, indent=1)
 
 
-def save_ocr_settings(settings: OCRSettings):
+def save_ocr_settings(settings: OCRSettings, user_dir: str):
     _line_mode = [x for x in LINE_MODES if LINE_MODES[x] == settings.line_mode][0]
     _line_merge = [x for x in LINE_MERGE if LINE_MERGE[x] == settings.line_merge][0]
     _line_sorting = [x for x in LINE_SORTING if LINE_SORTING[x] == settings.line_sorting][0]
@@ -230,23 +234,24 @@ def save_ocr_settings(settings: OCRSettings):
         "output_encoding": "unicode",
     }
 
-    with open("ocr_settings.json", "w", encoding="utf-8") as f:
+    ocr_settings_file = os.path.join(user_dir, "ocr_settings.json")
+    with open(ocr_settings_file, "w", encoding="utf-8") as f:
         json.dump(_settings, f, ensure_ascii=False, indent=1)
 
 
-def create_default_app_config():
+def create_default_app_config(user_dir: str):
     _settings = {
             "model_path": "Models",
             "language": "en",
             "encoding": "unicode",
             "theme": "dark"
         }
-
-    with open("app_settings.json", "w", encoding="utf-8") as f:
+    app_settings_file = os.path.join(user_dir, "app_settings.json")
+    with open(app_settings_file, "w", encoding="utf-8") as f:
         json.dump(_settings, f, ensure_ascii=False, indent=1)
 
 
-def create_default_ocr_config():
+def create_default_ocr_config(user_dir: str):
     _settings = {
         "line_mode": "line",
         "line_merge": "merge",
@@ -259,5 +264,6 @@ def create_default_ocr_config():
         "output_encoding": "unicode"
     }
 
-    with open("ocr_settings.json", "w", encoding="utf-8") as f:
+    ocr_settings_file = os.path.join(user_dir, "ocr_settings.json")
+    with open(ocr_settings_file, "w", encoding="utf-8") as f:
         json.dump(_settings, f, ensure_ascii=False, indent=1)
