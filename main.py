@@ -6,7 +6,7 @@
 """
 import os
 import sys
-from appdirs import *
+from appdirs import user_data_dir
 from glob import glob
 from PySide6.QtCore import QPoint
 from BDRC.MVVM.view import AppView
@@ -18,9 +18,9 @@ from PySide6.QtWidgets import QApplication
 from BDRC.Styles import DARK
 
 
-
 if __name__ == "__main__":
     platform = get_platform()
+
     app = QApplication()
     app.setStyleSheet(DARK)
 

@@ -165,5 +165,5 @@ cython_debug/
 .DS_Store
 main.build
 main.dist
-Models
+Resources/Models
 download_models.py

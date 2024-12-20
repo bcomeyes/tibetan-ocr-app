@@ -1,6 +1,6 @@
 from uuid import UUID
 from typing import List
-from Config import DEFAULT_FONT
+from Config import DEFAULT_FONT, RESOURCE_DIR
 from BDRC.Data import Encoding, OCRLine, OCRLineUpdate, Platform
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
@@ -101,13 +101,13 @@ class ToolBox(QWidget):
         self.setFixedHeight(self.icon_size+18)
         self.setMinimumWidth(720)
 
-        self.new_btn_icon = "Assets/Textures/new_light.png"
-        self.import_btn_icon = "Assets/Textures/import.png"
-        self.import_pdf_icon = "Assets/Textures/pdf_import.png"
-        self.save_btn_icon = "Assets/Textures/save-disc.png"
-        self.run_btn_icon = "Assets/Textures/play_btn.png"
-        self.run_all_btn_icon = "Assets/Textures/play_all_btn.png"
-        self.settings_btn_icon = "Assets/Textures/settings.png"
+        self.new_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/new_light.png"
+        self.import_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/import.png"
+        self.import_pdf_icon = f"{RESOURCE_DIR}/Assets/Textures/pdf_import.png"
+        self.save_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/save-disc.png"
+        self.run_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/play_btn.png"
+        self.run_all_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/play_all_btn.png"
+        self.settings_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/settings.png"
 
         self.btn_new = MenuButton(
             "New Project",
@@ -252,8 +252,8 @@ class PageSwitcher(QFrame):
         self.current_page.setFixedHeight(icon_size)
         self.current_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.prev_btn_icon = "Assets/Textures/prev.png"
-        self.next_btn_icon = "Assets/Textures/next.png"
+        self.prev_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/prev.png"
+        self.next_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/next.png"
 
         self.prev_button = MenuButton(
             "Previous image",
@@ -496,7 +496,7 @@ class PTGraphicsScene(QGraphicsScene):
         self._background_color = QColor("#393939")
         self._pen_light = QPen(self._line_color)
         self._pen_light.setWidth(10)
-        self._bg_image = QPixmap("Assets/Themes/Dark/background_grid.jpg")
+        self._bg_image = QPixmap(f"{RESOURCE_DIR}/Assets/Themes/Dark/background_grid.jpg")
 
         self.set_scene(self._scene_width, self._scene_height)
         self.setBackgroundBrush(self._bg_image)
@@ -553,10 +553,10 @@ class Canvas(QFrame):
         self.view = PTGraphicsView(self.gr_scene)
         self.view.setScene(self.gr_scene)
 
-        self.toggle_prev_btn_icon = "Assets/Textures/toggle_prev.png"
-        self.fit_view_icon = "Assets/Textures/fit_to_canvas.png"
-        self.zoom_in_icon = "Assets/Textures/plus_sign.png"
-        self.zoom_out_icon = "Assets/Textures/minus_sign.png"
+        self.toggle_prev_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/toggle_prev.png"
+        self.fit_view_icon = f"{RESOURCE_DIR}/Assets/Textures/fit_to_canvas.png"
+        self.zoom_in_icon = f"{RESOURCE_DIR}/Assets/Textures/plus_sign.png"
+        self.zoom_out_icon = f"{RESOURCE_DIR}/Assets/Textures/minus_sign.png"
 
         self.toggle_prev_btn = MenuButton(
             "Toggle line preview",
@@ -923,7 +923,7 @@ class ImageListWidget(QWidget):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setText(self.file_name)
 
-        self.btn_delete_icon = "Assets/Textures/delete_icon.png"
+        self.btn_delete_icon = f"{RESOURCE_DIR}/Assets/Textures/delete_icon.png"
         self.icon_size = 24
         self.btn_delete = MenuButton(
             "Delete image",
@@ -1002,7 +1002,7 @@ class ImageGallery(QFrame):
         # build layout
         self.image_label = QLabel(self)
         self.image_label.setContentsMargins(6, 0, 0, 0)
-        self.image_pixmap = QPixmap("Assets/Textures/BDRC_Logo.png").scaled(
+        self.image_pixmap = QPixmap(f"{RESOURCE_DIR}/Assets/Textures/BDRC_Logo.png").scaled(
             QSize(140, 90),
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation)
@@ -1232,7 +1232,7 @@ class TextWidget(QWidget):
         self.label.setFont(qfont)
         self.label.setText(self.ocr_line.text)
 
-        self.btn_edit_icon = "Assets/Textures/edit_icon.png"
+        self.btn_edit_icon = f"{RESOURCE_DIR}/Assets/Textures/edit_icon.png"
         self.btn_edit = MenuButton("Edit Line", self.btn_edit_icon, 14, 14)
 
         self.layout = QHBoxLayout()
@@ -1289,7 +1289,7 @@ class TextView(QFrame):
         self.zoom_in_btn = TextToolsButton("+")
         self.zoom_out_btn = TextToolsButton("-")
 
-        self.convert_wylie_btn_icon = "Assets/Textures/convert_wylie_unicode.png"
+        self.convert_wylie_btn_icon = f"{RESOURCE_DIR}/Assets/Textures/convert_wylie_unicode.png"
         self.convert_wylie_btn = MenuButton(
             "convert between Wylie and Unicode",
             self.convert_wylie_btn_icon,

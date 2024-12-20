@@ -15,14 +15,14 @@ from pathlib import Path
 from datetime import datetime
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
+
+import Config
 from Config import OCRARCHITECTURE, CHARSETENCODER
 from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, \
     OCRModel, OCRData
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImage
 
-
-# TODO: read this from the global Config
 page_classes = {
                 "background": "0, 0, 0",
                 "image": "45, 255, 0",
@@ -67,6 +67,13 @@ def get_platform() -> Platform:
         _platform = Platform.Linux
 
     return _platform
+
+def set_resource_dir(platform: Platform):
+    if platform == Platform.Mac:
+        Config.RESOURCE_DIR = "Contents/Resources"
+    else:
+        Config.RESOURCE_DIR = "/"
+
 
 def get_utc_time():
     utc_time = datetime.now()

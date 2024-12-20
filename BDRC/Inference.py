@@ -150,7 +150,6 @@ class LayoutDetection(Detection):
                 contours = [x for x in contours if cv2.contourArea(x) > size_tresh]
             return contours
         else:
-            print("Returning []")
             return []
 
     def create_preview_image(self,
@@ -238,9 +237,6 @@ class OCRInference:
         )
         self._add_blank = ocr_config.add_blank
         self.decoder = CTCDecoder(self._characters, self._add_blank)
-
-        print(f"Characters: {len(self._characters)}")
-        print(f"CTC_Decoder vocab: {len(self.decoder.ctc_vocab)}")
 
     def _pad_ocr_line(
             self,
