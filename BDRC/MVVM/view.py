@@ -4,7 +4,7 @@ from uuid import UUID
 from pypdf import PdfReader
 from typing import Dict, List
 from PySide6.QtCore import Signal, Qt, QThreadPool
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel
 
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
@@ -33,6 +33,7 @@ class MainView(QWidget):
         self._data_view = data_view
         self._settings_view = settings_view
         self.platform = platform
+        self.current_dir = os.getcwd()
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
         self.canvas = Canvas()
@@ -42,8 +43,11 @@ class MainView(QWidget):
         self.v_splitter.addWidget(self.canvas)
         self.v_splitter.addWidget(self.text_view)
 
+        self.dir_label = QLabel(self.current_dir)
+        self.dir_label.setObjectName("TextLine")
         # build layout
         self.v_layout = QVBoxLayout()
+        self.v_layout.addWidget(self.dir_label)
         self.v_layout.addWidget(self.header_tools)
         self.v_layout.addWidget(self.v_splitter)
         self.setLayout(self.v_layout)
