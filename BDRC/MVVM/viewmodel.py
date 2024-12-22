@@ -16,6 +16,18 @@ class SettingsViewModel(QObject):
         super().__init__()
         self._model = model
 
+    def get_tmp_dir(self):
+        return self._model.tmp_dir
+
+    def get_resource_dir(self) -> str:
+        return self._model.execution_directory
+    
+    def get_default_font_path(self) -> str:
+        return self._model.DEFAULT_FONT
+    
+    def get_line_model(self):
+        return self._model.get_line_model()
+    
     def get_ocr_models(self):
         return self._model.ocr_models
 
@@ -46,6 +58,12 @@ class SettingsViewModel(QObject):
     def select_ocr_model(self, ocr_model: OCRModel):
         self._model.set_current_ocr_model(ocr_model)
         self.s_ocr_model_changed.emit(ocr_model)
+
+    def save_app_settings(self, settings: AppSettings):
+        self._model.save_app_settings(settings)
+
+    def save_ocr_settings(self, settings: OCRSettings):
+        self._model.save_ocr_settings(settings)
 
 
 class DataViewModel(QObject):

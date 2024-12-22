@@ -316,11 +316,11 @@ DARK = """
     QSplitter::handle {
         padding-top: 4px;
         padding-bottom: 4px;
-        image: url(Assets/Textures/splitter_handle.png);
+        image: url(Resources/Assets/Textures/splitter_handle.png);
     }
 
     QSplitter::handle:pressed {
-        image: url(Assets/Textures/splitter_handle_press.png);
+        image: url(Resources/Assets/Textures/splitter_handle_press.png);
     }
 
     QTableWidget#ModelTable {

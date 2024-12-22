@@ -8,9 +8,8 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLab
 
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
-from Config import save_app_settings, save_ocr_settings, LINES_CONFIG, LAYOUT_CONFIG
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
-from BDRC.Utils import read_line_model_config, read_layout_model_config, build_ocr_data, get_filename, create_dir
+from BDRC.Utils import build_ocr_data, get_filename, create_dir
 from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, ExportDialog, \
     ImportImagesDialog, ImportPDFDialog, ImportFilesProgress
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
@@ -33,17 +32,18 @@ class MainView(QWidget):
         self._data_view = data_view
         self._settings_view = settings_view
         self.platform = platform
-        self.current_dir = os.getcwd()
+        self.resource_dir = self._settings_view.get_resource_dir()
+        self.default_font = self._settings_view.get_default_font_path()
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
-        self.canvas = Canvas()
-        self.text_view = TextView(platform=self.platform, dataview=self._data_view)
+        self.canvas = Canvas(self.resource_dir )
+        self.text_view = TextView(platform=self.platform, dataview=self._data_view, resource_dir=self.resource_dir, font_path=self.default_font)
         self.v_splitter = QSplitter(Qt.Orientation.Vertical)
         self.v_splitter.setHandleWidth(10)
         self.v_splitter.addWidget(self.canvas)
         self.v_splitter.addWidget(self.text_view)
 
-        self.dir_label = QLabel(self.current_dir)
+        self.dir_label = QLabel(self.resource_dir)
         self.dir_label.setObjectName("TextLine")
         # build layout
         self.v_layout = QVBoxLayout()
@@ -118,20 +118,21 @@ class AppView(QWidget):
     def __init__(self,
                  dataview_model: DataViewModel,
                  settingsview_model: SettingsViewModel,
-                 platform: Platform,
-                 user_dir: str):
+                 platform: Platform):
         super().__init__()
 
         self.setObjectName("MainWindow")
         self.setWindowTitle("BDRC OCR [BETA] 0.1")
         self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
-        self.user_dir = user_dir
         self.threadpool = QThreadPool()
         self._dataview_model = dataview_model
         self._settingsview_model = settingsview_model
 
-        self.image_gallery = ImageGallery(self._dataview_model, self.threadpool)
+        self.tmp_dir = self._settingsview_model.get_tmp_dir()
+        self.resource_dir = self._settingsview_model.get_resource_dir()
+
+        self.image_gallery = ImageGallery(self._dataview_model, self.threadpool, self.resource_dir)
         self.main_container = MainView(self._dataview_model, self._settingsview_model, self.platform)
         self.h_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.h_splitter.setHandleWidth(10)
@@ -159,21 +160,18 @@ class AppView(QWidget):
         self.main_container.s_handle_settings.connect(self.handle_settings)
 
         # ocr inference sessions
-        self.line_model_config = read_line_model_config(LINES_CONFIG.path())
-        self.layout_model_config = read_layout_model_config(LAYOUT_CONFIG.path())
-        _ocr_model = self._settingsview_model.get_current_ocr_model()
+        layout_model_config = self._settingsview_model.get_line_model()
+        ocr_model = self._settingsview_model.get_current_ocr_model()
 
-        if _ocr_model is not None:
+        if ocr_model is not None:
             self.ocr_pipeline = OCRPipeline(
                 self.platform,
-                _ocr_model.config,
-                self.layout_model_config)
+                ocr_model.config,
+                layout_model_config)
         else:
             self.ocr_pipeline = None
-
-        # create temp dir
-        self.tmp_dir = os.path.join(self.user_dir, "tmp")
-        create_dir(self.tmp_dir)
+        
+        self.ocr_pipeline = None
 
         self.show()
 
@@ -367,13 +365,17 @@ class AppView(QWidget):
         dialog.setStyleSheet(DARK)
 
         app_settings, ocr_settings, ocr_models = dialog.exec()
-        save_app_settings(app_settings, self.user_dir)
-        save_ocr_settings(ocr_settings, self.user_dir)
+        self._settingsview_model.save_app_settings(app_settings)
+        self._settingsview_model.save_ocr_settings(ocr_settings)
 
         self._settingsview_model.update_ocr_models(ocr_models)
 
     def update_ocr_model(self, ocr_model: OCRModel):
+        """
+        TODO: Check Pipeline instantiation, seems like it get's update too often
+        """
         if self.ocr_pipeline is not None:
             self.ocr_pipeline.update_ocr_model(ocr_model.config)
         else:
-            self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, self.layout_model_config)
+            line_model_confg = self._settingsview_model.get_line_model()
+            self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, line_model_confg)

@@ -16,12 +16,12 @@ from datetime import datetime
 from tps import ThinPlateSpline
 from typing import List, Tuple, Optional, Sequence
 
-import Config
-from Config import OCRARCHITECTURE, CHARSETENCODER
-from BDRC.Data import Platform, ScreenData, BBox, Line, LineDetectionConfig, LayoutDetectionConfig, OCRModelConfig, \
+from BDRC.Data import OCRModelConfig, Platform, ScreenData, BBox, Line, \
     OCRModel, OCRData
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImage
+
+from Config import OCRARCHITECTURE, CHARSETENCODER
 
 page_classes = {
                 "background": "0, 0, 0",
@@ -68,8 +68,6 @@ def get_platform() -> Platform:
 
     return _platform
 
-def set_user_dir(directory_path: str):
-        Config.USER_DIR = directory_path
 
 def get_utc_time():
     utc_time = datetime.now()
@@ -151,6 +149,43 @@ def import_local_models(model_path: str):
             tick += 1
 
     return ocr_models
+
+def read_ocr_model_config(config_file: str):
+    model_dir = os.path.dirname(config_file)
+    file = open(config_file, encoding="utf-8")
+    json_content = json.loads(file.read())
+
+    onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
+    architecture = json_content["architecture"]
+    version = json_content["version"]
+    input_width = json_content["input_width"]
+    input_height = json_content["input_height"]
+    input_layer = json_content["input_layer"]
+    output_layer = json_content["output_layer"]
+    encoder = json_content["encoder"]
+    squeeze_channel_dim = (
+        True if json_content["squeeze_channel_dim"] == "yes" else False
+    )
+    swap_hw = True if json_content["swap_hw"] == "yes" else False
+    characters = json_content["charset"]
+    add_blank = True if json_content["add_blank"] == "yes" else False
+
+    config = OCRModelConfig(
+        onnx_model_file,
+        OCRARCHITECTURE[architecture],
+        input_width,
+        input_height,
+        input_layer,
+        output_layer,
+        squeeze_channel_dim,
+        swap_hw,
+        encoder=CHARSETENCODER[encoder],
+        charset=characters,
+        add_blank=add_blank,
+        version=version
+    )
+
+    return config
 
 
 def resize_to_height(image, target_height: int):
@@ -950,72 +985,6 @@ def pad_ocr_line(
         out_img = pad_to_width(img, target_width, target_height, padding)
 
     return cv2.resize(out_img, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
-
-
-def read_line_model_config(config_file: str) -> LineDetectionConfig:
-    print(f"read_line_model_config -> {config_file}")
-    model_dir = os.path.dirname(config_file)
-    file = open(config_file, encoding="utf-8")
-    json_content = json.loads(file.read())
-
-    onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
-    patch_size = int(json_content["patch_size"])
-
-    config = LineDetectionConfig(onnx_model_file, patch_size)
-
-    return config
-
-
-def read_layout_model_config(config_file: str) -> LayoutDetectionConfig:
-    model_dir = os.path.dirname(config_file)
-    file = open(config_file, encoding="utf-8")
-    json_content = json.loads(file.read())
-
-    onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
-    patch_size = int(json_content["patch_size"])
-    classes = json_content["classes"]
-
-    config = LayoutDetectionConfig(onnx_model_file, patch_size, classes)
-
-    return config
-
-
-def read_ocr_model_config(config_file: str):
-    model_dir = os.path.dirname(config_file)
-    file = open(config_file, encoding="utf-8")
-    json_content = json.loads(file.read())
-
-    onnx_model_file = f"{model_dir}/{json_content['onnx-model']}"
-    architecture = json_content["architecture"]
-    version = json_content["version"]
-    input_width = json_content["input_width"]
-    input_height = json_content["input_height"]
-    input_layer = json_content["input_layer"]
-    output_layer = json_content["output_layer"]
-    encoder = json_content["encoder"]
-    squeeze_channel_dim = (
-        True if json_content["squeeze_channel_dim"] == "yes" else False
-    )
-    swap_hw = True if json_content["swap_hw"] == "yes" else False
-    characters = json_content["charset"]
-    add_blank = True if json_content["add_blank"] == "yes" else False
-
-    config = OCRModelConfig(
-        onnx_model_file,
-        OCRARCHITECTURE[architecture],
-        input_width,
-        input_height,
-        input_layer,
-        output_layer,
-        squeeze_channel_dim,
-        swap_hw,
-        encoder=CHARSETENCODER[encoder],
-        charset=characters,
-        add_blank=add_blank,
-        version=version
-    )
-
-    return config
 
 
 def create_preview_image(
