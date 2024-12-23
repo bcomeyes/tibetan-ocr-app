@@ -2,7 +2,7 @@
 """
 - build for windows: nuitka --standalone --windows-console-mode=disable --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
 - debug build for windows: nuitka --standalone --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
-- - build for macos: nuitka --standalone --plugin-enable=pyside6 --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Resources/Assets=Resources/Assets --include-data-dir=./Resources/Models=Resources/Models --output-dir="Build" main.py
+- - build for macos: nuitka --standalone --plugin-enable=pyside6 --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Resources=Resources --output-dir="Build" main.py
 
 Note:
     If you edit the resources.qrc file, make sure to recompile it by using: pyside6-rcc resources.qrc -o resources.py
