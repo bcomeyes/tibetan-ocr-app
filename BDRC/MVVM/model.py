@@ -42,7 +42,6 @@ class SettingsModel:
         self.execution_directory = execution_directory
         self.app_settings, self.ocr_settings = self.read_settings(self.user_directory)
         self.ocr_models = []
-        self.current_ocr_model = None
         self.DEFAULT_FONT = os.path.join(self.execution_directory, "Resources", "Assets", "Fonts", "TibMachUni-1.901b.ttf")
 
         self.default_models_path = os.path.join(self.user_directory, "Models")
@@ -59,9 +58,7 @@ class SettingsModel:
             try:
                 ocr_models = import_local_models(self.app_settings.model_path)
                 self.ocr_models = ocr_models
-
-                if len(self.ocr_models) > 1:
-                    self.current_ocr_model = self.ocr_models[0]
+                
             except BaseException as e:
                 # TODO: add error dialog
                 pass
@@ -82,17 +79,11 @@ class SettingsModel:
         else:
             return self.layout_model_config
 
-    def get_current_ocr_model(self) -> OCRModel | None:
-        return self.current_ocr_model
-
     def update_ocr_settings(self, settings: OCRSettings):
         self.ocr_settings = settings
 
     def update_app_settings(self, settings: AppSettings):
         self.app_settings = settings
-
-    def set_current_ocr_model(self, ocr_model: OCRModel):
-        self.current_ocr_model = ocr_model
 
     def create_default_app_config(self, user_dir: str):
         settings = {

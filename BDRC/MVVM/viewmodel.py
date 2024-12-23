@@ -31,8 +31,11 @@ class SettingsViewModel(QObject):
     def get_ocr_models(self):
         return self._model.ocr_models
 
-    def get_current_ocr_model(self):
-        return self._model.current_ocr_model
+    def  get_current_ocr_model(self) -> OCRModel | None:
+        if len(self._model.ocr_models) > 0:
+            return self._model.ocr_models[0]
+        else:
+            return None
 
     def get_ocr_settings(self) -> OCRSettings:
         return self._model.ocr_settings
@@ -51,12 +54,8 @@ class SettingsViewModel(QObject):
     def update_ocr_models(self, ocr_models: List[OCRModel]):
         if len(ocr_models) > 0:
             self._model.ocr_models = ocr_models
-            self._model.current_ocr_model = self._model.ocr_models[0]
-            self.select_ocr_model(self._model.current_ocr_model)
-            self.s_ocr_models_changed.emit()
 
     def select_ocr_model(self, ocr_model: OCRModel):
-        self._model.set_current_ocr_model(ocr_model)
         self.s_ocr_model_changed.emit(ocr_model)
 
     def save_app_settings(self, settings: AppSettings):

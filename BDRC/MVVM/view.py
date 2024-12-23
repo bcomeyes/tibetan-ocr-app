@@ -370,9 +370,6 @@ class AppView(QWidget):
         self.ocr_pipeline.update_line_detection(current_line_config)
 
     def update_ocr_model(self, ocr_model: OCRModel):
-        """
-        TODO: Check Pipeline instantiation, seems like it get's update too often
-        """
         if self.ocr_pipeline is not None:
             self.ocr_pipeline.update_ocr_model(ocr_model.config)
         else:

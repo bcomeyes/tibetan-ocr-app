@@ -356,15 +356,20 @@ class OCRPipeline:
             self.ready = False
 
     def update_ocr_model(self, config: OCRModelConfig):
-        if config.model_file != self.ocr_model_config.model_file:
-            self.ocr_model_config = config
-            self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
+        self.ocr_model_config = config
+        self.ocr_inference = OCRInference(self.platform, config)
 
     def update_line_detection(self, config: Union[LineDetectionConfig, LayoutDetectionConfig]):
         if isinstance(config, LineDetectionConfig) and isinstance(self.line_config, LayoutDetectionConfig):
+            print(f"Updating OCR Pipeline from Layout to Line Model")
             self.line_inference = LineDetection(self.platform, config)
         elif isinstance(config, LayoutDetectionConfig) and isinstance(self.line_config, LineDetectionConfig):
+            print(f"Updating OCR Pipeline from Line to Layout Model")
             self.line_inference = LayoutDetection(self.platform, config)
+
+        else:
+            print("Not updating the Line model in the Pipeline")
+            return
 
 
     # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
