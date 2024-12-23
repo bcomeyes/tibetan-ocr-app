@@ -3,7 +3,7 @@ import pyewts
 import numpy as np
 import numpy.typing as npt
 import onnxruntime as ort
-from typing import List
+from typing import List, Union
 
 
 from scipy.special import softmax
@@ -346,11 +346,9 @@ class OCRPipeline:
         self.converter = pyewts.pyewts()
 
         if isinstance(self.line_config, LineDetectionConfig):
-            print("Running OCR in Line Mode")
             self.line_inference = LineDetection(self.platform, self.line_config)
             self.ready = True
         elif isinstance(self.line_config, LayoutDetectionConfig):
-            print("Running OCR in Layout Mode")
             self.line_inference = LayoutDetection(self.platform, self.line_config)
             self.ready = True
         else:
@@ -358,8 +356,16 @@ class OCRPipeline:
             self.ready = False
 
     def update_ocr_model(self, config: OCRModelConfig):
-        self.ocr_model_config = config
-        self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
+        if config.model_file != self.ocr_model_config.model_file:
+            self.ocr_model_config = config
+            self.ocr_inference = OCRInference(self.platform, self.ocr_model_config)
+
+    def update_line_detection(self, config: Union[LineDetectionConfig, LayoutDetectionConfig]):
+        if isinstance(config, LineDetectionConfig) and isinstance(self.line_config, LayoutDetectionConfig):
+            self.line_inference = LineDetection(self.platform, config)
+        elif isinstance(config, LayoutDetectionConfig) and isinstance(self.line_config, LineDetectionConfig):
+            self.line_inference = LayoutDetection(self.platform, config)
+
 
     # TODO: Generate specific meaningful error codes that can be returned inbetween the steps
     # TPS Mode is global-only at the moment

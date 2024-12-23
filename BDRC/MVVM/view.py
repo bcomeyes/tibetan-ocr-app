@@ -43,11 +43,8 @@ class MainView(QWidget):
         self.v_splitter.addWidget(self.canvas)
         self.v_splitter.addWidget(self.text_view)
 
-        self.dir_label = QLabel(self.resource_dir)
-        self.dir_label.setObjectName("TextLine")
         # build layout
         self.v_layout = QVBoxLayout()
-        self.v_layout.addWidget(self.dir_label)
         self.v_layout.addWidget(self.header_tools)
         self.v_layout.addWidget(self.v_splitter)
         self.setLayout(self.v_layout)
@@ -160,14 +157,14 @@ class AppView(QWidget):
         self.main_container.s_handle_settings.connect(self.handle_settings)
 
         # ocr inference sessions
-        layout_model_config = self._settingsview_model.get_line_model()
+        line_config = self._settingsview_model.get_line_model()
         ocr_model = self._settingsview_model.get_current_ocr_model()
 
         if ocr_model is not None:
             self.ocr_pipeline = OCRPipeline(
                 self.platform,
                 ocr_model.config,
-                layout_model_config)
+                line_config)
         else:
             self.ocr_pipeline = None
         
@@ -367,8 +364,10 @@ class AppView(QWidget):
         app_settings, ocr_settings, ocr_models = dialog.exec()
         self._settingsview_model.save_app_settings(app_settings)
         self._settingsview_model.save_ocr_settings(ocr_settings)
-
         self._settingsview_model.update_ocr_models(ocr_models)
+        
+        current_line_config = self._settingsview_model.get_line_model()
+        self.ocr_pipeline.update_line_detection(current_line_config)
 
     def update_ocr_model(self, ocr_model: OCRModel):
         """
@@ -377,5 +376,5 @@ class AppView(QWidget):
         if self.ocr_pipeline is not None:
             self.ocr_pipeline.update_ocr_model(ocr_model.config)
         else:
-            line_model_confg = self._settingsview_model.get_line_model()
-            self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, line_model_confg)
+            line_model_config = self._settingsview_model.get_line_model()
+            self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, line_model_config)

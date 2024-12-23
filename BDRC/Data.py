@@ -28,7 +28,6 @@ class ExportFormat(Enum):
     XML = 1
     JSON = 2
 
-
 class Theme(Enum):
     Dark = 0
     Light = 1

@@ -36,6 +36,7 @@ from BDRC.Data import (
     OCRSettings,
     ExportFormat,
     Language,
+    LineMode,
     Encoding,
     OCRSample,
 )
@@ -89,6 +90,25 @@ def build_exporter_settings() -> Tuple[QButtonGroup, List[QRadioButton]]:
         exporters_group.setId(button, exporter.value)
 
     return exporters_group, exporter_buttons
+
+# Line Models
+def build_line_mode(active_mode: LineMode) -> Tuple[QButtonGroup, List[QRadioButton]]:
+    buttons = []
+    button_group = QButtonGroup()
+    button_group.setExclusive(True)
+
+    for _, mode in enumerate(LineMode):
+        button = QRadioButton(mode.name)
+        button.setObjectName("OptionsRadio")
+        buttons.append(button)
+
+        if mode == active_mode:
+            button.setChecked(True)
+
+        button_group.addButton(button)
+        button_group.setId(button, mode.value)
+
+    return button_group, buttons
 
 
 # Encodigns
@@ -501,6 +521,10 @@ class SettingsDialog(QDialog):
         self.import_models_btn.setObjectName("SmallDialogButton")
         self.import_models_btn.clicked.connect(self.handle_model_import)
 
+        self.line_mode_group, self.line_mode_buttons = build_line_mode(
+            self.ocr_settings.line_mode
+        )
+
         self.encodings_group, self.encoding_buttons = build_encodings(
             self.app_settings.encoding
         )
@@ -591,6 +615,16 @@ class SettingsDialog(QDialog):
         self.ocr_settings_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.ocr_settings_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
+        # line model
+        line_mode_layout = QHBoxLayout()
+        line_mode_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        line_mode_label = QLabel("Line Model")
+        line_mode_label .setObjectName("OptionsLabel")
+        line_mode_layout.addWidget(line_mode_label)
+
+        for line_mode_btn in self.line_mode_buttons:
+            line_mode_layout.addWidget(line_mode_btn)
+
         # encoding
         encoding_layout = QHBoxLayout()
         encoding_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -650,6 +684,7 @@ class SettingsDialog(QDialog):
         bbox_tolerance_layout.addWidget(bbox_tolerance_label)
         bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
 
+        line_mode_label.setFixedWidth(160)
         encoding_label.setFixedWidth(160)
         dewarping_label.setFixedWidth(160)
         merge_label.setFixedWidth(160)
@@ -665,6 +700,8 @@ class SettingsDialog(QDialog):
         explanation.setWordWrap(True)
         explanation.setObjectName("OptionsExplanation")
 
+        # assemlbe all layouts
+        self.ocr_settings_layout.addLayout(line_mode_layout)
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
         self.ocr_settings_layout.addLayout(merge_layout)
@@ -792,6 +829,9 @@ class SettingsDialog(QDialog):
 
         language_id = self.language_group.checkedId()
         self.app_settings.language = Language(language_id)
+
+        line_mode_id = self.line_mode_group.checkedId()
+        self.ocr_settings.line_mode = LineMode(line_mode_id)
 
         encoding_id = self.encodings_group.checkedId()
         self.app_settings.encoding = Encoding(encoding_id)

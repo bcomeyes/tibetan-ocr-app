@@ -52,7 +52,6 @@ class SettingsModel:
         self.line_model_config = self.read_line_model_config(self.photi_line_model_path)
         self.layout_model_config = self.read_layout_model_config(self.photi_layout_model_path)
 
-        self.line_mode = LineMode.Line
         self.tmp_dir = os.path.join(self.user_directory, "tmp")
         create_dir(self.tmp_dir)
 
@@ -78,7 +77,7 @@ class SettingsModel:
                     os.remove(file)
     
     def get_line_model(self):
-        if self.line_mode == LineMode.Line:
+        if self.ocr_settings.line_mode == LineMode.Line:
             return self.line_model_config
         else:
             return self.layout_model_config
@@ -242,7 +241,6 @@ class SettingsModel:
         config = LayoutDetectionConfig(onnx_model_file, patch_size, classes)
 
         return config
-
 
 
 class OCRDataModel:

@@ -1,24 +1,4 @@
-from dataclasses import dataclass
-
-@dataclass
-class BaseTheme:
-    bdrc_logo = "Assets/Textures/BDRC_Logo.png"
-    import_btn = "Assets/Textures/import.png"
-    new_btn = "Assets/Textures/new_light.png"
-    play_btn = "Assets/Textures/play_light.png"
-    save_btn = "Assets/Textures/save-disc.png"
-    next_btn = "Assets/Textures/next.png"
-    prev_btn = "Assets/Textures/prev.png"
-    settings_btn = "Assets/Textures/settings.png"
-
-@dataclass
-class Light(BaseTheme):
-    hover_color: str
-
-@dataclass
-class Dark(BaseTheme):
-    background: str
-    header_btn_hover: str
+import resources
 
 
 DARK = """
@@ -209,13 +189,13 @@ DARK = """
     }
 
     QRadioButton#OptionsRadio:indicator:checked {
-        image:url(Assets/Textures/qradio_indicator_checked.png);
+        image:url(:/Resources/Assets/Textures/qradio_indicator_checked.png);
         width: 12px;
         height: 12px;
     }
 
     QRadioButton#OptionsRadio:indicator:unchecked {
-        image:url(Assets/Textures/qradio_indicator.png);
+        image:url(:/Resources/Assets/Textures/qradio_indicator.png);
         width: 12px;
         height: 12px;
     }
@@ -316,11 +296,11 @@ DARK = """
     QSplitter::handle {
         padding-top: 4px;
         padding-bottom: 4px;
-        image: url(Resources/Assets/Textures/splitter_handle.png);
+        image: url(:/Resources/Assets/Textures/splitter_handle.png);
     }
 
     QSplitter::handle:pressed {
-        image: url(Resources/Assets/Textures/splitter_handle_press.png);
+        image: url(:/Resources/Assets/Textures/splitter_handle_press.png);
     }
 
     QTableWidget#ModelTable {

@@ -10,9 +10,7 @@ Note:
 
 import os
 import sys
-import Config
 from appdirs import user_data_dir
-from glob import glob
 from PySide6.QtCore import QPoint
 from BDRC.MVVM.view import AppView
 from BDRC.MVVM.model import OCRDataModel, SettingsModel
