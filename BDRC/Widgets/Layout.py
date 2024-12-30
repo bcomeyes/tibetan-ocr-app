@@ -1262,6 +1262,7 @@ class TextView(QFrame):
         self.font_size = font_size
         self.encoding = encoding
         self.default_font_path = font_path
+        self.resource_dir = resource_dir
 
         if self.platform == Platform.Windows:
             
@@ -1330,7 +1331,7 @@ class TextView(QFrame):
             for ocr_line in self.ocr_lines:
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(ocr_line, self.qfont)
+                text_widget = TextWidget(ocr_line, self.qfont, self.resource_dir)
                 text_size = text_widget.sizeHint()
                 text_widget.s_update_label.connect(self.handle_line_edit)
 
@@ -1360,7 +1361,7 @@ class TextView(QFrame):
             for text_line in self.ocr_lines:
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(text_line, self.qfont)
+                text_widget = TextWidget(text_line, self.qfont, self.resource_dir)
                 text_size = text_widget.sizeHint()
 
                 if text_size.width() < 800:
@@ -1389,7 +1390,7 @@ class TextView(QFrame):
         if ocr_lines is not None:
             for ocr_line in ocr_lines:
                 list_item = QListWidgetItem()
-                text_widget = TextWidget(ocr_line, self.qfont)
+                text_widget = TextWidget(ocr_line, self.qfont, self.resource_dir)
 
                 text_size = text_widget.sizeHint()
 
