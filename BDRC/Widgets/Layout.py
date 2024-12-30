@@ -995,6 +995,7 @@ class ImageGallery(QFrame):
         self.setMinimumWidth(180)
         self.setMaximumWidth(420)
         self.import_dialog = None
+        self.resource_dir = resource_dir
 
         # build layout
         self.image_label = QLabel(self)
@@ -1087,7 +1088,8 @@ class ImageGallery(QFrame):
             data.image_path,
             data.qimage,
             width=target_width,
-            height=200
+            height=200,
+            resource_dir = self.resource_dir
         )
         image_widget.s_delete_image.connect(self.delete_image)
         self.image_list.addItem(image_item)
