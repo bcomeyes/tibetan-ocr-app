@@ -167,8 +167,6 @@ class AppView(QWidget):
                 line_config)
         else:
             self.ocr_pipeline = None
-        
-        self.ocr_pipeline = None
 
         self.show()
 
