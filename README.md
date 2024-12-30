@@ -20,7 +20,7 @@ Instead of providing one model that can handle all styles of Tibetan writing, we
 
 ##### OSX
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_0.1_win64.zip
+1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_0.1_macos_arm64.zip
 2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a folder of your choice
 3. Run the `BDRC.app` folder
 
