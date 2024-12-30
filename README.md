@@ -38,3 +38,5 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 Once the app opens, click on the setting icon and select:
 - the `Resource/OCRModels/` folder on Windows and from source / Linux
 - the `OCRModels/` directory of the folder where you unzipped the model files on OSX
+
+Then quit the app and run it again so that the models can be used.
