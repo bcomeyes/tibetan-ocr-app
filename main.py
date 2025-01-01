@@ -3,8 +3,10 @@
 - build for windows: 
     nuitka --standalone --onefile --windows-console-mode=disable --output-dir=WindowsBuild --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0  --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
 - debug build for windows: nuitka --standalone --output-dir=WindowsDbgBuild --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
-- - build for macos: 
-    nuitka --standalone --onefile --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --macos-app-name="BDRC Tibetan OCR App" --macos-signed-app-name="io.bdrc.ocrapp" --output-dir=OSXBuild --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Resources=Resources --output-dir="Build" main.py
+- build for macos: 
+    nuitka --standalone --onefile --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --macos-app-name="BDRC Tibetan OCR App" --macos-signed-app-name="io.bdrc.ocrapp" --output-dir=OSXBuild --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Resources=Resources main.py
+- build for Linux:
+    nuitka --standalone --onefile --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --include-data-dir=./Resources=Resources --output-dir="Build" main.py
 
 Note:
     If you edit the resources.qrc file, make sure to recompile it by using: pyside6-rcc resources.qrc -o resources.py
