@@ -136,7 +136,10 @@ def import_local_models(model_path: str):
         for sub_dir in Path(model_path).iterdir():
             if os.path.isdir(sub_dir):
                 _config_file = os.path.join(sub_dir, "model_config.json")
-                assert os.path.isfile(_config_file)
+                if not os.path.isfile(_config_file):
+                    logging.warn("ignore "+str(sub_dir))
+                    tick += 1
+                    continue
 
                 _config = read_ocr_model_config(_config_file)
                 _model = OCRModel(
