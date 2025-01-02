@@ -22,13 +22,9 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 ##### OSX
 
-This app does not support Intel hardware.
+This app does not have a package for OSX at the moment. If you're an experienced OSX developer and want to help us build one, please contact us by opening an issue.
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_0.1_macos_arm64.zip
-2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a folder of your choice
-3. Run the `BDRC.app` folder
-
-##### From source / Linux
+##### From source (advanced users)
 
 1. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder
