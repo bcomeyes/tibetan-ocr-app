@@ -14,7 +14,7 @@ Note:
 
 import os
 import sys
-from appdirs import user_data_dir
+from platformdirs import user_data_dir
 from PySide6.QtCore import QPoint
 from BDRC.MVVM.view import AppView
 from BDRC.MVVM.model import OCRDataModel, SettingsModel
@@ -23,21 +23,21 @@ from BDRC.Utils import get_screen_center, get_platform, create_dir
 from PySide6.QtWidgets import QApplication
 from BDRC.Styles import DARK
 
-APP_NAME = "BDRC"
-APP_AUTHOR = "OCR"
+APP_NAME = "BDRC_OCR"
+APP_AUTHOR = "BDRC"
 
 
 if __name__ == "__main__":
     platform = get_platform()
     execution_dir= os.path.dirname(__file__)
-    user_data_dir = user_data_dir(APP_NAME, APP_AUTHOR)
-    create_dir(user_data_dir)
+    udi = user_data_dir(APP_NAME, APP_AUTHOR)
+    create_dir(udi)
     
     app = QApplication()
     app.setStyleSheet(DARK)
 
     data_model = OCRDataModel()
-    settings_model = SettingsModel(user_data_dir, execution_dir)
+    settings_model = SettingsModel(udi, execution_dir)
 
     dataview_model = DataViewModel(data_model)
     settingsview_model = SettingsViewModel(settings_model)
