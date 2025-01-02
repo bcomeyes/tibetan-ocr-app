@@ -29,7 +29,8 @@ This app does not have a package for OSX at the moment. If you're an experienced
 1. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder
 3. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
-4. Run `python main.py`
+4. Optionally install kenlm (does not work on Windows): `pip install 'https://github.com/kpu/kenlm/archive/master.zip'`
+5. Run `python main.py`
 
 ### Configuring the models
 
