@@ -29,7 +29,7 @@ This app does not have a package for OSX at the moment. If you're an experienced
 1. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder
 3. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
-4. Optionally install kenlm (does not work on Windows): `pip install 'https://github.com/kpu/kenlm/archive/master.zip'`
+4. Optionally install kenlm (does not work easily on Windows): `pip install 'https://github.com/kpu/kenlm/archive/master.zip'`
 5. Run `python main.py`
 
 ### Configuring the models
@@ -37,5 +37,7 @@ This app does not have a package for OSX at the moment. If you're an experienced
 Once the app opens, click on the setting icon and select:
 - the `Resource/OCRModels/` folder on Windows and from source / Linux
 - the `OCRModels/` directory of the folder where you unzipped the model files on OSX
+
+Warning! Please select the `OCRModels/` directory itself, not one of its subdirectories.
 
 Then quit the app and run it again so that the models can be used.
