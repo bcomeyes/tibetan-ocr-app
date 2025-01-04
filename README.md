@@ -17,7 +17,7 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 ##### Windows
 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_win64_0.1.zip
-2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder of the directory you unzipped in step 1
+2. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a directory of your choice
 3. Run `bdrc.exe`
 
 ##### OSX
@@ -30,16 +30,12 @@ This app does not have a package for OSX at the moment. If you're an experienced
 2. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 3. run `git lfs pull` to download all LFS files
 4. run `pyside6-rcc resources.qrc -o resources.py`
-4. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder
+4. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a folder of your choice
 5. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
 6. Run `python main.py`
 
 ### Configuring the models
 
-Once the app opens, click on the setting icon and select:
-- the `Resource/OCRModels/` folder on Windows and from source / Linux
-- the `OCRModels/` directory of the folder where you unzipped the model files on OSX
-
-Warning! Please select the `OCRModels/` directory itself, not one of its subdirectories.
+Once the app opens, click on the setting icon, click on "import models" and select the folder where you extracted the model zip file. Warning! Please select the main folder, not one of its subfolders (like `Woodblock/`, etc.).
 
 Then quit the app and run it again so that the models can be used.
