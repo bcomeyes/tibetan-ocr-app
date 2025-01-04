@@ -45,3 +45,10 @@ This app does not have a package for MacOS on Inter hardware at the moment. For 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a directory of your choice
 2. Once the app opens, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
 3. Then quit the app and run it again so that the models can be used.
+
+### Building distribution packages
+
+1. `pip install nuitka`
+2. (optional) install `ccache` to speed up the compilation (on OSX this can be done through homebrew)
+3. run the nuitka command given in main.py that corresponds to your OS
+4. zip the files in the corresponding build folder
