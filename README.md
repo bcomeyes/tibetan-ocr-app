@@ -18,10 +18,17 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_win64_0.1.zip
 2. Run `bdrc.exe`
+3. configure the models (see below)
 
 ##### OSX
 
-This app does not have a package for OSX at the moment. If you're an experienced OSX developer and want to help us build one, please contact us by opening an issue.
+This app does not have a package for MacOS on Inter hardware at the moment. For M1, M2, etc. processors:
+
+1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_osx_arm64_0.1.zip
+2. drag and drop the BDRC app you just unzipped into your Applications folder
+3. Open a terminal and run `xattr -c /Applications/BDRC.app`. If you do not do that you will get a message saying the app "is damanged and can't be opened"
+4. Run the app
+5. configure the models (see below)
 
 ##### From source (advanced users)
 
@@ -31,6 +38,7 @@ This app does not have a package for OSX at the moment. If you're an experienced
 4. run `pyside6-rcc resources.qrc -o resources.py`
 5. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
 6. Run `python main.py`
+7. configure the models (see below)
 
 ### Configuring the models
 
