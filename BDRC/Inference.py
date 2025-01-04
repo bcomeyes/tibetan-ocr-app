@@ -237,8 +237,7 @@ class OCRInference:
         )
         self._add_blank = ocr_config.add_blank
         self.decoder = CTCDecoder(self._characters, self._add_blank)
-        print(f"charset: {self._characters}")
-        print(f"ctc charset: {self.decoder.ctc_vocab}")
+
     def _pad_ocr_line(
             self,
             img: npt.NDArray,
