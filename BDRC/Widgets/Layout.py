@@ -49,9 +49,9 @@ class HeaderTools(QFrame):
         self.setObjectName("HeaderTools")
         self.data_view = data_view
         self.settings_view = settings_view
-        self.resource_dir = self.settings_view.get_resource_dir()
-        self.toolbox = ToolBox(self.resource_dir, ocr_models=self.settings_view.get_ocr_models(), icon_size=icon_size)
-        self.page_switcher = PageSwitcher(self.resource_dir, icon_size=icon_size)
+        self.execution_dir = self.settings_view.get_execution_dir()
+        self.toolbox = ToolBox(self.execution_dir, ocr_models=self.settings_view.get_ocr_models(), icon_size=icon_size)
+        self.page_switcher = PageSwitcher(self.execution_dir, icon_size=icon_size)
 
         # bind signals
         self.data_view.s_data_selected.connect(self.set_page_index)
@@ -94,7 +94,7 @@ class ToolBox(QWidget):
     s_update_page = Signal(int)
     s_on_select_model = Signal(OCRModel)
 
-    def __init__(self, resource_dir: str, ocr_models: List[OCRModel] | None, icon_size: int = 64):
+    def __init__(self, execution_dir: str, ocr_models: List[OCRModel] | None, icon_size: int = 64):
         super().__init__()
         self.setObjectName("ToolBox")
         self.ocr_models = ocr_models
@@ -102,13 +102,13 @@ class ToolBox(QWidget):
         self.setFixedHeight(self.icon_size+18)
         self.setMinimumWidth(720)
 
-        self.new_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "new_light.png")
-        self.import_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "import.png")
-        self.import_pdf_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "pdf_import.png")
-        self.save_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "save-disc.png")
-        self.run_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "play_btn.png")
-        self.run_all_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "play_all_btn.png")
-        self.settings_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "settings.png")
+        self.new_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "new_light.png")
+        self.import_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "import.png")
+        self.import_pdf_icon = os.path.join(execution_dir, "Assets", "Textures", "pdf_import.png")
+        self.save_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "save-disc.png")
+        self.run_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "play_btn.png")
+        self.run_all_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "play_all_btn.png")
+        self.settings_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "settings.png")
 
         self.btn_new = MenuButton(
             "New Project",
@@ -236,7 +236,7 @@ class ToolBox(QWidget):
 class PageSwitcher(QFrame):
     s_on_page_changed = Signal(int)
 
-    def __init__(self, resource_dir: str, pages: int = 0, icon_size: int = 36):
+    def __init__(self, execution_dir: str, pages: int = 0, icon_size: int = 36):
         super().__init__()
         self.setObjectName("PageSwitcher")
         self.icon_size = icon_size
@@ -253,8 +253,8 @@ class PageSwitcher(QFrame):
         self.current_page.setFixedHeight(icon_size)
         self.current_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.prev_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "prev.png")
-        self.next_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "next.png")
+        self.prev_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "prev.png")
+        self.next_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "next.png")
 
         self.prev_button = MenuButton(
             "Previous image",
@@ -488,7 +488,7 @@ class PTGraphicsScene(QGraphicsScene):
     s_right_release_signal = Signal(QPoint)
     s_clear_selections = Signal()
 
-    def __init__(self, resource_dir: str, scene, width: int = 2000, height: int = 2000, parent=None):
+    def __init__(self, execution_dir: str, scene, width: int = 2000, height: int = 2000, parent=None):
         super().__init__(parent)
         self._scene = scene
         self._scene_width = width
@@ -497,7 +497,7 @@ class PTGraphicsScene(QGraphicsScene):
         self._background_color = QColor("#393939")
         self._pen_light = QPen(self._line_color)
         self._pen_light.setWidth(10)
-        self._bg_image = QPixmap(os.path.join(resource_dir, "Resources", "Assets", "Textures", "background_grid.jpg"))
+        self._bg_image = QPixmap(os.path.join(execution_dir, "Assets", "Textures", "background_grid.jpg"))
 
         self.set_scene(self._scene_width, self._scene_height)
         self.setBackgroundBrush(self._bg_image)
@@ -536,7 +536,7 @@ class PTGraphicsScene(QGraphicsScene):
 
 
 class Canvas(QFrame):
-    def __init__(self, resource_dir: str, width: int = 2000, height: int = 2000):
+    def __init__(self, execution_dir: str, width: int = 2000, height: int = 2000):
         super().__init__()
 
         self.default_width = width
@@ -548,14 +548,14 @@ class Canvas(QFrame):
         self.current_height = self.default_height
         self.current_item_pos = QPointF(0.0, 0.0)
 
-        self.gr_scene = PTGraphicsScene(resource_dir, self, width=self.current_width, height=self.current_height)
+        self.gr_scene = PTGraphicsScene(execution_dir, self, width=self.current_width, height=self.current_height)
         self.view = PTGraphicsView(self.gr_scene)
         self.view.setScene(self.gr_scene)
 
-        self.toggle_prev_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "toggle_prev.png")
-        self.fit_view_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "fit_to_canvas.png")
-        self.zoom_in_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "plus_sign.png")
-        self.zoom_out_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "minus_sign.png")
+        self.toggle_prev_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "toggle_prev.png")
+        self.fit_view_icon = os.path.join(execution_dir, "Assets", "Textures", "fit_to_canvas.png")
+        self.zoom_in_icon = os.path.join(execution_dir, "Assets", "Textures", "plus_sign.png")
+        self.zoom_out_icon = os.path.join(execution_dir, "Assets", "Textures", "minus_sign.png")
 
         self.toggle_prev_btn = MenuButton(
             "Toggle line preview",
@@ -905,7 +905,7 @@ class ImageThumb(QFrame):
 class ImageListWidget(QWidget):
     s_delete_image = Signal(UUID)
 
-    def __init__(self, guid: UUID, image_path: str, q_image: QImage, width: int, height: int, resource_dir: str):
+    def __init__(self, guid: UUID, image_path: str, q_image: QImage, width: int, height: int, execution_dir: str):
         super().__init__()
         self.guid = guid
         self.image_path = image_path
@@ -920,7 +920,7 @@ class ImageListWidget(QWidget):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setText(self.file_name)
 
-        self.btn_delete_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "delete_icon.png")
+        self.btn_delete_icon = os.path.join(execution_dir, "Assets", "Textures", "delete_icon.png")
         self.icon_size = 24
         self.btn_delete = MenuButton(
             "Delete image",
@@ -985,7 +985,7 @@ class ImageListWidget(QWidget):
 
 
 class ImageGallery(QFrame):
-    def __init__(self, viewmodel: DataViewModel, pool: QThreadPool, resource_dir: str):
+    def __init__(self, viewmodel: DataViewModel, pool: QThreadPool, execution_dir: str):
         super().__init__()
         self.view_model = viewmodel
         self.pool = pool
@@ -995,12 +995,12 @@ class ImageGallery(QFrame):
         self.setMinimumWidth(180)
         self.setMaximumWidth(420)
         self.import_dialog = None
-        self.resource_dir = resource_dir
+        self.execution_dir = execution_dir
 
         # build layout
         self.image_label = QLabel(self)
         self.image_label.setContentsMargins(6, 0, 0, 0)
-        self.image_pixmap = QPixmap(os.path.join(resource_dir, "Resources", "Assets", "Textures", "BDRC_Logo.png")).scaled(
+        self.image_pixmap = QPixmap(os.path.join(execution_dir, "Assets", "Textures", "BDRC_Logo.png")).scaled(
             QSize(140, 90),
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation)
@@ -1089,7 +1089,7 @@ class ImageGallery(QFrame):
             data.qimage,
             width=target_width,
             height=200,
-            resource_dir = self.resource_dir
+            execution_dir= self.execution_dir
         )
         image_widget.s_delete_image.connect(self.delete_image)
         self.image_list.addItem(image_item)
@@ -1220,7 +1220,7 @@ class TextWidget(QWidget):
     Custom widget holding the actual text data
     """
 
-    def __init__(self, ocr_line: OCRLine, qfont: QFont, resource_dir: str):
+    def __init__(self, ocr_line: OCRLine, qfont: QFont, execution_dir: str):
         super().__init__()
         self.setObjectName("TextWidget")
         self.ocr_line = ocr_line
@@ -1231,7 +1231,7 @@ class TextWidget(QWidget):
         self.label.setFont(qfont)
         self.label.setText(self.ocr_line.text)
 
-        self.btn_edit_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "edit_icon.png")
+        self.btn_edit_icon = os.path.join(execution_dir, "Assets", "Textures", "edit_icon.png")
         self.btn_edit = MenuButton("Edit Line", self.btn_edit_icon, 14, 14)
 
         self.layout = QHBoxLayout()
@@ -1253,7 +1253,7 @@ class TextWidget(QWidget):
 
 
 class TextView(QFrame):
-    def __init__(self, platform: Platform, dataview: DataViewModel, resource_dir: str, font_path: str, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
+    def __init__(self, platform: Platform, dataview: DataViewModel, execution_dir: str, font_path: str, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
         super().__init__()
         self.setObjectName("TextView")
         self.setContentsMargins(0, 0, 0, 0)
@@ -1262,7 +1262,7 @@ class TextView(QFrame):
         self.font_size = font_size
         self.encoding = encoding
         self.default_font_path = font_path
-        self.resource_dir = resource_dir
+        self.execution_dir = execution_dir
 
         if self.platform == Platform.Windows:
             
@@ -1289,7 +1289,7 @@ class TextView(QFrame):
         self.zoom_in_btn = TextToolsButton("+")
         self.zoom_out_btn = TextToolsButton("-")
 
-        self.convert_wylie_btn_icon = os.path.join(resource_dir, "Resources", "Assets", "Textures", "convert_wylie_unicode.png")
+        self.convert_wylie_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "convert_wylie_unicode.png")
         self.convert_wylie_btn = MenuButton(
             "convert between Wylie and Unicode",
             self.convert_wylie_btn_icon,
@@ -1331,7 +1331,7 @@ class TextView(QFrame):
             for ocr_line in self.ocr_lines:
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(ocr_line, self.qfont, self.resource_dir)
+                text_widget = TextWidget(ocr_line, self.qfont, self.execution_dir)
                 text_size = text_widget.sizeHint()
                 text_widget.s_update_label.connect(self.handle_line_edit)
 
@@ -1361,7 +1361,7 @@ class TextView(QFrame):
             for text_line in self.ocr_lines:
                 list_item = QListWidgetItem()
 
-                text_widget = TextWidget(text_line, self.qfont, self.resource_dir)
+                text_widget = TextWidget(text_line, self.qfont, self.execution_dir)
                 text_size = text_widget.sizeHint()
 
                 if text_size.width() < 800:
@@ -1390,7 +1390,7 @@ class TextView(QFrame):
         if ocr_lines is not None:
             for ocr_line in ocr_lines:
                 list_item = QListWidgetItem()
-                text_widget = TextWidget(ocr_line, self.qfont, self.resource_dir)
+                text_widget = TextWidget(ocr_line, self.qfont, self.execution_dir)
 
                 text_size = text_widget.sizeHint()
 

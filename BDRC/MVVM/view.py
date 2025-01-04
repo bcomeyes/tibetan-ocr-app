@@ -32,12 +32,12 @@ class MainView(QWidget):
         self._data_view = data_view
         self._settings_view = settings_view
         self.platform = platform
-        self.resource_dir = self._settings_view.get_resource_dir()
+        self.resource_dir = self._settings_view.get_execution_dir()
         self.default_font = self._settings_view.get_default_font_path()
 
         self.header_tools = HeaderTools(self._data_view, self._settings_view)
         self.canvas = Canvas(self.resource_dir )
-        self.text_view = TextView(platform=self.platform, dataview=self._data_view, resource_dir=self.resource_dir, font_path=self.default_font)
+        self.text_view = TextView(platform=self.platform, dataview=self._data_view, execution_dir=self.resource_dir, font_path=self.default_font)
         self.v_splitter = QSplitter(Qt.Orientation.Vertical)
         self.v_splitter.setHandleWidth(10)
         self.v_splitter.addWidget(self.canvas)
@@ -127,7 +127,7 @@ class AppView(QWidget):
         self._settingsview_model = settingsview_model
 
         self.tmp_dir = self._settingsview_model.get_tmp_dir()
-        self.resource_dir = self._settingsview_model.get_resource_dir()
+        self.resource_dir = self._settingsview_model.get_execution_dir()
 
         self.image_gallery = ImageGallery(self._dataview_model, self.threadpool, self.resource_dir)
         self.main_container = MainView(self._dataview_model, self._settingsview_model, self.platform)

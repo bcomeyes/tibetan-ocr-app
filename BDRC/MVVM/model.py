@@ -42,11 +42,11 @@ class SettingsModel:
         self.execution_directory = execution_directory
         self.app_settings, self.ocr_settings = self.read_settings(self.user_directory)
         self.ocr_models = []
-        self.DEFAULT_FONT = os.path.join(self.execution_directory, "Resources", "Assets", "Fonts", "TibMachUni-1.901b.ttf")
+        self.DEFAULT_FONT = os.path.join(self.execution_directory, "Assets", "Fonts", "TibMachUni-1.901b.ttf")
 
         self.default_models_path = os.path.join(self.user_directory, "Models")
-        self.photi_line_model_path = os.path.join(self.execution_directory, "Resources", "Models", "Lines")
-        self.photi_layout_model_path = os.path.join(self.execution_directory, "Resources", "Models", "Layout")
+        self.photi_line_model_path = os.path.join(self.execution_directory, "Models", "Lines")
+        self.photi_layout_model_path = os.path.join(self.execution_directory, "Models", "Layout")
 
         self.line_model_config = self.read_line_model_config(self.photi_line_model_path)
         self.layout_model_config = self.read_layout_model_config(self.photi_layout_model_path)

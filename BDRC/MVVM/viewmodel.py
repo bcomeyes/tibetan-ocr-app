@@ -19,7 +19,7 @@ class SettingsViewModel(QObject):
     def get_tmp_dir(self):
         return self._model.tmp_dir
 
-    def get_resource_dir(self) -> str:
+    def get_execution_dir(self) -> str:
         return self._model.execution_directory
     
     def get_default_font_path(self) -> str:
