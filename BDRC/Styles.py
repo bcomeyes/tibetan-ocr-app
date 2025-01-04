@@ -189,13 +189,13 @@ DARK = """
     }
 
     QRadioButton#OptionsRadio:indicator:checked {
-        image:url(:/Resources/Assets/Textures/qradio_indicator_checked.png);
+        image:url(:/Assets/Textures/qradio_indicator_checked.png);
         width: 12px;
         height: 12px;
     }
 
     QRadioButton#OptionsRadio:indicator:unchecked {
-        image:url(:/Resources/Assets/Textures/qradio_indicator.png);
+        image:url(:/Assets/Textures/qradio_indicator.png);
         width: 12px;
         height: 12px;
     }
@@ -296,11 +296,11 @@ DARK = """
     QSplitter::handle {
         padding-top: 4px;
         padding-bottom: 4px;
-        image: url(:/Resources/Assets/Textures/splitter_handle.png);
+        image: url(:/Assets/Textures/splitter_handle.png);
     }
 
     QSplitter::handle:pressed {
-        image: url(:/Resources/Assets/Textures/splitter_handle_press.png);
+        image: url(:/Assets/Textures/splitter_handle_press.png);
     }
 
     QTableWidget#ModelTable {
