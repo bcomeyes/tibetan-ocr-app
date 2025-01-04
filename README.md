@@ -42,7 +42,7 @@ This app does not have a package for MacOS on Inter hardware at the moment. For 
 
 ### Configuring the models
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in a directory of your choice
+1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip in a directory of your choice
 2. Once the app opens, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
 3. Then quit the app and run it again so that the models can be used.
 
