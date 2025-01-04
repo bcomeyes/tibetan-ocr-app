@@ -24,6 +24,7 @@ from PySide6.QtGui import (
 )
 
 from PySide6.QtWidgets import (
+    QApplication,
     QAbstractItemView,
     QComboBox,
     QScrollBar,
@@ -1263,6 +1264,7 @@ class TextView(QFrame):
         self.encoding = encoding
         self.default_font_path = font_path
         self.execution_dir = execution_dir
+        self.clip_board = QApplication.clipboard()
 
         if self.platform == Platform.Windows:
             
@@ -1298,6 +1300,15 @@ class TextView(QFrame):
             object_name="TextToolsButton"
         )
 
+        self.copy_text_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "copy.png")
+        self.copy_text_btn = MenuButton(
+            "copy all text lines",
+            self.copy_text_btn_icon,
+            width=32,
+            height=32,
+            object_name="TextToolsButton"
+        )
+
         self.spacer = QLabel()
 
         # bind signals
@@ -1307,12 +1318,14 @@ class TextView(QFrame):
         self.zoom_in_btn.clicked.connect(self.zoom_in)
         self.zoom_out_btn.clicked.connect(self.zoom_out)
         self.convert_wylie_btn.clicked.connect(self.convert_wylie_unicode)
+        self.copy_text_btn.clicked.connect(self.copy_text)
 
         # build layout
         self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.zoom_in_btn)
         self.button_layout.addWidget(self.zoom_out_btn)
         self.button_layout.addWidget(self.convert_wylie_btn)
+        self.button_layout.addWidget(self.copy_text_btn)
         self.button_layout.addWidget(self.spacer)
 
         self.layout = QVBoxLayout()
@@ -1428,3 +1441,12 @@ class TextView(QFrame):
     def convert_wylie_unicode(self):
         if self.page_guid is not None:
             self._dataview.convert_wylie_unicode(self.page_guid)
+
+    def copy_text(self):
+        self.clip_board.clear(mode=self.clip_board.Mode.Clipboard)
+
+        clipboard_text = ""
+        for ocr_line in self.ocr_lines:
+            clipboard_text += f"{ocr_line.text}\n"
+
+        self.clip_board.setText(clipboard_text, mode=self.clip_board.Mode.Clipboard)

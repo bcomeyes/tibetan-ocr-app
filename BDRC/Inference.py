@@ -237,7 +237,8 @@ class OCRInference:
         )
         self._add_blank = ocr_config.add_blank
         self.decoder = CTCDecoder(self._characters, self._add_blank)
-
+        print(f"charset: {self._characters}")
+        print(f"ctc charset: {self.decoder.ctc_vocab}")
     def _pad_ocr_line(
             self,
             img: npt.NDArray,
@@ -361,14 +362,11 @@ class OCRPipeline:
 
     def update_line_detection(self, config: Union[LineDetectionConfig, LayoutDetectionConfig]):
         if isinstance(config, LineDetectionConfig) and isinstance(self.line_config, LayoutDetectionConfig):
-            print(f"Updating OCR Pipeline from Layout to Line Model")
             self.line_inference = LineDetection(self.platform, config)
         elif isinstance(config, LayoutDetectionConfig) and isinstance(self.line_config, LineDetectionConfig):
-            print(f"Updating OCR Pipeline from Line to Layout Model")
             self.line_inference = LayoutDetection(self.platform, config)
 
         else:
-            print("Not updating the Line model in the Pipeline")
             return
 
 

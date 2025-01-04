@@ -365,7 +365,9 @@ class AppView(QWidget):
         self._settingsview_model.update_ocr_models(ocr_models)
         
         current_line_config = self._settingsview_model.get_line_model()
-        self.ocr_pipeline.update_line_detection(current_line_config)
+
+        if self.ocr_pipeline is not None:
+            self.ocr_pipeline.update_line_detection(current_line_config)
 
     def update_ocr_model(self, ocr_model: OCRModel):
         if self.ocr_pipeline is not None:
