@@ -29,6 +29,7 @@ This app does not have a package for OSX at the moment. If you're an experienced
 1. Make sure you have [Git LFS](https://git-lfs.com) installed
 2. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 3. run `git lfs pull` to download all LFS files
+4. run `pyside6-rcc resources.qrc -o resources.py`
 4. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc-ocr-app-models.zip in the `Resources/` folder
 5. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
 6. Run `python main.py`
