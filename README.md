@@ -22,7 +22,7 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 ##### OSX
 
-This app does not have a package for MacOS on Inter hardware at the moment. For M1, M2, etc. processors:
+This app does not have a package for MacOS on Intel processors at the moment (contributions welcome!). For Apple (M1, M2, etc.) processors:
 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_osx_arm64_0.1.zip
 2. drag and drop the BDRC app you just unzipped into your Applications folder
@@ -35,15 +35,15 @@ This app does not have a package for MacOS on Inter hardware at the moment. For 
 1. Make sure you have [Git LFS](https://git-lfs.com) installed
 2. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
 3. run `git lfs pull` to download all LFS files
-4. run `pyside6-rcc resources.qrc -o resources.py`
-5. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
+4. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
+5. run `pyside6-rcc resources.qrc -o resources.py`
 6. Run `python main.py`
 7. configure the models (see below)
 
 ### Configuring the models
 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip in a directory of your choice
-2. Once the app opens, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
+2. Open the app, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
 3. Then quit the app and run it again so that the models can be used.
 
 ### Building distribution packages
