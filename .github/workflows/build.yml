@@ -24,17 +24,36 @@ jobs:
     
     - name: Get version from tag
       id: get_version
-      run: |
-        echo "release_version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-    - name: Check version tag
       shell: bash
-      env:
-        RELEASE_VERSION: ${{ steps.get_version.outputs.release_version }}
       run: |
-        echo $RELEASE_VERSION
-        echo ${{ steps.get_version.outputs.release_version }}
-    
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "release_version=${VERSION}" >> "$GITHUB_ENV"
+        echo "release_version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Debug Info
+      shell: bash
+      run: |
+        echo "GITHUB_REF: ${GITHUB_REF}"
+        echo "Raw tag: ${GITHUB_REF#refs/tags/v}"
+        echo "Environment version: ${release_version}"
+        echo "Step output version: ${{ steps.get_version.outputs.release_version }}"
+
+    - name: Debug Windows Path
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Output "GITHUB_REF: $env:GITHUB_REF"
+        Write-Output "release_version: $env:release_version"
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+
+    - name: Cache Nuitka
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/.nuitka_cache
+        key: ${{ runner.os }}-nuitka
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
