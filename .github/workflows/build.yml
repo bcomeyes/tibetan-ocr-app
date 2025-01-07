@@ -1,0 +1,84 @@
+name: Build Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on tags like v1.0.0, v0.1.0, etc.
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        python-version: ['3.10']
+        include:
+          - os: macos-latest
+            target: macos
+          - os: windows-latest
+            target: windows
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install nuitka
+        pip install pyside6
+        pip install -r requirements.txt
+        pyside6-rcc resources.qrc -o resources.py
+
+    - name: Build with Nuitka (MacOS)
+      if: matrix.os == 'macos-latest'
+      env:
+        APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      run: |
+        python -m nuitka --standalone \
+          --output-dir=OSXBuild \
+          --plugin-enable=pyside6 \
+          --company-name=BDRC \
+          --product-name="Tibetan OCR App" \
+          --file-version=${{ steps.get_version.outputs.VERSION }} \
+          --product-version=${{ steps.get_version.outputs.VERSION }} \
+          --macos-app-name="BDRC Tibetan OCR App" \
+          --macos-signed-app-name="io.bdrc.ocrapp" \
+          --macos-create-app-bundle \
+          --macos-app-icon=logo.icns \
+          --include-data-dir=./Assets=Assets \
+          --include-data-dir=./Models=Models \
+          main.py
+
+    - name: Build with Nuitka (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        python -m nuitka --standalone `
+          --windows-console-mode=disable `
+          --output-dir=WindowsBuild `
+          --plugin-enable=pyside6 `
+          --windows-icon-from-ico=logo.ico `
+          --company-name=BDRC `
+          --product-name="Tibetan OCR App" `
+          --file-version=${{ steps.get_version.outputs.VERSION }} `
+          --product-version=${{ steps.get_version.outputs.VERSION }} `
+          --include-data-dir=./Assets=Assets `
+          --include-data-dir=./Models=Models `
+          main.py
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.target }}-build-${{ steps.get_version.outputs.VERSION }}
+        path: |
+          ${{ matrix.os == 'macos-latest' && 'OSXBuild/*' || 'WindowsBuild/*' }}
