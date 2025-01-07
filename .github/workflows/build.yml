@@ -69,7 +69,7 @@ jobs:
         pyside6-rcc resources.qrc -o resources.py
 
     - name: Build with Nuitka (MacOS)
-      timeout-minutes: 10
+      timeout-minutes: 60
       if: matrix.os == 'macos-latest'
       env:
         APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
@@ -91,7 +91,7 @@ jobs:
           main.py
 
     - name: Build with Nuitka (Windows)
-      timeout-minutes: 10
+      timeout-minutes: 60
       if: matrix.os == 'windows-latest'
       run: |
         python -m nuitka --standalone `
