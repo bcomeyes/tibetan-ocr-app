@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [windows-latest]
         python-version: ['3.10']
         include:
           - os: macos-latest
@@ -24,7 +24,16 @@ jobs:
     
     - name: Get version from tag
       id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      run: |
+        echo "${GITHUB_REF}"
+        echo "release_version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Check version tag
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.release_version }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.get_version.outputs.release_version }}
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -50,8 +59,8 @@ jobs:
           --plugin-enable=pyside6 \
           --company-name=BDRC \
           --product-name="Tibetan OCR App" \
-          --file-version=${{ steps.get_version.outputs.VERSION }} \
-          --product-version=${{ steps.get_version.outputs.VERSION }} \
+          --file-version=${{ steps.get_version.outputs.release_version }} \
+          --product-version=${{ steps.get_version.outputs.release_version }} \
           --macos-app-name="BDRC Tibetan OCR App" \
           --macos-signed-app-name="io.bdrc.ocrapp" \
           --macos-create-app-bundle \
@@ -70,8 +79,8 @@ jobs:
           --windows-icon-from-ico=logo.ico `
           --company-name=BDRC `
           --product-name="Tibetan OCR App" `
-          --file-version=${{ steps.get_version.outputs.VERSION }} `
-          --product-version=${{ steps.get_version.outputs.VERSION }} `
+          --file-version=${{ steps.get_version.outputs.release_version }} `
+          --product-version=${{ steps.get_version.outputs.release_version }} `
           --include-data-dir=./Assets=Assets `
           --include-data-dir=./Models=Models `
           main.py
@@ -79,6 +88,6 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.target }}-build-${{ steps.get_version.outputs.VERSION }}
+        name: ${{ matrix.target }}-build-${{ steps.get_version.outputs.release_version }}
         path: |
           ${{ matrix.os == 'macos-latest' && 'OSXBuild/*' || 'WindowsBuild/*' }}
