@@ -29,11 +29,11 @@ jobs:
         echo "release_version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
     - name: Check version tag
-        env:
-          RELEASE_VERSION: ${{ steps.get_version.outputs.release_version }}
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ steps.get_version.outputs.release_version }}
+      env:
+        RELEASE_VERSION: ${{ steps.get_version.outputs.release_version }}
+      run: |
+        echo $RELEASE_VERSION
+        echo ${{ steps.get_version.outputs.release_version }}
     
     - name: Set up Python
       uses: actions/setup-python@v4
