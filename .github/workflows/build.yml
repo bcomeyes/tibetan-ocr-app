@@ -30,14 +30,6 @@ jobs:
         echo "release_version=${VERSION}" >> "$GITHUB_ENV"
         echo "release_version=${VERSION}" >> "$GITHUB_OUTPUT"
 
-    - name: Debug Info
-      shell: bash
-      run: |
-        echo "GITHUB_REF: ${GITHUB_REF}"
-        echo "Raw tag: ${GITHUB_REF#refs/tags/v}"
-        echo "Environment version: ${release_version}"
-        echo "Step output version: ${{ steps.get_version.outputs.release_version }}"
-
     - name: Debug Windows Path
       if: runner.os == 'Windows'
       shell: pwsh
@@ -78,7 +70,8 @@ jobs:
         python -m nuitka --standalone \
           --output-dir=OSXBuild \
           --plugin-enable=pyside6 \
-          --company-name=BDRC \
+          --verbose \
+          --company-name="Buddhist Digital Resource Center" \
           --product-name="Tibetan OCR App" \
           --file-version=${{ steps.get_version.outputs.release_version }} \
           --product-version=${{ steps.get_version.outputs.release_version }} \
@@ -96,10 +89,11 @@ jobs:
       run: |
         python -m nuitka --standalone `
           --windows-console-mode=disable `
+          --assume-yes-for-downloads `
           --output-dir=WindowsBuild `
           --plugin-enable=pyside6 `
           --windows-icon-from-ico=logo.ico `
-          --company-name=BDRC `
+          --company-name="Buddhist Digital Resource Center" `
           --product-name="Tibetan OCR App" `
           --file-version=${{ steps.get_version.outputs.release_version }} `
           --product-version=${{ steps.get_version.outputs.release_version }} `
@@ -108,7 +102,7 @@ jobs:
           main.py
     
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.target }}-build-${{ steps.get_version.outputs.release_version }}
         path: |
