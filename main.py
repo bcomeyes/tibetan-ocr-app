@@ -7,6 +7,9 @@
 - build for Linux:
     nuitka --standalone --onefile --output-dir="LinuxBuild" --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
 
+- Debug build using pyinstaller:
+    MacOs (Default): pyinstaller main.py --distpath="DebugBuild" --add-data="Assets:Assets" --add-data="Models:Models" 
+    MacOs (e.g. Intel): pyinstaller main.py --distpath="DebugBuild" --target-arch="x86_64" --add-data="Assets:Assets" --add-data="Models:Models" 
 Note:
     If you edit the resources.qrc file, make sure to recompile it by using: pyside6-rcc resources.qrc -o resources.py
 """

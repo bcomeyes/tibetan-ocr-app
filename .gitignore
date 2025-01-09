@@ -2,6 +2,7 @@ WindowsBuild/
 WindowsDbgBuild/
 OSXBuild/
 Build/
+DebugBuild
 
 resources.py
 
