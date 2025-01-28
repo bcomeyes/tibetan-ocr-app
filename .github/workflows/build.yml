@@ -60,7 +60,7 @@ jobs:
       - name: Build with Nuitka (macOS)
         if: ${{ runner.os == 'macOS' }}
         env:
-          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_JF_ID }}
+          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           python -m nuitka --standalone \
@@ -78,35 +78,82 @@ jobs:
             --include-data-dir=./Models=Models \
             main.py
 
-      - name: Sign and Notarize macOS App
+      - name: Sign macOS App
         if: ${{ runner.os == 'macOS' }}
         env:
-          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_JF_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_ID: ${{ secrets.APPLE_JF_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
+          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
         run: |
-          # List available certificates
+          echo "Setting bundle identifier..."
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "OSXBuild/main.app/Contents/Info.plist" || echo "CFBundleIdentifier not found"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.bdrc.ocrapp" "OSXBuild/main.app/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "OSXBuild/main.app/Contents/Info.plist"
+
+          echo "Verifying app bundle structure..."
+          ls -la "OSXBuild/main.app/Contents"
+
+          echo "Signing app with verbose output..."
+          codesign --force --options runtime --sign "Developer ID Application: $APPLE_DEVELOPER_ID" --verbose --deep "OSXBuild/main.app"
+
+          echo "Verifying signature..."
+          codesign --verify --verbose "OSXBuild/main.app"
+
+          echo "Checking app requirements..."
+          codesign --display --requirements - "OSXBuild/main.app"
+
+      - name: Import and Setup Certificate
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          echo "Creating temporary certificate file..."
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+
+          echo "Setting up new keychain..."
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+
+          echo "Importing certificate..."
+          security import $CERTIFICATE_PATH -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+          echo "Listing available certificates..."
           security find-identity -v -p codesigning
 
-          # Set bundle identifier in Info.plist
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.bdrc.ocrapp" "OSXBuild/main.app/Contents/Info.plist"
+          rm -f $CERTIFICATE_PATH
+          echo "Certificate setup complete"
 
-          # Sign the app with full certificate name
-          codesign --force --options runtime --sign "Developer ID Application: $APPLE_DEVELOPER_ID" "OSXBuild/main.app"
-
-          # Create temporary zip for notarization
+      - name: Notarize macOS App
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_JF_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
+        run: |
+          echo "Creating zip for notarization..."
           ditto -c -k --keepParent "OSXBuild/main.app" "OSXBuild/main.app.zip"
 
-          # Submit for notarization and wait for result
+          echo "Submitting for notarization..."
           xcrun notarytool submit "OSXBuild/main.app.zip" \
-            --apple-id "$APPLE_DEVELOPER_ID" \
+            --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait \
+            --verbose
 
-          # Staple the notarization ticket
-          xcrun stapler staple "OSXBuild/main.app"
+          echo "Checking notarization history..."
+          xcrun notarytool history \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID"
+
+          echo "Stapling notarization ticket..."
+          xcrun stapler staple -v "OSXBuild/main.app"
+
+          echo "Verifying stapled app..."
+          xcrun stapler validate -v "OSXBuild/main.app"
 
       - name: Build with Nuitka (Windows)
         if: ${{ runner.os == 'Windows' }}
