@@ -86,19 +86,22 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_JF_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
         run: |
+          # Set bundle identifier in Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.bdrc.ocrapp" "OSXBuild/main.app/Contents/Info.plist"
+          
           # Sign the app
-          codesign --force --options runtime,bundle-id=io.bdrc.ocrapp --sign "$APPLE_DEVELOPER_ID" "OSXBuild/main.app"
-
+          codesign --force --options runtime --sign "$APPLE_DEVELOPER_ID" "OSXBuild/main.app"
+          
           # Create temporary zip for notarization
           ditto -c -k --keepParent "OSXBuild/main.app" "OSXBuild/main.app.zip"
-
+          
           # Submit for notarization and wait for result
           xcrun notarytool submit "OSXBuild/main.app.zip" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
-
+          
           # Staple the notarization ticket
           xcrun stapler staple "OSXBuild/main.app"
 
