@@ -9,7 +9,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-13, macos-latest, ubuntu-latest]
+        # os: [windows-latest, macos-13, macos-latest]
+        os: [macos-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -22,7 +23,7 @@ jobs:
 
       - name: Set required env vars
         env:
-          ARTIFACT_PATH: ${{ runner.os == 'macOS' && 'OSXBuild/*' || (runner.os == 'Linux' && 'LinuxBuild/*' || 'WindowsBuild/*') }}
+          ARTIFACT_PATH: ${{ runner.os == 'macOS' && 'OSXBuild/*' || 'WindowsBuild/*' }}
         run: |
           OS=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
           ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
@@ -48,12 +49,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxcb-xinerama0 libxcb-cursor0 libxkbcommon-x11-0
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -66,8 +61,6 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         env:
           APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
-          APPLE_JF_ID: ${{ secrets.APPLE_JF_ID }}
-          APPLE_JF_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           python -m nuitka --standalone \
@@ -82,24 +75,6 @@ jobs:
             --macos-signed-app-name="io.bdrc.ocrapp" \
             --macos-create-app-bundle \
             --macos-app-icon=logo.icns \
-            --macos-sign-identity="${APPLE_DEVELOPER_ID}" \
-            --macos-sign-notarization \
-            --include-data-dir=./Assets=Assets \
-            --include-data-dir=./Models=Models \
-            main.py
-
-      - name: Build with Nuitka (Linux)
-        if: ${{ runner.os == 'Linux' }}
-        run: |
-          python -m nuitka --standalone \
-            --output-dir=LinuxBuild \
-            --plugin-enable=pyside6 \
-            --verbose \
-            --company-name="Buddhist Digital Resource Center" \
-            --product-name="Tibetan OCR App" \
-            --file-version='${{ env.VERSION }}' \
-            --product-version='${{ env.VERSION }}' \
-            --linux-icon=logo.png \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
