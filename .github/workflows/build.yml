@@ -82,11 +82,8 @@ jobs:
             --macos-signed-app-name="io.bdrc.ocrapp" \
             --macos-create-app-bundle \
             --macos-app-icon=logo.icns \
-            --macos-sign-notarize \
             --macos-sign-identity="${APPLE_DEVELOPER_ID}" \
-            --macos-sign-notarization-username="${APPLE_JF_ID}" \
-            --macos-sign-notarization-password="${APPLE_JF_PASSWORD}" \
-            --macos-sign-notarization-team-id="${APPLE_TEAM_ID}" \
+            --macos-sign-notarization \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
