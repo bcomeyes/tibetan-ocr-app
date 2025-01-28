@@ -69,15 +69,38 @@ jobs:
             --verbose \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
-            --file-version=${{ steps.get_version.outputs.release_version }} \
-            --product-version=${{ steps.get_version.outputs.release_version }} \
+            --file-version='${{ env.VERSION }}' \
+            --product-version='${{ env.VERSION }}' \
             --macos-app-name="BDRC Tibetan OCR App" \
-            --macos-signed-app-name="io.bdrc.ocrapp" \
             --macos-create-app-bundle \
             --macos-app-icon=logo.icns \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
+
+      - name: Sign and Notarize macOS App
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_JF_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
+        run: |
+          # Sign the app
+          codesign --force --options runtime,bundle-id=io.bdrc.ocrapp --sign "$APPLE_DEVELOPER_ID" "OSXBuild/main.app"
+
+          # Create temporary zip for notarization
+          ditto -c -k --keepParent "OSXBuild/main.app" "OSXBuild/main.app.zip"
+
+          # Submit for notarization and wait for result
+          xcrun notarytool submit "OSXBuild/main.app.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "OSXBuild/main.app"
 
       - name: Build with Nuitka (Windows)
         if: ${{ runner.os == 'Windows' }}
@@ -91,8 +114,8 @@ jobs:
             --windows-icon-from-ico=logo.ico \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
-            --file-version=${{ steps.get_version.outputs.release_version }} \
-            --product-version=${{ steps.get_version.outputs.release_version }} \
+            --file-version='${{ env.VERSION }}' \
+            --product-version='${{ env.VERSION }}' \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
