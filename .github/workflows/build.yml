@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         # os: [windows-latest, macos-13, macos-latest]
-        os: [macos-13, macos-latest]
+        os: [macos-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -67,6 +67,7 @@ jobs:
             --output-dir=OSXBuild \
             --plugin-enable=pyside6 \
             --verbose \
+            --follow-imports \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
             --file-version='${{ env.VERSION }}' \
@@ -87,6 +88,7 @@ jobs:
             --assume-yes-for-downloads \
             --output-dir=WindowsBuild \
             --plugin-enable=pyside6 \
+            --follow-imports \
             --windows-icon-from-ico=logo.ico \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
