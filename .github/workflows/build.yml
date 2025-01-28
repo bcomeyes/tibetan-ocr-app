@@ -67,11 +67,10 @@ jobs:
             --output-dir=OSXBuild \
             --plugin-enable=pyside6 \
             --verbose \
-            --follow-imports \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
-            --file-version='${{ env.VERSION }}' \
-            --product-version='${{ env.VERSION }}' \
+            --file-version=${{ steps.get_version.outputs.release_version }} \
+            --product-version=${{ steps.get_version.outputs.release_version }} \
             --macos-app-name="BDRC Tibetan OCR App" \
             --macos-signed-app-name="io.bdrc.ocrapp" \
             --macos-create-app-bundle \
@@ -92,8 +91,8 @@ jobs:
             --windows-icon-from-ico=logo.ico \
             --company-name="Buddhist Digital Resource Center" \
             --product-name="Tibetan OCR App" \
-            --file-version='${{ env.VERSION }}' \
-            --product-version='${{ env.VERSION }}' \
+            --file-version=${{ steps.get_version.outputs.release_version }} \
+            --product-version=${{ steps.get_version.outputs.release_version }} \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
