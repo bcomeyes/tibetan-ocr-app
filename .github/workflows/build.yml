@@ -15,6 +15,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    outputs:
+      artifact_paths: ${{ steps.collect_artifacts.join(', ') }}
+
     steps:
       - name: Set required env vars (Unix)
         if: runner.os == 'macOS'
@@ -223,15 +226,40 @@ jobs:
             --windows-icon-from-ico=logo.ico `
             --company-name="Buddhist Digital Resource Center" `
             --product-name="Tibetan OCR App" `
-            --file-version='${{ env.VERSION }}' `
-            --product-version='${{ env.VERSION }}' `
+            --file-version=${{ env.VERSION }} `
+            --product-version=${{ env.VERSION }} `
             --include-data-dir=./Assets=Assets `
             --include-data-dir=./Models=Models `
             main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.ARTIFACT_PATH }}
           compression-level: 0
+
+      - name: Collect artifact path
+        id: collect_artifacts
+        run: echo "::set-output name=path::${{ steps.upload.outputs.artifact-path }}"
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: artifacts/**/*
