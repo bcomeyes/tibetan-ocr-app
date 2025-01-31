@@ -102,7 +102,7 @@ jobs:
         env:
           APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           SIGNING_IDENTITY: "Developer ID Application: ${{ secrets.APPLE_DEVELOPER_NAME }} (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           # Build app
