@@ -103,6 +103,7 @@ jobs:
           APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
+          SIGNING_IDENTITY: "Developer ID Application: ${{ secrets.APPLE_DEVELOPER_NAME }} (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           # Build app
           python -m nuitka --standalone \
@@ -130,12 +131,12 @@ jobs:
           # Sign components
           find "macOSBuild/BDRC Tibetan OCR.app" -type f \( -name "*.dylib" -o -name "*.so" -o -name "*.onnx" \) -exec \
             codesign --force --verify --options=runtime --timestamp \
-            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --sign "$SIGNING_IDENTITY" \
             --identifier "io.bdrc.ocrapp" {} +
 
           # Sign app bundle
           codesign --force --verify --options=runtime --timestamp --deep \
-            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --sign "$SIGNING_IDENTITY" \
             --identifier "io.bdrc.ocrapp" \
             "macOSBuild/BDRC Tibetan OCR.app"
 
@@ -198,7 +199,7 @@ jobs:
 
           # Sign and notarize DMG
           codesign --force --verify --options=runtime --timestamp \
-            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --sign "$SIGNING_IDENTITY" \
             --identifier "io.bdrc.ocrapp" \
             "BDRC Tibetan OCR.dmg"
 
