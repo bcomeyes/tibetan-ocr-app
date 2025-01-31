@@ -7,33 +7,57 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 60
+
     strategy:
       matrix:
-        # os: [windows-latest, macos-13, macos-latest]
-        os: [macos-latest]
+        os: [windows-latest, macos-13, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
-    defaults:
-      run:
-        shell: bash
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set required env vars
+      - name: Set required env vars (Unix)
+        if: runner.os == 'macOS'
         env:
-          ARTIFACT_PATH: ${{ runner.os == 'macOS' && 'OSXBuild/*' || 'WindowsBuild/*' }}
+          ARTIFACT_PATH: "BDRC Tibetan OCR.dmg"
+        shell: bash
         run: |
           OS=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
           ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="0.1.1"
           ARTIFACT_NAME="bdrc_ocr_${OS}_${ARCH}_${VERSION}"
-          {
-            echo "VERSION=$VERSION"
-            echo "ARTIFACT_NAME=$ARTIFACT_NAME"
-            echo "ARTIFACT_PATH=$ARTIFACT_PATH"
-          } >>"$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $GITHUB_ENV
+
+      - name: Set required env vars (Windows)
+        if: runner.os == 'Windows'
+        env:
+          ARTIFACT_PATH: WindowsBuild/BDRC Tibetan OCR.exe
+        shell: pwsh
+        run: |
+          $OS = $env:RUNNER_OS.ToLower()
+          $ARCH = $env:RUNNER_ARCH.ToLower()
+          $VERSION = "0.1.1"
+          $ARTIFACT_NAME = "bdrc_ocr_${OS}_${ARCH}_${VERSION}"
+          echo "VERSION=${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "ARTIFACT_PATH=$env:ARTIFACT_PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Cache Git LFS files
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.git/objects/info/lfs/**') }}
+          restore-keys: |
+            lfs-
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Pull LFS objects
+        run: git lfs pull
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -57,120 +81,152 @@ jobs:
           pip install -r requirements.txt
           pyside6-rcc resources.qrc -o resources.py
 
+      - name: Install create-dmg (macOS) and set up certificate for
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+        run: |
+          brew install create-dmg
+          echo $CERTIFICATE_BASE64 | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P $CERTIFICATE_PASSWORD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+          security find-identity -v -p codesigning build.keychain
+
       - name: Build with Nuitka (macOS)
         if: ${{ runner.os == 'macOS' }}
         env:
           APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
         run: |
+          # Build app
           python -m nuitka --standalone \
-            --output-dir=OSXBuild \
+            --output-dir=macOSBuild \
             --plugin-enable=pyside6 \
-            --verbose \
             --company-name="Buddhist Digital Resource Center" \
-            --product-name="Tibetan OCR App" \
+            --product-name="BDRC Tibetan OCR" \
             --file-version='${{ env.VERSION }}' \
             --product-version='${{ env.VERSION }}' \
-            --macos-app-name="BDRC Tibetan OCR App" \
+            --macos-app-name="BDRC Tibetan OCR" \
             --macos-create-app-bundle \
-            --macos-app-icon=logo.icns \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
             main.py
 
-      - name: Sign macOS App
-        if: ${{ runner.os == 'macOS' }}
-        env:
-          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
-        run: |
-          echo "Setting bundle identifier..."
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "OSXBuild/main.app/Contents/Info.plist" || echo "CFBundleIdentifier not found"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.bdrc.ocrapp" "OSXBuild/main.app/Contents/Info.plist"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "OSXBuild/main.app/Contents/Info.plist"
+          mv "macOSBuild/main.app" "macOSBuild/BDRC Tibetan OCR.app"
 
-          echo "Verifying app bundle structure..."
-          ls -la "OSXBuild/main.app/Contents"
+          # Set up icon
+          RESOURCES_PATH="macOSBuild/BDRC Tibetan OCR.app/Contents/Resources"
+          mkdir -p "$RESOURCES_PATH"
+          cp "logo.icns" "$RESOURCES_PATH/"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string logo" "macOSBuild/BDRC Tibetan OCR.app/Contents/Info.plist"
+          touch "macOSBuild/BDRC Tibetan OCR.app"
 
-          echo "Signing app with verbose output..."
-          codesign --force --options runtime --sign "Developer ID Application: $APPLE_DEVELOPER_ID" --verbose --deep "OSXBuild/main.app"
+          # Sign components
+          find "macOSBuild/BDRC Tibetan OCR.app" -type f \( -name "*.dylib" -o -name "*.so" -o -name "*.onnx" \) -exec \
+            codesign --force --verify --options=runtime --timestamp \
+            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --identifier "io.bdrc.ocrapp" {} +
 
-          echo "Verifying signature..."
-          codesign --verify --verbose "OSXBuild/main.app"
+          # Sign app bundle
+          codesign --force --verify --options=runtime --timestamp --deep \
+            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --identifier "io.bdrc.ocrapp" \
+            "macOSBuild/BDRC Tibetan OCR.app"
 
-          echo "Checking app requirements..."
-          codesign --display --requirements - "OSXBuild/main.app"
+          # Create and notarize zip
+          ditto -c -k --keepParent "macOSBuild/BDRC Tibetan OCR.app" "macOSBuild/app.zip"
 
-      - name: Import and Setup Certificate
-        if: ${{ runner.os == 'macOS' }}
-        env:
-          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
-          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-        run: |
-          echo "Creating temporary certificate file..."
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          echo -n "$CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          # Function to retry notarization
+          retry_notarize() {
+            local file="$1"
+            local max_attempts=3
+            local attempt=1
+            local wait_time=30
+            
+            while [ $attempt -le $max_attempts ]; do
+              echo "Notarization attempt $attempt of $max_attempts for $file..."
+              if xcrun notarytool submit "$file" \
+                --apple-id "$APPLE_DEVELOPER_ID" \
+                --password "$APPLE_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait; then
+                echo "Notarization successful for $file"
+                return 0
+              fi
+              
+              echo "Notarization attempt $attempt failed for $file"
+              if [ $attempt -lt $max_attempts ]; then
+                echo "Waiting $wait_time seconds before next attempt..."
+                sleep $wait_time
+                # Increase wait time for next attempt
+                wait_time=$((wait_time * 2))
+              fi
+              attempt=$((attempt + 1))
+            done
+            
+            echo "All notarization attempts failed for $file"
+            return 1
+          }
 
-          echo "Setting up new keychain..."
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
+          # Notarize app with retry
+          if ! retry_notarize "macOSBuild/app.zip"; then
+            echo "Failed to notarize app after all attempts"
+            exit 1
+          fi
 
-          echo "Importing certificate..."
-          security import $CERTIFICATE_PATH -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+          # Staple app
+          xcrun stapler staple "macOSBuild/BDRC Tibetan OCR.app"
 
-          echo "Listing available certificates..."
-          security find-identity -v -p codesigning
+          # Create and sign DMG
+          create-dmg \
+            --volname "BDRC Tibetan OCR" \
+            --volicon "logo.icns" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "BDRC Tibetan OCR.app" 200 190 \
+            --hide-extension "BDRC Tibetan OCR.app" \
+            --app-drop-link 600 185 \
+            "BDRC Tibetan OCR.dmg" \
+            "macOSBuild/BDRC Tibetan OCR.app"
 
-          rm -f $CERTIFICATE_PATH
-          echo "Certificate setup complete"
+          # Sign and notarize DMG
+          codesign --force --verify --options=runtime --timestamp \
+            --sign "Developer ID Application: Jeremy Frere ($APPLE_TEAM_ID)" \
+            --identifier "io.bdrc.ocrapp" \
+            "BDRC Tibetan OCR.dmg"
 
-      - name: Notarize macOS App
-        if: ${{ runner.os == 'macOS' }}
-        env:
-          APPLE_ID: ${{ secrets.APPLE_JF_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_JF_PASSWORD }}
-        run: |
-          echo "Creating zip for notarization..."
-          ditto -c -k --keepParent "OSXBuild/main.app" "OSXBuild/main.app.zip"
+          # Notarize DMG with retry
+          if ! retry_notarize "BDRC Tibetan OCR.dmg"; then
+            echo "Failed to notarize DMG after all attempts"
+            exit 1
+          fi
 
-          echo "Submitting for notarization..."
-          xcrun notarytool submit "OSXBuild/main.app.zip" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait \
-            --verbose
-
-          echo "Checking notarization history..."
-          xcrun notarytool history \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID"
-
-          echo "Stapling notarization ticket..."
-          xcrun stapler staple -v "OSXBuild/main.app"
-
-          echo "Verifying stapled app..."
-          xcrun stapler validate -v "OSXBuild/main.app"
+          xcrun stapler staple "BDRC Tibetan OCR.dmg"
 
       - name: Build with Nuitka (Windows)
         if: ${{ runner.os == 'Windows' }}
         run: |
-          python -m nuitka --standalone \
-            --windows-console-mode=disable \
-            --assume-yes-for-downloads \
-            --output-dir=WindowsBuild \
-            --plugin-enable=pyside6 \
-            --follow-imports \
-            --windows-icon-from-ico=logo.ico \
-            --company-name="Buddhist Digital Resource Center" \
-            --product-name="Tibetan OCR App" \
-            --file-version='${{ env.VERSION }}' \
-            --product-version='${{ env.VERSION }}' \
-            --include-data-dir=./Assets=Assets \
-            --include-data-dir=./Models=Models \
+          python -m nuitka --standalone `
+            --onefile `
+            --windows-console-mode=disable `
+            --assume-yes-for-downloads `
+            --output-dir=WindowsBuild `
+            --output-filename="BDRC Tibetan OCR.exe" `
+            --plugin-enable=pyside6 `
+            --windows-icon-from-ico=logo.ico `
+            --company-name="Buddhist Digital Resource Center" `
+            --product-name="Tibetan OCR App" `
+            --file-version='${{ env.VERSION }}' `
+            --product-version='${{ env.VERSION }}' `
+            --include-data-dir=./Assets=Assets `
+            --include-data-dir=./Models=Models `
             main.py
 
       - name: Upload artifact
@@ -178,3 +234,4 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.ARTIFACT_PATH }}
+          compression-level: 0
