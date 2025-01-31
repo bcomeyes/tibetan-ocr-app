@@ -15,9 +15,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    outputs:
-      artifact_paths: ${{ steps.collect_artifacts.join(', ') }}
-
     steps:
       - name: Set required env vars (Unix)
         if: runner.os == 'macOS'
@@ -234,15 +231,10 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
-        id: upload
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.ARTIFACT_PATH }}
           compression-level: 0
-
-      - name: Collect artifact path
-        id: collect_artifacts
-        run: echo "::set-output name=path::${{ steps.upload.outputs.artifact-path }}"
 
   create-release:
     needs: build
@@ -254,6 +246,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
