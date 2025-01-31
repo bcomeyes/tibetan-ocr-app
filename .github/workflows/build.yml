@@ -38,7 +38,7 @@ jobs:
         run: |
           $OS = $env:RUNNER_OS.ToLower()
           $ARCH = $env:RUNNER_ARCH.ToLower()
-          VERSION="${GITHUB_REF_NAME#v}"
+          $VERSION = "${GITHUB_REF_NAME#v}"
           $ARTIFACT_NAME = "bdrc_ocr_${OS}_${ARCH}_${VERSION}"
           echo "VERSION=${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Append
