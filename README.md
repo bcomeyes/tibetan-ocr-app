@@ -24,11 +24,11 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 This app does not have a package for MacOS on Intel processors at the moment (contributions welcome!). For Apple (M1, M2, etc.) processors:
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_osx_arm64_0.1.zip
-2. drag and drop the BDRC app you just unzipped into your Applications folder
-3. Open a terminal and run `xattr -c /Applications/BDRC.app`. If you do not do that you will get a message saying the app "is damanged and can't be opened"
-4. Run the app
-5. configure the models (see below)
+1. Download and unzip
+- for recent hardware https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_arm64_0.1.zip
+- for older x64 (Intel) processor https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_x64_0.1.zip
+2. Run the app
+3. configure the models (see below)
 
 ##### From source (advanced users)
 
@@ -52,3 +52,7 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 2. (optional) install `ccache` to speed up the compilation (on OSX this can be done through homebrew)
 3. run the nuitka command given in main.py that corresponds to your OS
 4. zip the files in the corresponding build folder
+
+### Acknowledgements
+
+Our gratitude goes to Jérémy Frère for the OSX packaging.
