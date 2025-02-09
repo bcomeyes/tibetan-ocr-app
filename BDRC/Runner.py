@@ -77,10 +77,18 @@ class OCRBatchRunner(QRunnable):
 
     def run(self):
         results = {}
-
-        for idx, data in enumerate(self.data):
-            if not self.stop:
+        try:
+            for idx, data in enumerate(self.data):
+                if self.stop:
+                    break
+                    
                 img = cv2.imread(data.image_path)
+                if img is None:
+                    error_msg = f"Failed to load image: {data.image_path}"
+                    print(error_msg)
+                    self.signals.error.emit(error_msg)
+                    continue
+                    
                 status, result = self.ocr_pipeline.run_ocr(
                     image=img,
                     k_factor=self.k_factor,
@@ -92,7 +100,6 @@ class OCRBatchRunner(QRunnable):
 
                 if status == OpStatus.SUCCESS:
                     rot_mask, lines, ocr_lines, angle = result
-
                     ocr_result = OCResult(
                         guid=data.guid,
                         mask=rot_mask,
@@ -108,9 +115,15 @@ class OCRBatchRunner(QRunnable):
                         result=ocr_result
                     )
                     self.signals.sample.emit(sample)
-            else:
-                self.signals.finished.emit()
-
-        self.signals.finished.emit()
-
-
+                    self.signals.ocr_result.emit(ocr_result)  # Emit each result individually
+                else:
+                    error_msg = f"Failed to process {data.image_name}: {result}"
+                    print(error_msg)
+                    self.signals.error.emit(error_msg)
+                    
+        except Exception as e:
+            error_msg = f"Error in batch processing: {str(e)}"
+            print(error_msg)
+            self.signals.error.emit(error_msg)
+        finally:
+            self.signals.finished.emit()
