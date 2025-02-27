@@ -1,17 +1,19 @@
-import os
 import cv2
+import sys
+import re
+import platform
+import os
 from uuid import UUID
-from pypdf import PdfReader
 from typing import Dict, List
 from PySide6.QtCore import Signal, Qt, QThreadPool
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel
-
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog
+from pdf2image import convert_from_path, pdfinfo_from_path
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
 from BDRC.Utils import build_ocr_data, get_filename, create_dir
-from BDRC.Widgets.Dialogs import NotificationDialog, SettingsDialog, BatchOCRDialog, ExportDialog, \
-    ImportImagesDialog, ImportPDFDialog, ImportFilesProgress
+from BDRC.Widgets.Dialogs import NotificationDialog, ImportFilesProgress, PDFImportDialog
+from BDRC.utils.pdf_extract import extract_images_from_pdf
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 
@@ -168,93 +170,197 @@ class AppView(QWidget):
         else:
             self.ocr_pipeline = None
 
+        # Memoized poppler path
+        self._poppler_path = None
+
         self.show()
 
     def handle_file_import(self):
-        dialog = ImportImagesDialog()
-
-        if dialog.exec():
-            file_list = dialog.selectedFiles()
-            imported_data = {}
-            size_hint = self.image_gallery.sizeHint()
-            target_width = size_hint.width() - 80
-
-            if len(file_list) > 20:
-                progress = ImportFilesProgress("Importing Images...", max_length=len(file_list))
-                progress.setWindowModality(Qt.WindowModality.WindowModal)
-
-                for idx, file_path in enumerate(file_list):
-                    if os.path.isfile(file_path):
-
-                        ocr_data = build_ocr_data(idx, file_path, target_width)
-                        imported_data[ocr_data.guid] = ocr_data
-                        progress.setValue(idx)
-
-                        if progress.wasCanceled():
-                            progress.close()
-                            break
-
-            else:
-                for idx, file_path in enumerate(file_list):
-                    if os.path.isfile(file_path):
-                        ocr_data = build_ocr_data(idx, file_path, target_width)
-                        imported_data[ocr_data.guid] = ocr_data
-
-            self.import_files(imported_data)
-
+        import uuid
+        
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff);;PDF Files (*.pdf);;All Files (*)")
+        
+        if file_dialog.exec():
+            files = file_dialog.selectedFiles()
+            
+            if not files:
+                return
+                
+            # Create a temporary directory for imported files
+            import_dir = os.path.join(os.path.expanduser("~"), ".bdrc_ocr", "imports")
+            create_dir(import_dir)
+            
+            try:
+                results = {}
+                
+                for file_path in files:
+                    file_extension = os.path.splitext(file_path)[1].lower()
+                    
+                    if file_extension == '.pdf':
+                        # Show PDF import options dialog
+                        pdf_dialog = PDFImportDialog(self)
+                        if pdf_dialog.exec():
+                            import_method = pdf_dialog.get_selected_method()
+                            
+                            # Create a unique directory for this PDF
+                            pdf_dir = os.path.join(import_dir, str(uuid.uuid4()))
+                            create_dir(pdf_dir)
+                            
+                            if import_method == PDFImportDialog.IMPORT_EMBEDDED_IMAGES:
+                                # Extract embedded images using PyPDF2
+                                self.handle_pdf_extract(file_path, pdf_dir, results)
+                            else:
+                                # Convert pages to images using pdf2image
+                                self.convert_pdf_to_images(file_path, pdf_dir, results)
+                    else:
+                        # Handle regular image files
+                        file_id = uuid.uuid4()
+                        file_name = get_filename(file_path)
+                        
+                        data = build_ocr_data(file_id, file_path)
+                        results[file_id] = data
+                
+                if results:
+                    self.import_files(results)
+                    
+            except Exception as e:
+                error_dialog = NotificationDialog("Error", f"An error occurred while importing files: {e}")
+                error_dialog.exec_()
+                
     def handle_pdf_import(self):
-        dialog = ImportPDFDialog()
+        """Handle importing PDF files."""
+        import uuid
+        
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        file_dialog.setNameFilter("PDF Files (*.pdf)")
+        
+        if file_dialog.exec():
+            files = file_dialog.selectedFiles()
+            
+            if not files:
+                return
+                
+            # Create a temporary directory for imported files
+            import_dir = os.path.join(os.path.expanduser("~"), ".bdrc_ocr", "imports")
+            create_dir(import_dir)
+            
+            try:
+                results = {}
+                
+                for file_path in files:
+                    # Show PDF import options dialog
+                    pdf_dialog = PDFImportDialog(self)
+                    if pdf_dialog.exec():
+                        import_method = pdf_dialog.get_selected_method()
+                        
+                        # Create a unique directory for this PDF
+                        pdf_dir = os.path.join(import_dir, str(uuid.uuid4()))
+                        create_dir(pdf_dir)
+                        
+                        if import_method == PDFImportDialog.IMPORT_EMBEDDED_IMAGES:
+                            # Extract embedded images using PyPDF2
+                            self.handle_pdf_extract(file_path, pdf_dir, results)
+                        else:
+                            # Convert pages to images using pdf2image
+                            self.convert_pdf_to_images(file_path, pdf_dir, results)
+                
+                if results:
+                    self.import_files(results)
+                    
+            except Exception as e:
+                error_dialog = NotificationDialog("Error", f"An error occurred while importing PDF files: {e}")
+                error_dialog.exec_()
+                
+    def handle_pdf_extract(self, file_path, output_dir, results):
+        """Extract embedded images from PDF using PyPDF2."""
+        import uuid
+        
+        try:
+            # Create progress dialog
+            progress = ImportFilesProgress("Extracting images from PDF...")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.show()
+            
+            # Extract images from PDF
+            image_paths, total_pages = extract_images_from_pdf(file_path, output_dir)
+            
+            # Update progress dialog
+            progress.setMaximum(len(image_paths))
+            
+            # Process each extracted image
+            for i, image_path in enumerate(image_paths):
+                file_id = uuid.uuid4()
+                file_name = os.path.basename(image_path)
+                
+                data = build_ocr_data(file_id, image_path)
+                results[file_id] = data
+                
+                # Update progress
+                progress.setValue(i + 1)
+                progress.setLabelText(f"Processing image {i + 1} of {len(image_paths)}...")
+                
+            progress.close()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to extract images from PDF: {e}")
+                
+    def convert_pdf_to_images(self, file_path, output_dir, results):
+        """Convert PDF pages to images using pdf2image."""
+        import uuid
+        
+        try:
+            # Get PDF info
+            poppler_path = self.get_poppler_path()
+            if not poppler_path:
+                return
+                
+            pdf_info = pdfinfo_from_path(file_path, poppler_path=poppler_path)
+            total_pages = pdf_info['Pages']
 
-        if dialog.exec():
-            selected_files = dialog.selectedFiles()
-
-            if len(selected_files) > 0:
-                file_path = selected_files[0]
-                file_n = get_filename(file_path)
-
-                if os.path.isfile(file_path):
-                    try:
-                        imported_data = {}
-                        reader = PdfReader(file_path)
-                        image_paths = []
-
-                        if len(reader.pages) > 0:
-                            progress = ImportFilesProgress("Reading PDF file...", max_length=len(reader.pages))
-                            progress.setWindowModality(Qt.WindowModality.WindowModal)
-
-                            tmp_image_dir = os.path.join(self.tmp_dir, "images")
-                            create_dir(tmp_image_dir)
-
-                            for idx, page in enumerate(reader.pages):
-                                if progress.wasCanceled():
-                                    break
-
-                                if len(page.images) > 0:
-                                    data = page.images[0].data
-                                    tmp_img_path = f"{tmp_image_dir}/{file_n}_{idx}.jpg"
-
-                                    with open(str(tmp_img_path), "wb") as f:
-                                        f.write(data)
-
-                                    image_paths.append(tmp_img_path)
-                                    progress.setValue(idx)
-
-                            size_hint = self.image_gallery.sizeHint()
-                            target_width = size_hint.width() - 80
-
-                            for idx, file_path in enumerate(image_paths):
-                                if os.path.isfile(file_path):
-                                    ocr_data = build_ocr_data(idx, file_path, target_width)
-                                    imported_data[ocr_data.guid] = ocr_data
-
-                            self.import_files(imported_data)
-
-                    except Exception as e:
-                        error_dialog = NotificationDialog("Error importing PDF", str(e))
-                        error_dialog.exec_()
-                else:
-                    error_dialog = NotificationDialog("Invalid file", "The selected file is not a valid file.")
-                    error_dialog.exec_()
+            # Create progress dialog
+            progress = ImportFilesProgress("Reading PDF file...", max_length=total_pages)
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.show()
+            
+            # Process PDF in batches to avoid memory issues with large PDFs
+            batch_size = 5
+            for batch_start in range(1, total_pages + 1, batch_size):
+                batch_end = min(batch_start + batch_size - 1, total_pages)
+                
+                progress.setLabelText(f"Converting pages {batch_start} to {batch_end}...")
+                
+                # Convert batch of pages
+                pages = convert_from_path(
+                    file_path, 
+                    dpi=300, 
+                    first_page=batch_start, 
+                    last_page=batch_end,
+                    poppler_path=poppler_path
+                )
+                
+                # Save each page
+                for i, page in enumerate(pages):
+                    page_num = batch_start + i
+                    progress.setValue(page_num)
+                    
+                    # Save the page as an image
+                    image_path = os.path.join(output_dir, f"page_{page_num}.png")
+                    page.save(image_path, "PNG")
+                    
+                    # Create OCR data for this page
+                    file_id = uuid.uuid4()
+                    file_name = f"Page {page_num}"
+                    
+                    data = build_ocr_data(file_id, image_path)
+                    results[file_id] = data
+            
+            progress.close()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to import PDF: {e}")
 
     def import_files(self, results: Dict[UUID, OCRData]):
         self._dataview_model.add_data(results)
@@ -308,7 +414,7 @@ class AppView(QWidget):
                 self._dataview_model.update_ocr_data(guid, page_text)
                 self._dataview_model.update_page_data(guid, line_data, mask, angle)
             else:
-                dialog = NotificationDialog("Failed Running OCR", "Failed to run OCR on selected image.")
+                dialog = NotificationDialog("Failed Running OCR", f"Failed to run OCR on selected image.\n\n{result}")
                 dialog.exec()
         else:
             dialog = NotificationDialog("Image not found", "The selected image could not be read from disk.")
@@ -375,3 +481,43 @@ class AppView(QWidget):
         else:
             line_model_config = self._settingsview_model.get_line_model()
             self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, line_model_config)
+
+    def get_poppler_path(self):
+        # Return cached path if we've already found it
+        if self._poppler_path is not None:
+            return self._poppler_path
+            
+        try:
+            # Determine base path depending on whether we're running from a bundled app or in development
+            if getattr(sys, 'frozen', False):
+                # Running in a bundled app
+                base_path = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
+                print(f"Running from bundled app, base path: {base_path}")
+            else:
+                # Running in development mode
+                base_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+                print(f"Running in development mode, base path: {base_path}")
+            
+            # Poppler is always in ./poppler/bin
+            poppler_path = os.path.join(base_path, 'poppler', 'bin')
+            print(f"Looking for Poppler at: {poppler_path}")
+            
+            # Check if pdfinfo exists in this path
+            pdfinfo_path = os.path.join(poppler_path, 'pdfinfo')
+            if platform.system() == 'Windows':
+                pdfinfo_path += '.exe'
+            
+            print(f"Checking for pdfinfo at: {pdfinfo_path}")
+            if os.path.exists(pdfinfo_path):
+                print(f"Found Poppler at: {poppler_path}")
+                
+                # Cache the result
+                self._poppler_path = poppler_path
+                return poppler_path
+            else:
+                QMessageBox.critical(self, "Error", f"Poppler binaries not found at expected location: {poppler_path}")
+                print(f"Poppler binaries not found at expected location: {poppler_path}")
+                return None
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error finding Poppler: {e}")
+            return None

@@ -19,7 +19,7 @@ from typing import List, Tuple, Optional, Sequence
 from BDRC.Data import OCRModelConfig, Platform, ScreenData, BBox, Line, \
     OCRModel, OCRData
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QImage
+from PySide6.QtGui import QImage, Qt
 
 from Config import OCRARCHITECTURE, CHARSETENCODER
 
@@ -99,10 +99,31 @@ def generate_guid(clock_seq: int):
     return uuid1(clock_seq=clock_seq)
 
 
-def build_ocr_data(tick: int, file_path: str, target_height: int):
+def build_ocr_data(id_val, file_path: str, target_width: int = None):
+    """
+    Build OCR data from a file path.
+    
+    Args:
+        id_val: Either an integer or a UUID to use as the identifier
+        file_path: Path to the image file
+        target_width: Optional width to scale the image to
+    
+    Returns:
+        OCRData object
+    """
     file_name = get_filename(file_path)
-    guid = generate_guid(tick)
-    q_image = QImage(file_path).scaledToHeight(target_height)
+    
+    # Generate GUID if id_val is an integer, otherwise use the provided UUID
+    if isinstance(id_val, int):
+        guid = generate_guid(id_val)
+    else:
+        guid = id_val
+    
+    # Load and scale the image
+    if target_width is not None:
+        q_image = QImage(file_path).scaledToWidth(target_width, Qt.TransformationMode.SmoothTransformation)
+    else:
+        q_image = QImage(file_path)
     
     ocr_data = OCRData(
         guid=guid,
@@ -403,6 +424,11 @@ def calculate_rotation_angle_from_lines(
     contours, _ = cv2.findContours(line_mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     mask_threshold = (line_mask.shape[0] * line_mask.shape[1]) * 0.001
     contours = [x for x in contours if cv2.contourArea(x) > mask_threshold]
+    
+    # Check if contours is empty before proceeding
+    if not contours:
+        return 0.0
+        
     angles = [cv2.minAreaRect(x)[2] for x in contours]
 
     low_angles = [x for x in angles if abs(x) != 0.0 and x < max_angle]
@@ -612,7 +638,11 @@ def get_line_threshold(line_prediction: npt.NDArray, slice_width: int = 20):
                 y_center = y + (h // 2)
                 y_points.append(y_center)
 
-            line_threshold = float(np.median(y_points) // n_contours)
+            # Check if y_points is empty before calculating median
+            if len(y_points) > 0:
+                line_threshold = float(np.median(y_points) // n_contours)
+            else:
+                line_threshold = 0.0
     else:
         line_threshold = 0.0
 
@@ -620,6 +650,10 @@ def get_line_threshold(line_prediction: npt.NDArray, slice_width: int = 20):
 
 
 def sort_bbox_centers(bbox_centers: List[Tuple[int, int]], line_threshold: int = 20) -> List:
+    # Handle empty bbox_centers
+    if not bbox_centers:
+        return []
+        
     sorted_bbox_centers = []
     tmp_line = []
 
@@ -636,24 +670,33 @@ def sort_bbox_centers(bbox_centers: List[Tuple[int, int]], line_threshold: int =
                 some further practical review
                 """
                 ys = [y[1] for y in tmp_line]
-                mean_y = np.mean(ys)
-                y_diff = abs(mean_y - bbox_centers[i][1])
+                
+                # Check if ys is not empty before calculating mean
+                if ys:
+                    mean_y = np.mean(ys)
+                    y_diff = abs(mean_y - bbox_centers[i][1])
 
-                if y_diff > line_threshold:
-                    tmp_line.sort(key=lambda x: x[0])
-                    sorted_bbox_centers.append(tmp_line.copy())
-                    tmp_line.clear()
+                    if y_diff > line_threshold:
+                        tmp_line.sort(key=lambda x: x[0])
+                        sorted_bbox_centers.append(tmp_line.copy())
+                        tmp_line.clear()
 
-                    tmp_line.append(bbox_centers[i])
-                    break
+                        tmp_line.append(bbox_centers[i])
+                        break
+                    else:
+                        tmp_line.append(bbox_centers[i])
+                        break
                 else:
                     tmp_line.append(bbox_centers[i])
                     break
         else:
             tmp_line.append(bbox_centers[i])
 
-    sorted_bbox_centers.append(tmp_line)
+    # Add the last tmp_line if it's not empty
+    if tmp_line:
+        sorted_bbox_centers.append(tmp_line)
 
+    # Sort each line by x-coordinate
     for y in sorted_bbox_centers:
         y.sort(key=lambda x: x[0])
 
@@ -855,7 +898,7 @@ def filter_line_contours(image: npt.NDArray, line_contours, threshold: float = 0
     return filtered_contours
 
 
-def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: float = 1.2) -> npt.NDArray:
+def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: float = 1.2):
     k_size = int(bbox_h * k_factor)
     morph_multiplier = k_factor
 
@@ -867,35 +910,29 @@ def extract_line(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, k_factor: f
     return masked_line
 
 
-def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5,              k_factor: float = 1.2):
-    tmp_k = k_factor
-    line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
-
-    while line_img.shape[0] > bbox_h * bbox_tolerance:
-        tmp_k = tmp_k - 0.1
+def get_line_image(image: npt.NDArray, mask: npt.NDArray, bbox_h: int, bbox_tolerance: float = 2.5, k_factor: float = 1.2):
+    try:
+        tmp_k = k_factor
         line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
+        
+        # Add a safety check to prevent infinite loop
+        max_attempts = 10
+        attempts = 0
+        
+        while line_img.shape[0] > bbox_h * bbox_tolerance and attempts < max_attempts:
+            tmp_k = tmp_k - 0.1
+            if tmp_k <= 0.1:  # Prevent k_factor from becoming too small
+                break
+            line_img = extract_line(image, mask, bbox_h, k_factor=tmp_k)
+            attempts += 1
 
-    return line_img, tmp_k
-
-
-def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 3):
-    default_k_factor = default_k
-    current_k = default_k_factor
-
-    line_images = []
-
-    for _, line in enumerate(line_data):
-        _, _, _, h = cv2.boundingRect(line.contour)
-        tmp_mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
-        cv2.drawContours(tmp_mask, [line.contour], -1, (255, 255, 255), -1)
-
-        line_img, adapted_k = get_line_image(image, tmp_mask, h, bbox_tolerance=bbox_tolerance, k_factor=current_k)
-        line_images.append(line_img)
-
-        if current_k != adapted_k:
-            current_k = adapted_k
-
-    return line_images
+        return line_img, tmp_k
+    except Exception as e:
+        # Return a minimal valid image and the original k_factor in case of error
+        print(f"Error in get_line_image: {e}")
+        # Create a small blank image as fallback
+        fallback_img = np.zeros((bbox_h, bbox_h * 2, 3), dtype=np.uint8)
+        return fallback_img, k_factor
 
 # TODO: check if this is the same normalization applied during training
 def normalize(image: npt.NDArray) -> npt.NDArray:
@@ -1070,6 +1107,19 @@ def get_global_center(slice_image: npt.NDArray, start_x: int, bbox_y: int):
     Transfers the coordinates of a 'local' bbox taken from a line back to the image space
     """
     contours, _ = cv2.findContours(slice_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Check if contours is empty
+    if not contours:
+        # Return default values based on the slice_image dimensions
+        center_x = slice_image.shape[1] // 2
+        center_y = slice_image.shape[0] // 2
+        bbox_h = slice_image.shape[0]
+        
+        global_x = start_x + center_x
+        global_y = bbox_y + center_y
+        
+        return global_x, global_y, bbox_h
+    
     areas = [cv2.contourArea(x) for x in contours]
     biggest_idx = areas.index(max(areas))
     biggest_contour = contours[biggest_idx]
@@ -1189,11 +1239,21 @@ def check_for_tps(image: npt.NDArray, line_contours: List[npt.NDArray]):
 
     return ratio, line_data
 
-def prepare_ocr_line(image: npt.NDArray, target_width: int = 3200, target_height: int = 80):
-    line_image = pad_ocr_line(image)
-    line_image = cv2.cvtColor(line_image, cv2.COLOR_BGR2GRAY)
-    line_image = line_image.reshape((1, target_height, target_width))
-    line_image = line_image / 255.0
-    line_image = line_image.astype(np.float32)
+def extract_line_images(image: npt.NDArray, line_data: List[Line], default_k: float = 1.7, bbox_tolerance: float = 3):
+    default_k_factor = default_k
+    current_k = default_k_factor
 
-    return line_image
+    line_images = []
+
+    for _, line in enumerate(line_data):
+        _, _, _, h = cv2.boundingRect(line.contour)
+        tmp_mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
+        cv2.drawContours(tmp_mask, [line.contour], -1, (255, 255, 255), -1)
+
+        line_img, adapted_k = get_line_image(image, tmp_mask, h, bbox_tolerance=bbox_tolerance, k_factor=current_k)
+        line_images.append(line_img)
+
+        if current_k != adapted_k:
+            current_k = adapted_k
+
+    return line_images

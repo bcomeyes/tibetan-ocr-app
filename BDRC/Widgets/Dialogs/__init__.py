@@ -1,0 +1,17 @@
+from BDRC.Widgets.Dialogs.notification_dialog import NotificationDialog
+from BDRC.Widgets.Dialogs.settings_dialog import SettingsDialog
+from BDRC.Widgets.Dialogs.batch_ocr_dialog import BatchOCRDialog
+from BDRC.Widgets.Dialogs.export_dialog import ExportDialog
+from BDRC.Widgets.Dialogs.pdf_import_dialog import PDFImportDialog
+from BDRC.Widgets.Dialogs.import_files_progress import ImportFilesProgress
+from BDRC.Widgets.Dialogs.text_input_dialog import TextInputDialog
+
+__all__ = [
+    'NotificationDialog',
+    'SettingsDialog',
+    'BatchOCRDialog',
+    'ExportDialog',
+    'PDFImportDialog',
+    'ImportFilesProgress',
+    'TextInputDialog'
+]
