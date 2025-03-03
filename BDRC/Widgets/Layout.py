@@ -1,6 +1,7 @@
 import os
 from uuid import UUID
 from typing import List
+from PySide6.QtCore import Qt
 from BDRC.Data import Encoding, OCRLine, OCRLineUpdate, Platform
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
@@ -9,7 +10,7 @@ from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 from BDRC.Widgets.Dialogs import TextInputDialog
 
-from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool
+from PySide6.QtCore import Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool
 from PySide6.QtGui import (
     QBrush,
     QColor,
@@ -164,6 +165,7 @@ class ToolBox(QWidget):
         self.model_selection = QComboBox()
         self.model_selection.setFixedHeight(int(self.icon_size * 0.75))
         self.model_selection.setObjectName("ModelSelection")
+        self.model_selection.setCursor(Qt.CursorShape.PointingHandCursor)
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:

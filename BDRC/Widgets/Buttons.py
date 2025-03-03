@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QEnterEvent, QPixmap, QColor
+from PySide6.QtGui import QIcon, QEnterEvent, QPixmap, QColor, QCursor
 from PySide6.QtWidgets import QPushButton
 
 
@@ -28,6 +28,9 @@ class MenuButton(QPushButton):
         self.default_color = "#ffffff"
         self.highlight_color = "#F2CD9B"
         self.is_active = False
+
+        # Set pointing hand cursor
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.set_default_icon()
 
@@ -87,3 +90,6 @@ class TextToolsButton(QPushButton):
 
         self.setFixedHeight(self.height)
         self.setFixedWidth(self.width)
+
+        # Set pointing hand cursor
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
