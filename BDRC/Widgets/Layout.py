@@ -993,8 +993,8 @@ class ImageGallery(QFrame):
         self.setObjectName("ImageGallery")
         self.setContentsMargins(0, 0, 0, 0)
         self.setMinimumHeight(600)
-        self.setMinimumWidth(180)
-        self.setMaximumWidth(420)
+        self.setMinimumWidth(250)
+        self.setMaximumWidth(500)
         self.import_dialog = None
         self.execution_dir = execution_dir
 
