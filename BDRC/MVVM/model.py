@@ -104,7 +104,7 @@ class SettingsModel:
             "dewarp": "yes",
             "merge_lines": "yes",
             "k_factor": 2.5,
-            "bbox_tolerance": 2.5,
+            "bbox_tolerance": 3.0,
             "tps": "global",
             "output_encoding": "unicode"
         }
