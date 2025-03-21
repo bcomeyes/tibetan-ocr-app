@@ -46,6 +46,8 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 2. Open the app, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
 3. Then quit the app and run it again so that the models can be used.
 
+At that stage we advise you to try the app on a few images. If you're not satisfied with the result, please try setting the "bbox tolerance" setting value to `3.5` or `2.5` and see if it improves the results.
+
 ### Building distribution packages
 
 1. `pip install nuitka`
