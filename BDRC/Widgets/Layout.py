@@ -227,13 +227,30 @@ class ToolBox(QWidget):
         self.s_on_select_model.emit(self.ocr_models[index])
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
+        # Remember currently selected model name before clearing
+        current_model_name = None
+        if self.model_selection.currentIndex() >= 0 and self.ocr_models is not None:
+            current_model_name = self.ocr_models[self.model_selection.currentIndex()].name
+
         self.ocr_models = ocr_models
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
+            # Block signals temporarily to avoid triggering model reload when restoring selection
+            self.model_selection.blockSignals(True)
             self.model_selection.clear()
 
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
+            
+            # Restore previously selected model if it exists
+            if current_model_name is not None:
+                for i, model in enumerate(self.ocr_models):
+                    if model.name == current_model_name:
+                        self.model_selection.setCurrentIndex(i)
+                        break
+            
+            # Re-enable signals after we've set everything up
+            self.model_selection.blockSignals(False)
 
 
 class PageSwitcher(QFrame):
