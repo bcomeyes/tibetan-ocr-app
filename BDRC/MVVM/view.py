@@ -319,12 +319,22 @@ class AppView(QWidget):
         _data = list(_data.values())
 
         if _data is not None and len(_data) > 0:
+            # Get currently selected OCR model from the pipeline
+            current_model = None
+            if self.ocr_pipeline is not None and self.ocr_pipeline.ocr_model_config is not None:
+                # Find the model with matching config
+                for model in self._settingsview_model.get_ocr_models():
+                    if model.config == self.ocr_pipeline.ocr_model_config:
+                        current_model = model
+                        break
+            
             batch_dialog = BatchOCRDialog(
                 data=_data,
                 ocr_pipeline=self.ocr_pipeline,
                 ocr_models=self._settingsview_model.get_ocr_models(),
                 ocr_settings=self._settingsview_model.get_ocr_settings(),
-                threadpool=self.threadpool
+                threadpool=self.threadpool,
+                current_model=current_model  # Pass the currently selected model
             )
             batch_dialog.sign_ocr_result.connect(self.update_ocr_result)
 

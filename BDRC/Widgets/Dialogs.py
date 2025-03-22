@@ -856,6 +856,7 @@ class SettingsDialog(QDialog):
 
 class BatchOCRDialog(QDialog):
     sign_ocr_result = Signal(OCResult)
+    last_selected_model_index = 0
 
     def __init__(
         self,
@@ -864,6 +865,7 @@ class BatchOCRDialog(QDialog):
         ocr_models: List[OCRModel],
         ocr_settings: OCRSettings,
         threadpool: QThreadPool,
+        current_model: OCRModel = None,
     ):
         super().__init__()
         self.setObjectName("BatchOCRDialog")
@@ -875,6 +877,7 @@ class BatchOCRDialog(QDialog):
         self.ocr_models = ocr_models
         self.ocr_settings = ocr_settings
         self.threadpool = threadpool
+        self.current_model = current_model
         
         self.setWindowTitle("Batch Process")
         self.setMinimumWidth(600)
@@ -944,8 +947,31 @@ class BatchOCRDialog(QDialog):
         )
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
+            # Temporarily block signals to avoid triggering update during setup
+            self.model_selection.blockSignals(True)
+            
+            # Add models to the dropdown
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
+            
+            # Determine which model to select
+            selected_index = 0
+            
+            # If a current model is provided, select it
+            if self.current_model is not None:
+                for i, model in enumerate(self.ocr_models):
+                    if model.config == self.current_model.config:
+                        selected_index = i
+                        break
+            # Otherwise use the remembered index if it's valid
+            elif BatchOCRDialog.last_selected_model_index < len(self.ocr_models):
+                selected_index = BatchOCRDialog.last_selected_model_index
+            
+            # Set the selection
+            self.model_selection.setCurrentIndex(selected_index)
+            
+            # Re-enable signals
+            self.model_selection.blockSignals(False)
 
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
 
@@ -1134,7 +1160,11 @@ class BatchOCRDialog(QDialog):
             self.k_factor_edit.setText(str(self.ocr_settings.k_factor))
 
     def on_select_ocr_model(self, index: int):
+        # Update pipeline with selected model
         self.pipeline.update_ocr_model(self.ocr_models[index].config)
+        
+        # Remember the selection for future dialog instances
+        BatchOCRDialog.last_selected_model_index = index
 
 
 class ImportFilesProgress(QProgressDialog):
