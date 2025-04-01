@@ -12,7 +12,7 @@ from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
 from BDRC.Data import OpStatus, Platform, OCRData, OCRModel, OCResult
 from BDRC.Utils import build_ocr_data, get_filename, create_dir
-from BDRC.Widgets.Dialogs import NotificationDialog, ImportFilesProgress, PDFImportDialog
+from BDRC.Widgets.Dialogs import NotificationDialog, ImportFilesProgress, PDFImportDialog, TextInputDialog, ExportDialog, SettingsDialog, BatchOCRDialog
 from BDRC.utils.pdf_extract import extract_images_from_pdf
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
