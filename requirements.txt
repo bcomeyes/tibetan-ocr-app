@@ -34,5 +34,7 @@ tqdm
 typing_extensions
 urllib3
 zstandard
-pypdf
+pdf2image
 platformdirs
+PyPDF2
+https://github.com/kpu/kenlm/archive/master.zip

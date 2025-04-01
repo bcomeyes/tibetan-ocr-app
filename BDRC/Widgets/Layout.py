@@ -795,8 +795,10 @@ class ImageThumb(QFrame):
         self.round_rect_margin = 6
         self.round_rect_radius = 14
         self.current_width = self.target_width - 2 * self.round_rect_margin
-        self.qimage = q_image.scaledToHeight(self.max_height)
-        self.pixmap = QPixmap(q_image)
+
+        # Apply sharpening to improve clarity
+        self.qimage = q_image.scaledToHeight(self.max_height, Qt.TransformationMode.SmoothTransformation)
+        self.pixmap = QPixmap.fromImage(self.qimage)
         self.brush = QBrush(self.pixmap)
 
         self._pen_hover = QPen(QColor("#fce08d"))
@@ -879,7 +881,8 @@ class ImageThumb(QFrame):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
         painter.setClipPath(self.clip_path)
         painter.drawImage(0, 0, self.qimage)
 

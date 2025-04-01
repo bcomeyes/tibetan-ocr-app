@@ -4,7 +4,7 @@ This app is a free and open source offline App that can be installed on a local 
 
 ### Main features
 
-The app can open one or multiple files and run OCR on them. It can export plain text or [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) (a format it shares with [Transkribus](https://www.transkribus.org/)). 
+The app can open one or multiple files and run OCR on them. It can export plain text or [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) (a format it shares with [Transkribus](https://www.transkribus.org/)).
 
 It can also optionally dewarp images as well as convert the output to Wylie.
 
@@ -25,8 +25,10 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 This app does not have a package for MacOS on Intel processors at the moment (contributions welcome!). For Apple (M1, M2, etc.) processors:
 
 1. Download and unzip
+
 - for recent hardware https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_arm64_0.1.zip
 - for older x64 (Intel) processor https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_x64_0.1.zip
+
 2. Run the app
 3. configure the models (see below)
 
@@ -34,11 +36,12 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 
 1. Make sure you have [Git LFS](https://git-lfs.com) installed
 2. Clone the Github repository: `git clone https://github.com/buda-base/tibetan-ocr-app.git`
-3. run `git lfs pull` to download all LFS files
+3. Run `git lfs pull` to download all LFS files
 4. Install dependencies with `pip install -r requirements.txt` (requires at least Python 3.10)
-5. run `pyside6-rcc resources.qrc -o resources.py`
-6. Run `python main.py`
-7. configure the models (see below)
+5. Install Poppler with `python scripts/install_poppler.py`
+6. Run `pyside6-rcc resources.qrc -o resources.py`
+7. Run `python main.py`
+8. Configure the models (see below)
 
 ### Configuring the models
 
@@ -54,6 +57,28 @@ At that stage we advise you to try the app on a few images. If you're not satisf
 2. (optional) install `ccache` to speed up the compilation (on OSX this can be done through homebrew)
 3. run the nuitka command given in main.py that corresponds to your OS
 4. zip the files in the corresponding build folder
+
+### Troubleshooting
+
+#### PDF Processing Issues
+
+If you encounter issues with PDF processing, it might be related to Poppler:
+
+1. Make sure Poppler is properly installed using the script provided: `python scripts/install_poppler.py`
+2. Verify that the Poppler binaries are in the correct location:
+   - Windows: Check that `poppler/bin/pdfinfo.exe` exists
+   - macOS/Linux: Check that `poppler/bin/pdfinfo` exists
+3. If you installed Poppler manually, make sure the application can find it:
+   - Windows: Add the Poppler `bin` directory to your PATH
+   - macOS: If using Homebrew, run `brew info poppler` to check the installation path
+   - Linux: Ensure `poppler-utils` is installed
+
+#### Missing Dependencies
+
+If you get errors about missing Python modules:
+
+1. Make sure you've installed all requirements: `pip install -r requirements.txt`
+2. For PyPDF2 or kenlm errors, run: `pip install PyPDF2 https://github.com/kpu/kenlm/archive/master.zip`
 
 ### Acknowledgements
 
