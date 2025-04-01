@@ -16,7 +16,7 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 ##### Windows
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_windows_x64_0.1.zip
+1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.2/bdrc_ocr_windows_x64_0.2.zip
 2. Run `main.exe`
 3. configure the models (see below)
 
@@ -26,8 +26,8 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 
 1. Download and unzip
 
-- for recent hardware https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_arm64_0.1.zip
-- for older x64 (Intel) processor https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_macos_x64_0.1.zip
+- for recent hardware https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.2/bdrc_ocr_macos_arm64_0.2.zip
+- for older x64 (Intel) processor https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.2/bdrc_ocr_macos_x64_0.2.zip
 
 2. Run the app
 3. configure the models (see below)
