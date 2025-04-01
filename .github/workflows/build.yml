@@ -33,7 +33,7 @@ jobs:
       - name: Set required env vars (Windows)
         if: runner.os == 'Windows'
         env:
-          ARTIFACT_PATH: WindowsBuild/BDRC Tibetan OCR.exe
+          ARTIFACT_PATH: WindowsBuild/$env:ARTIFACT_NAME.zip
         shell: pwsh
         run: |
           $OS = $env:RUNNER_OS.ToLower()
@@ -42,7 +42,7 @@ jobs:
           $ARTIFACT_NAME = "bdrc_ocr_${OS}_${ARCH}_${VERSION}"
           echo "VERSION=${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "ARTIFACT_PATH=$env:ARTIFACT_PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "ARTIFACT_PATH=WindowsBuild/${ARTIFACT_NAME}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Cache Git LFS files
         uses: actions/cache@v4
@@ -74,6 +74,15 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ runner.os }}
+
+      - name: Download OCR Models
+        run: |
+          echo "Downloading OCR models..."
+          mkdir -p OCRModels
+          curl -L https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip -o ocr_models.zip
+          unzip ocr_models.zip -d .
+          echo "Downloaded OCR models successfully"
+          ls -la OCRModels
 
       - name: Install dependencies
         run: |
@@ -246,6 +255,7 @@ jobs:
             --assume-yes-for-downloads \
             --include-data-dir=./Assets=Assets \
             --include-data-dir=./Models=Models \
+            --include-data-dir=./OCRModels=OCRModels \
             --include-data-dir=./poppler=poppler \
             main.py
             
@@ -407,20 +417,22 @@ jobs:
         run: |
           # List all files in poppler directory
           Write-Host "Files in poppler\:"
-          Get-ChildItem -Path "poppler" | Format-Table Name, Length
+          Get-ChildItem -Path "poppler" -Recurse | Format-Table Name, Length
+          
+          # Check if OCRModels directory exists
+          Write-Host "Checking OCRModels directory..."
+          if (Test-Path "OCRModels") {
+            Write-Host "OCRModels directory exists, listing contents:"
+            Get-ChildItem -Path "OCRModels" -Recurse | Format-Table Name, Length
+          } else {
+            Write-Host "OCRModels directory doesn't exist yet, this is expected"
+          }
 
-          # List all files in poppler/bin directory
-          Write-Host "Files in poppler\bin:"
-          Get-ChildItem -Path "poppler\bin" | Format-Table Name, Length
-
-          # Build the application
+          # Build app
           python -m nuitka --standalone `
-            --onefile `
-            --windows-console-mode=disable `
-            --assume-yes-for-downloads `
             --output-dir=WindowsBuild `
-            --output-filename="BDRC Tibetan OCR.exe" `
             --plugin-enable=pyside6 `
+            --windows-console-mode=disable `
             --windows-icon-from-ico=logo.ico `
             --company-name="Buddhist Digital Resource Center" `
             --product-name="BDRC Tibetan OCR" `
@@ -429,8 +441,21 @@ jobs:
             --assume-yes-for-downloads `
             --include-data-dir=Assets=Assets `
             --include-data-dir=Models=Models `
+            --include-data-dir=OCRModels=OCRModels `
             --include-data-files=poppler/bin/*=poppler/bin/ `
             main.py
+
+          # Copy poppler to the build directory
+          Write-Host "Copying Poppler to build directory..."
+          Copy-Item -Path "poppler" -Destination "WindowsBuild\main.dist\" -Recurse -Force
+          
+          # Rename the executable
+          Write-Host "Renaming executable..."
+          Rename-Item -Path "WindowsBuild\main.dist\main.exe" -NewName "BDRC Tibetan OCR.exe"
+          
+          # Create a zip file for the release
+          Write-Host "Creating zip file for release..."
+          Compress-Archive -Path "WindowsBuild\main.dist\*" -DestinationPath "WindowsBuild\$env:ARTIFACT_NAME.zip" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

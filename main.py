@@ -1,15 +1,15 @@
 
 """
 - build for windows:
-     nuitka --standalone --windows-console-mode=disable --output-dir=WindowsBuild --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0  --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
+     nuitka --standalone --windows-console-mode=disable --output-dir=WindowsBuild --plugin-enable=pyside6 --windows-icon-from-ico=logo.ico --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0  --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models --include-data-dir=./OCRModels=OCRModels main.py
 - build for macos:
-    nuitka --standalone --output-dir=OSXBuild --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --macos-app-name="BDRC Tibetan OCR App" --macos-signed-app-name="io.bdrc.ocrapp" --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
+    nuitka --standalone --output-dir=OSXBuild --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --macos-app-name="BDRC Tibetan OCR App" --macos-signed-app-name="io.bdrc.ocrapp" --macos-create-app-bundle --macos-app-icon=logo.icns --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models --include-data-dir=./OCRModels=OCRModels main.py
 - build for Linux:
-    nuitka --standalone --onefile --output-dir="LinuxBuild" --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models main.py
+    nuitka --standalone --onefile --output-dir="LinuxBuild" --plugin-enable=pyside6 --company-name=BDRC --product-name="Tibetan OCR App" --file-version=1.0 --product-version=1.0 --include-data-dir=./Assets=Assets --include-data-dir=./Models=Models --include-data-dir=./OCRModels=OCRModels main.py
 
 - Debug build using pyinstaller:
-    MacOs (Default): pyinstaller main.py --distpath="DebugBuild" --add-data="Assets:Assets" --add-data="Models:Models" 
-    MacOs (e.g. Intel): pyinstaller main.py --distpath="DebugBuild" --target-arch="x86_64" --add-data="Assets:Assets" --add-data="Models:Models" 
+    MacOs (Default): pyinstaller main.py --distpath="DebugBuild" --add-data="Assets:Assets" --add-data="Models:Models" --add-data="OCRModels:OCRModels"
+    MacOs (e.g. Intel): pyinstaller main.py --distpath="DebugBuild" --target-arch="x86_64" --add-data="Assets:Assets" --add-data="Models:Models" --add-data="OCRModels:OCRModels"
 Note:
     If you edit the resources.qrc file, make sure to recompile it by using: pyside6-rcc resources.qrc -o resources.py
 """

@@ -18,7 +18,6 @@ The models it uses are based on transcriptions available online, from BDRC, [ALL
 
 1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.2/bdrc_ocr_windows_x64_0.2.zip
 2. Run `main.exe`
-3. configure the models (see below)
 
 ##### OSX
 
@@ -30,7 +29,6 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 - for older x64 (Intel) processor https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.2/bdrc_ocr_macos_x64_0.2.zip
 
 2. Run the app
-3. configure the models (see below)
 
 ##### From source (advanced users)
 
@@ -41,13 +39,16 @@ This app does not have a package for MacOS on Intel processors at the moment (co
 5. Install Poppler with `python scripts/install_poppler.py`
 6. Run `pyside6-rcc resources.qrc -o resources.py`
 7. Run `python main.py`
-8. Configure the models (see below)
 
-### Configuring the models
+### OCR Models
 
-1. Download and unzip https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip in a directory of your choice
+The application comes with pre-installed OCR models that are ready to use. These models are automatically loaded when you start the application.
+
+If you want to use different models:
+
+1. Download and unzip the models in a directory of your choice
 2. Open the app, click on the setting icon, click on "import models" and select the `ORCModels/` folder where you extracted the model zip file. Warning! Do not select one of its subfolders (like `Woodblock/`, etc.).
-3. Then quit the app and run it again so that the models can be used.
+3. The app will immediately start using these custom models.
 
 At that stage we advise you to try the app on a few images. If you're not satisfied with the result, please try setting the "bbox tolerance" setting value to `3.5` or `2.5` and see if it improves the results.
 

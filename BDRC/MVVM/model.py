@@ -45,6 +45,7 @@ class SettingsModel:
         self.DEFAULT_FONT = os.path.join(self.execution_directory, "Assets", "Fonts", "TibMachUni-1.901b.ttf")
 
         self.default_models_path = os.path.join(self.user_directory, "Models")
+        self.bundled_models_path = os.path.join(self.execution_directory, "OCRModels")
         self.photi_line_model_path = os.path.join(self.execution_directory, "Models", "Lines")
         self.photi_layout_model_path = os.path.join(self.execution_directory, "Models", "Layout")
 
@@ -54,13 +55,28 @@ class SettingsModel:
         self.tmp_dir = os.path.join(self.user_directory, "tmp")
         create_dir(self.tmp_dir)
 
+        # First try to load models from user-specified path
+        models_loaded = False
         if os.path.isdir(self.app_settings.model_path):
             try:
                 ocr_models = import_local_models(self.app_settings.model_path)
-                self.ocr_models = ocr_models
-                
+                if ocr_models and len(ocr_models) > 0:
+                    self.ocr_models = ocr_models
+                    models_loaded = True
+                    print(f"Loaded {len(ocr_models)} models from user-specified path: {self.app_settings.model_path}")
             except BaseException as e:
-                # TODO: add error dialog
+                print(f"Error loading models from user path: {str(e)}")
+                pass
+        
+        # If no models were loaded from user path, try the bundled models
+        if not models_loaded and os.path.isdir(self.bundled_models_path):
+            try:
+                ocr_models = import_local_models(self.bundled_models_path)
+                if ocr_models and len(ocr_models) > 0:
+                    self.ocr_models = ocr_models
+                    print(f"Loaded {len(ocr_models)} models from bundled path: {self.bundled_models_path}")
+            except BaseException as e:
+                print(f"Error loading bundled models: {str(e)}")
                 pass
 
     def clear_temp_files(self):
