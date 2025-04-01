@@ -174,5 +174,3 @@ main.build
 main.dist
 Models
 download_models.py
-
-poppler*/
