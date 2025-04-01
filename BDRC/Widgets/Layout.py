@@ -1,6 +1,7 @@
 import os
 from uuid import UUID
 from typing import List
+from PySide6.QtCore import Qt
 from BDRC.Data import Encoding, OCRLine, OCRLineUpdate, Platform
 from BDRC.Utils import get_filename
 from BDRC.Data import OCRData, OCRModel
@@ -9,7 +10,7 @@ from BDRC.Widgets.Buttons import MenuButton, TextToolsButton
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 from BDRC.Widgets.Dialogs import TextInputDialog
 
-from PySide6.QtCore import Qt, Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool
+from PySide6.QtCore import Signal, QPoint, QPointF, QSize, QEvent, QRectF, QThreadPool
 from PySide6.QtGui import (
     QBrush,
     QColor,
@@ -164,6 +165,7 @@ class ToolBox(QWidget):
         self.model_selection = QComboBox()
         self.model_selection.setFixedHeight(int(self.icon_size * 0.75))
         self.model_selection.setObjectName("ModelSelection")
+        self.model_selection.setCursor(Qt.CursorShape.PointingHandCursor)
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
@@ -225,13 +227,30 @@ class ToolBox(QWidget):
         self.s_on_select_model.emit(self.ocr_models[index])
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
+        # Remember currently selected model name before clearing
+        current_model_name = None
+        if self.model_selection.currentIndex() >= 0 and self.ocr_models is not None:
+            current_model_name = self.ocr_models[self.model_selection.currentIndex()].name
+
         self.ocr_models = ocr_models
 
         if self.ocr_models is not None and len(self.ocr_models) > 0:
+            # Block signals temporarily to avoid triggering model reload when restoring selection
+            self.model_selection.blockSignals(True)
             self.model_selection.clear()
 
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
+            
+            # Restore previously selected model if it exists
+            if current_model_name is not None:
+                for i, model in enumerate(self.ocr_models):
+                    if model.name == current_model_name:
+                        self.model_selection.setCurrentIndex(i)
+                        break
+            
+            # Re-enable signals after we've set everything up
+            self.model_selection.blockSignals(False)
 
 
 class PageSwitcher(QFrame):
@@ -993,8 +1012,8 @@ class ImageGallery(QFrame):
         self.setObjectName("ImageGallery")
         self.setContentsMargins(0, 0, 0, 0)
         self.setMinimumHeight(600)
-        self.setMinimumWidth(180)
-        self.setMaximumWidth(420)
+        self.setMinimumWidth(250)
+        self.setMaximumWidth(500)
         self.import_dialog = None
         self.execution_dir = execution_dir
 

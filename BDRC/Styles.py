@@ -2,6 +2,12 @@ import resources
 
 
 DARK = """
+    /* Global button styles */
+
+    QPushButton:hover {
+        border-color: #ffad00;
+    }
+
     QFrame#ImageGallery {
         background-color: #1d1c1c;
     }
@@ -69,10 +75,18 @@ DARK = """
         padding: 4px 4px 4px 4px;
     }
 
+    QComboBox#ModelSelection:hover {
+        border: 2px solid #ffad00;
+    }
+
     QPushButton#MenuButton {
         background-color: #172832;
         border: 1px solid #1d1d1d;
         border-radius: 4px;
+    }
+
+    QPushButton#MenuButton:hover {
+        border: 1px solid #ffad00;
     }
 
     QPushButton#CanvasToolButton {
@@ -82,10 +96,10 @@ DARK = """
         padding: 4px 4px 4px;
     }
 
-    QPushButton#MenuButton::QIcon {
-        color: #d73449;
+    QPushButton#CanvasToolButton:hover {
+        border: 2px solid #ffad00;
     }
-  
+
     QPushButton#TextToolsButton {
         color: #ffffff;
         background-color: #3f3f3f;
@@ -95,6 +109,7 @@ DARK = """
 
     QPushButton#TextToolsButton:hover {
         color: #ffad00;
+        border: 2px solid #ffad00;
     }
 
     QDialog#ExportDialog {
@@ -132,6 +147,7 @@ DARK = """
 
             QPushButton::hover {
                 color: #ffad00;
+                border: 1px solid #ffad00;
             }
     }
 
@@ -169,6 +185,7 @@ DARK = """
 
     QPushButton#DialogButton:hover {
         color: #ffad00;
+        border: 1px solid #ffad00;
     }
 
     QPushButton#SmallDialogButton {
@@ -181,6 +198,7 @@ DARK = """
 
     QPushButton#SmallDialogButton:hover {
         color: #ffad00;
+        border: 1px solid #ffad00;
     }
 
     QRadioButton#OptionsRadio {
@@ -209,7 +227,7 @@ DARK = """
         width: 100px;
     }
 
-      QLabel#OptionsExplanation {
+    QLabel#OptionsExplanation {
         color: #CCCCCC;
         font-size: 11px;
         font-style: italic;
@@ -231,7 +249,7 @@ DARK = """
         border: 1px solid white;
         border-radius: 4px;
     }
-       
+
     QLineEdit#DialogLineEdit {
         color: #ffffff;
         background-color: #474747;
@@ -316,6 +334,12 @@ DARK = """
             width: 200px;
             padding: 5px;
             background-color: #A40021;
+            border-radius: 4px;
+        }
+
+        QPushButton:hover {
+            border: 1px solid #ffad00;
+            color: #ffad00;
         }
     }
 
