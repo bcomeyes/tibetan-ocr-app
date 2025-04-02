@@ -33,7 +33,7 @@ jobs:
       - name: Set required env vars (Windows)
         if: runner.os == 'Windows'
         env:
-          ARTIFACT_PATH: WindowsBuild/$env:ARTIFACT_NAME.zip
+          ARTIFACT_PATH: WindowsBuild/BDRC Tibetan OCR.exe
         shell: pwsh
         run: |
           $OS = $env:RUNNER_OS.ToLower()
@@ -42,7 +42,7 @@ jobs:
           $ARTIFACT_NAME = "bdrc_ocr_${OS}_${ARCH}_${VERSION}"
           echo "VERSION=${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "ARTIFACT_PATH=WindowsBuild/${ARTIFACT_NAME}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "ARTIFACT_PATH=$env:ARTIFACT_PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Cache Git LFS files
         uses: actions/cache@v4
@@ -80,9 +80,42 @@ jobs:
           echo "Downloading OCR models..."
           mkdir -p OCRModels
           curl -L https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip -o ocr_models.zip
-          unzip ocr_models.zip -d .
-          echo "Downloaded OCR models successfully"
+
+      - name: Extract OCR Models (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "Extracting models on Windows..."
+          unzip ocr_models.zip -d temp_models
+
+          # Create OCRModels directory if it doesn't exist
+          mkdir -p OCRModels
+
+          # Copy model directories to OCRModels
+          cp -R temp_models/* OCRModels/
+
+          # List the contents (using ls instead of find for Windows compatibility)
+          echo "OCRModels directory contents:"
           ls -la OCRModels
+
+      - name: Extract OCR Models (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Extracting models on Unix..."
+          unzip ocr_models.zip -d temp_models
+
+          # Move the model subfolders directly into OCRModels
+          for dir in temp_models/*/; do
+            model_name=$(basename "$dir")
+            echo "Moving $dir to OCRModels/$model_name"
+            mkdir -p "OCRModels/$model_name"
+            cp -R "$dir"* "OCRModels/$model_name/"
+          done
+
+          # List the contents
+          echo "OCRModels directory contents:"
+          find OCRModels -type d | sort
 
       - name: Install dependencies
         run: |
@@ -414,25 +447,30 @@ jobs:
 
       - name: Build with Nuitka (Windows)
         if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
         run: |
           # List all files in poppler directory
           Write-Host "Files in poppler\:"
           Get-ChildItem -Path "poppler" -Recurse | Format-Table Name, Length
-          
+
           # Check if OCRModels directory exists
           Write-Host "Checking OCRModels directory..."
           if (Test-Path "OCRModels") {
             Write-Host "OCRModels directory exists, listing contents:"
-            Get-ChildItem -Path "OCRModels" -Recurse | Format-Table Name, Length
+            Get-ChildItem -Path "OCRModels" -Directory | ForEach-Object {
+              Write-Host "Found model directory: $($_.Name)"
+            }
           } else {
             Write-Host "OCRModels directory doesn't exist yet, this is expected"
           }
 
           # Build app
           python -m nuitka --standalone `
-            --output-dir=WindowsBuild `
-            --plugin-enable=pyside6 `
+            --onefile `
             --windows-console-mode=disable `
+            --output-dir=WindowsBuild `
+            --output-filename="BDRC Tibetan OCR.exe" `
+            --plugin-enable=pyside6 `
             --windows-icon-from-ico=logo.ico `
             --company-name="Buddhist Digital Resource Center" `
             --product-name="BDRC Tibetan OCR" `
@@ -444,18 +482,6 @@ jobs:
             --include-data-dir=OCRModels=OCRModels `
             --include-data-files=poppler/bin/*=poppler/bin/ `
             main.py
-
-          # Copy poppler to the build directory
-          Write-Host "Copying Poppler to build directory..."
-          Copy-Item -Path "poppler" -Destination "WindowsBuild\main.dist\" -Recurse -Force
-          
-          # Rename the executable
-          Write-Host "Renaming executable..."
-          Rename-Item -Path "WindowsBuild\main.dist\main.exe" -NewName "BDRC Tibetan OCR.exe"
-          
-          # Create a zip file for the release
-          Write-Host "Creating zip file for release..."
-          Compress-Archive -Path "WindowsBuild\main.dist\*" -DestinationPath "WindowsBuild\$env:ARTIFACT_NAME.zip" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
