@@ -16,6 +16,7 @@ from BDRC.Widgets.Dialogs import NotificationDialog, ImportFilesProgress, PDFImp
 from BDRC.utils.pdf_extract import extract_images_from_pdf
 from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
+import logging
 
 
 class MainView(QWidget):
@@ -314,11 +315,11 @@ class AppView(QWidget):
         try:
             # Get PDF info
             poppler_path = self.get_poppler_path()
-            if not poppler_path:
-                return
-                
+            
+            logging.info("getting number of pages of PDF")
             pdf_info = pdfinfo_from_path(file_path, poppler_path=poppler_path)
             total_pages = pdf_info['Pages']
+            logging.info(f"found {total_pages} pages")
 
             # Create progress dialog
             progress = ImportFilesProgress("Reading PDF file...", max_length=total_pages)
@@ -507,6 +508,7 @@ class AppView(QWidget):
                 # Running in development mode
                 base_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
                 print(f"Running in development mode, base path: {base_path}")
+                return None
             
             # Poppler is always in ./poppler/bin
             poppler_path = os.path.join(base_path, 'poppler', 'bin')
