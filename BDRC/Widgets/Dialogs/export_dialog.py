@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QButtonGroup
 )
 
-from BDRC.Data import OCRData, Encoding
+from BDRC.Data import OCRData, Encoding, OCRLine
 from BDRC.Widgets.Dialogs.helpers import build_encodings, build_exporter_settings
 from BDRC.Widgets.Dialogs.export_dir_dialog import ExportDirDialog
 from BDRC.Exporter import PageXMLExporter, JsonExporter, TextExporter
@@ -122,7 +122,19 @@ class ExportDialog(QDialog):
         for data in self.ocr_data:
             if isinstance(exporter, TextExporter):
                 if data.ocr_lines is not None:
-                    exporter.export_text(data.image_name, data.ocr_lines)
+                    # Convert to Wylie if needed
+                    if selected_encoding_id == Encoding.Wylie.value:
+                        from pyewts import pyewts
+                        converter = pyewts()
+                        wylie_lines = []
+                        for l in data.ocr_lines:
+                            # l.text is Unicode, convert to Wylie
+                            wylie_text = converter.toWylie(l.text)
+                            # Create a new OCRLine with Wylie encoding
+                            wylie_lines.append(OCRLine(l.guid, wylie_text, Encoding.Wylie))
+                        exporter.export_text(data.image_name, wylie_lines)
+                    else:
+                        exporter.export_text(data.image_name, data.ocr_lines)
             else:
                 exporter.export(data, selected_encoding_id)
 
