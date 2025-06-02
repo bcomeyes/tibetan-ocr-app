@@ -110,7 +110,11 @@ class ExportDialog(QDialog):
 
         # export all data
         for data in self.ocr_data:
-            exporter.export(data, selected_encoding_id)
+            if isinstance(exporter, TextExporter):
+                if data.ocr_lines is not None:
+                    exporter.export_text(data.image_name, data.ocr_lines)
+            else:
+                exporter.export(data, selected_encoding_id)
 
         self.accept()
 
