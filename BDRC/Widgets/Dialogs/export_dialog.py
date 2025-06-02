@@ -16,6 +16,8 @@ from BDRC.Widgets.Dialogs.export_dir_dialog import ExportDirDialog
 from BDRC.Exporter import PageXMLExporter, JsonExporter, TextExporter
 
 class ExportDialog(QDialog):
+    last_export_dir = None  # Remember last export folder for this session
+
     def __init__(
             self,
             ocr_data: List[OCRData],
@@ -25,7 +27,14 @@ class ExportDialog(QDialog):
         self.setObjectName("ExportDialog")
         self.ocr_data = ocr_data
         self.encoding = active_encoding
-        self.output_dir = "/"
+        import os
+        from pathlib import Path
+        # Use last export dir if set, otherwise default to user's Downloads folder
+        if ExportDialog.last_export_dir:
+            self.output_dir = ExportDialog.last_export_dir
+        else:
+            downloads = os.path.join(Path.home(), "Downloads")
+            self.output_dir = downloads if os.path.isdir(downloads) else str(Path.home())
         self.main_label = QLabel("Export OCR Data")
         self.main_label.setObjectName("OptionsLabel")
         self.exporter_group, self.exporter_buttons = build_exporter_settings()
@@ -40,6 +49,7 @@ class ExportDialog(QDialog):
         self.export_dir_layout = QHBoxLayout()
         self.dir_edit = QLineEdit()
         self.dir_edit.setObjectName("")
+        self.dir_edit.setText(self.output_dir)
 
         self.dir_select_btn = QPushButton("Select")
         self.dir_select_btn.setObjectName("SmallDialogButton")
@@ -128,4 +138,5 @@ class ExportDialog(QDialog):
         if selected_dir == 1:
             _selected_dir = _dialog.selectedFiles()[0]
             self.output_dir = _selected_dir
+            ExportDialog.last_export_dir = _selected_dir  # Remember for next time
             self.dir_edit.setText(self.output_dir)
