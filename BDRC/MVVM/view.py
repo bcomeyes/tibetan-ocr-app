@@ -354,6 +354,8 @@ class AppView(QWidget):
                 
                 if results:
                     self.import_files(results)
+                else:
+                    NotificationDialog("No images found", "No images could be extracted from the selected PDF.").exec()
                     
             except Exception as e:
                 error_dialog = NotificationDialog("Error", f"An error occurred while importing PDF files: {e}")
