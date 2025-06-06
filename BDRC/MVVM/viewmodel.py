@@ -31,11 +31,18 @@ class SettingsViewModel(QObject):
     def get_ocr_models(self):
         return self._model.ocr_models
 
-    def  get_current_ocr_model(self) -> OCRModel | None:
-        if len(self._model.ocr_models) > 0:
+    def get_current_ocr_model(self) -> OCRModel | None:
+        """Return the persisted OCRModel or fallback to first."""
+        from PySide6.QtCore import QSettings
+        if self._model.ocr_models:
+            settings = QSettings("BDRC", "TibetanOCRApp")
+            name = settings.value("main/model_name", None)
+            if name is not None:
+                for m in self._model.ocr_models:
+                    if m.name == name:
+                        return m
             return self._model.ocr_models[0]
-        else:
-            return None
+        return None
 
     def get_ocr_settings(self) -> OCRSettings:
         return self._model.ocr_settings

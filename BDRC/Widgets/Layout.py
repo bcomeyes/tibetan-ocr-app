@@ -170,6 +170,21 @@ class ToolBox(QWidget):
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
+            # Restore persisted model selection from QSettings
+            from PySide6.QtCore import QSettings
+            settings = QSettings("BDRC", "TibetanOCRApp")
+            persisted_model_name = settings.value("main/model_name", None)
+            restored = False
+            self.model_selection.blockSignals(True)
+            if persisted_model_name is not None:
+                for i, model in enumerate(self.ocr_models):
+                    if model.name == persisted_model_name:
+                        self.model_selection.setCurrentIndex(i)
+                        restored = True
+                        break
+            if not restored:
+                self.model_selection.setCurrentIndex(0)
+            self.model_selection.blockSignals(False)
 
         # self.model_selection.activated.connect(self.on_select_ocr_model)
         self.model_selection.currentIndexChanged.connect(self.on_select_ocr_model)
@@ -199,6 +214,10 @@ class ToolBox(QWidget):
         self.layout.addWidget(self.model_selection)
         self.setLayout(self.layout)
 
+        # Emit initial model selection after setup
+        if self.ocr_models and self.model_selection.currentIndex() >= 0:
+            self.on_select_ocr_model(self.model_selection.currentIndex())
+
     def new(self):
         self.s_new.emit()
 
@@ -224,6 +243,11 @@ class ToolBox(QWidget):
         self.s_update_page.emit(index)
 
     def on_select_ocr_model(self, index: int):
+        # Persist the selected model name
+        from PySide6.QtCore import QSettings
+        settings = QSettings("BDRC", "TibetanOCRApp")
+        if self.ocr_models and 0 <= index < len(self.ocr_models):
+            settings.setValue("main/model_name", self.ocr_models[index].name)
         self.s_on_select_model.emit(self.ocr_models[index])
 
     def update_ocr_models(self, ocr_models: List[OCRModel]):
@@ -234,6 +258,10 @@ class ToolBox(QWidget):
 
         self.ocr_models = ocr_models
 
+        from PySide6.QtCore import QSettings
+        settings = QSettings("BDRC", "TibetanOCRApp")
+        persisted_model_name = settings.value("main/model_name", None)
+
         if self.ocr_models is not None and len(self.ocr_models) > 0:
             # Block signals temporarily to avoid triggering model reload when restoring selection
             self.model_selection.blockSignals(True)
@@ -242,8 +270,15 @@ class ToolBox(QWidget):
             for model in self.ocr_models:
                 self.model_selection.addItem(model.name)
             
-            # Restore previously selected model if it exists
-            if current_model_name is not None:
+            # Priority: 1. persisted model, 2. previously selected model
+            restored = False
+            if persisted_model_name is not None:
+                for i, model in enumerate(self.ocr_models):
+                    if model.name == persisted_model_name:
+                        self.model_selection.setCurrentIndex(i)
+                        restored = True
+                        break
+            if not restored and current_model_name is not None:
                 for i, model in enumerate(self.ocr_models):
                     if model.name == current_model_name:
                         self.model_selection.setCurrentIndex(i)
