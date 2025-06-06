@@ -92,6 +92,7 @@ class ToolBox(QWidget):
     s_save = Signal()
     s_run = Signal()
     s_run_all = Signal()
+    s_copy_all = Signal()
     s_settings = Signal()
     s_update_page = Signal(int)
     s_on_select_model = Signal(OCRModel)
@@ -107,6 +108,7 @@ class ToolBox(QWidget):
         self.new_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "new_light.png")
         self.import_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "import.png")
         self.import_pdf_icon = os.path.join(execution_dir, "Assets", "Textures", "pdf_import.png")
+        self.copy_all_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "copy.png")
         self.save_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "save-disc.png")
         self.run_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "play_btn.png")
         self.run_all_btn_icon = os.path.join(execution_dir, "Assets", "Textures", "play_all_btn.png")
@@ -132,6 +134,14 @@ class ToolBox(QWidget):
             width=self.icon_size,
             height=self.icon_size,
         )
+
+        self.btn_copy_all = MenuButton(
+            "Copy All",
+            self.copy_all_btn_icon,
+            width=self.icon_size,
+            height=self.icon_size,
+        )
+        self.btn_copy_all.setEnabled(False)
 
         self.btn_save = MenuButton(
             "Save Output",
@@ -193,10 +203,17 @@ class ToolBox(QWidget):
         self.btn_new.clicked.connect(self.new)
         self.btn_import_images.clicked.connect(self.load_images)
         self.btn_import_pdf.clicked.connect(self.import_pdf)
+        self.btn_copy_all.clicked.connect(self.copy_all)
         self.btn_save.clicked.connect(self.save)
         self.btn_run.clicked.connect(self.run)
         self.btn_run_all.clicked.connect(self.run_all)
         self.btn_settings.clicked.connect(self.settings)
+
+        # disable buttons until data or OCR ready
+        self.btn_run.setEnabled(False)
+        self.btn_run_all.setEnabled(False)
+        self.btn_save.setEnabled(False)
+        self.btn_copy_all.setEnabled(False)
 
         # build layout
         self.layout = QHBoxLayout()
@@ -207,6 +224,7 @@ class ToolBox(QWidget):
         self.layout.addWidget(self.btn_new)
         self.layout.addWidget(self.btn_import_images)
         self.layout.addWidget(self.btn_import_pdf)
+        self.layout.addWidget(self.btn_copy_all)
         self.layout.addWidget(self.btn_save)
         self.layout.addWidget(self.btn_run)
         self.layout.addWidget(self.btn_run_all)
@@ -226,6 +244,9 @@ class ToolBox(QWidget):
 
     def import_pdf(self):
         self.s_import_pdf.emit()
+
+    def copy_all(self):
+        self.s_copy_all.emit()
 
     def save(self):
         self.s_save.emit()

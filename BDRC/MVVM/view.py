@@ -6,8 +6,8 @@ import os
 from uuid import UUID
 from typing import Dict, List
 from PySide6.QtCore import Signal, Qt, QThreadPool, QThread
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog, QProgressDialog
-from PySide6.QtGui import QMovie
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog, QProgressDialog, QApplication
+from PySide6.QtGui import QMovie, QClipboard
 from pdf2image import convert_from_path, pdfinfo_from_path
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
@@ -76,7 +76,9 @@ class MainView(QWidget):
         self._data_view.s_page_data_update.connect(self.set_data)
         self._data_view.s_data_changed.connect(self.update_data)
         self._data_view.s_data_cleared.connect(self.clear_data)
-
+        # enable save and copy when any OCR record updates
+        self._data_view.s_record_changed.connect(lambda data: self.header_tools.toolbox.btn_save.setEnabled(True))
+        self._data_view.s_record_changed.connect(lambda data: self.header_tools.toolbox.btn_copy_all.setEnabled(True))
 
         # connect to tool signals
         self.header_tools.toolbox.s_new.connect(self.handle_new)
@@ -86,6 +88,7 @@ class MainView(QWidget):
         self.header_tools.toolbox.s_on_select_model.connect(self.handle_model_selection)
         self.header_tools.toolbox.s_run.connect(self.handle_run)
         self.header_tools.toolbox.s_run_all.connect(self.handle_batch_run)
+        self.header_tools.toolbox.s_copy_all.connect(self.handle_copy_all)
         self.header_tools.toolbox.s_settings.connect(self.handle_settings)
         self.header_tools.page_switcher.s_on_page_changed.connect(self.handle_update_page)
 
@@ -96,6 +99,14 @@ class MainView(QWidget):
 
     def update_data(self, data: List[OCRData]):
         self.header_tools.update_page_count(len(data))
+        # update button states based on data/presence of pages
+        tb = self.header_tools.toolbox
+        has_pages = len(data) > 0
+        tb.btn_run.setEnabled(has_pages)
+        tb.btn_run_all.setEnabled(has_pages)
+        # disable save/export and copy until OCR text exists
+        tb.btn_save.setEnabled(False)
+        tb.btn_copy_all.setEnabled(False)
 
     def handle_import(self):
         self.s_handle_import.emit()
@@ -118,6 +129,17 @@ class MainView(QWidget):
 
     def handle_batch_run(self):
         self.s_run_batch_ocr.emit()
+
+    def handle_copy_all(self):
+        # collect OCR text from all pages
+        data_dict = self._data_view.get_data()
+        texts = []
+        for data in data_dict.values():
+            if data.ocr_lines:
+                texts.append("\n".join([line.text for line in data.ocr_lines]))
+        full_text = "\n\n".join(texts)
+        clipboard = QApplication.clipboard()
+        clipboard.setText(full_text, QClipboard.Mode.Clipboard)
 
     def handle_settings(self):
         self.s_handle_settings.emit()
@@ -168,7 +190,6 @@ class MainView(QWidget):
             mask, line_data, page_text, angle = result
             self._dataview_model.update_ocr_data(guid, page_text)
             self._dataview_model.update_page_data(guid, line_data, mask, angle)
-
         else:
             NotificationDialog("Failed Running OCR", f"Failed to run OCR on selected image.\n\n{result}").exec()
 
@@ -524,7 +545,6 @@ class AppView(QWidget):
         if result is not None:
             self._dataview_model.update_ocr_data(result.guid, result.text, silent)
             self._dataview_model.update_page_data(result.guid, result.lines, result.mask, result.angle, silent)
-
         else:
             dialog = NotificationDialog("Failed Running OCR", "Failed to run OCR on selected image.")
             dialog.exec()
