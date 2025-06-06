@@ -1311,17 +1311,21 @@ class TextWidget(QWidget):
 
 
 class TextView(QFrame):
-    def __init__(self, platform: Platform, dataview: DataViewModel, execution_dir: str, font_path: str, font_size: int = 14, encoding: Encoding = Encoding.Unicode):
+    def __init__(self, platform: Platform, dataview: DataViewModel, execution_dir: str, font_path: str, font_size: int = 18, encoding: Encoding = Encoding.Unicode):
         super().__init__()
         self.setObjectName("TextView")
         self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
         self._dataview = dataview
-        self.font_size = font_size
-        self.encoding = encoding
-        self.default_font_path = font_path
         self.execution_dir = execution_dir
         self.clip_board = QApplication.clipboard()
+
+        # load persisted font size or default
+        from PySide6.QtCore import QSettings
+        settings = QSettings("BDRC", "TibetanOCRApp")
+        self.font_size = settings.value("main/font_size", font_size, type=int)
+        self.encoding = encoding
+        self.default_font_path = font_path
 
         if self.platform == Platform.Windows:
             
@@ -1395,7 +1399,12 @@ class TextView(QFrame):
             return
 
         self.text_widget_list.clear()
-        self.qfont.setPointSize(self.qfont.pointSize()+1)
+        new_size = self.qfont.pointSize() + 1
+        self.qfont.setPointSize(new_size)
+        # persist font size
+        from PySide6.QtCore import QSettings
+        QSettings("BDRC", "TibetanOCRApp").setValue("main/font_size", new_size)
+        self.font_size = new_size
 
         if self.ocr_lines is not None:
             for ocr_line in self.ocr_lines:
@@ -1425,7 +1434,12 @@ class TextView(QFrame):
             return
 
         self.text_widget_list.clear()
-        self.qfont.setPointSize(self.qfont.pointSize()-1)
+        new_size = self.qfont.pointSize() - 1
+        self.qfont.setPointSize(new_size)
+        # persist font size
+        from PySide6.QtCore import QSettings
+        QSettings("BDRC", "TibetanOCRApp").setValue("main/font_size", new_size)
+        self.font_size = new_size
 
         if self.ocr_lines is not None:
             for text_line in self.ocr_lines:
