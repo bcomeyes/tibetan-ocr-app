@@ -594,16 +594,21 @@ class AppView(QWidget):
             return self._poppler_path
             
         try:
-            # Determine base path depending on whether we're running from a bundled app or in development
+            # Determine base path: check Nuitka bundle, packaged app, or development
             if getattr(sys, 'frozen', False):
-                # Running in a bundled app
                 base_path = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
-                print(f"Running from bundled app, base path: {base_path}")
+                print(f"Running from Nuitka bundle, base path: {base_path}")
             else:
-                # Running in development mode
-                base_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-                print(f"Running in development mode, base path: {base_path}")
-                return None
+                # If poppler lives next to the executable, we're in an .app bundle
+                exe_dir = os.path.dirname(sys.executable)
+                candidate = os.path.join(exe_dir, 'poppler', 'bin', 'pdfinfo' + ('.exe' if platform.system()=='Windows' else ''))
+                if os.path.exists(candidate):
+                    base_path = exe_dir
+                    print(f"Running from packaged app bundle, base path: {base_path}")
+                else:
+                    # Development mode
+                    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+                    print(f"Running in development mode, base path: {base_path}")
             
             # Poppler is always in ./poppler/bin
             poppler_path = os.path.join(base_path, 'poppler', 'bin')
@@ -620,6 +625,13 @@ class AppView(QWidget):
                 
                 # Cache the result
                 self._poppler_path = poppler_path
+                
+                # Add bundled Poppler to PATH and DYLD_LIBRARY_PATH (run once)
+                os.environ['PATH'] = poppler_path + os.pathsep + os.environ.get('PATH', '')
+                if platform.system() == 'Darwin':
+                    poppler_root = os.path.dirname(os.path.dirname(poppler_path))
+                    lib_path = os.path.join(poppler_root, 'lib')
+                    os.environ['DYLD_LIBRARY_PATH'] = lib_path + os.pathsep + os.environ.get('DYLD_LIBRARY_PATH', '')
                 return poppler_path
             else:
                 QMessageBox.critical(self, "Error", f"Poppler binaries not found at expected location: {poppler_path}")

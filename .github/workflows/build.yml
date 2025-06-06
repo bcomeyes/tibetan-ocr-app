@@ -198,27 +198,32 @@ jobs:
             local file=$1
             echo "Analyzing dependencies for: $file"
             
-            # Get all dependencies
-            deps=$(otool -L "$file" | grep -v "@rpath" | grep -v ":" | awk '{print $1}' | grep "^/")
-            
+            # Collect all linked libraries, including @rpath entries
+            deps=$(otool -L "$file" | grep -v ':' | awk '{print $1}')
+
             for dep in $deps; do
               # Skip system libraries
               if [[ "$dep" == /usr/lib/* || "$dep" == /System/* ]]; then
                 continue
               fi
-              
-              # Get the basename of the dependency
+
               dep_basename=$(basename "$dep")
-              
-              # If we haven't copied this dependency yet, copy it
-              if [ ! -f "poppler/lib/$dep_basename" ]; then
-                echo "Copying dependency: $dep"
-                sudo cp "$dep" poppler/lib/ || echo "Warning: Could not copy $dep_basename"
-                sudo chmod 644 "poppler/lib/$dep_basename" || echo "Warning: Could not chmod $dep_basename"
-                sudo chown $(whoami) "poppler/lib/$dep_basename" || echo "Warning: Could not chown $dep_basename"
-                
-                # Recursively find dependencies of this dependency
-                find_and_copy_deps "$dep"
+
+              # Resolve source path for @rpath libraries
+              if [[ "$dep" == @rpath/* ]]; then
+                src="$(brew --prefix poppler)/lib/$dep_basename"
+              else
+                src="$dep"
+              fi
+
+              # Copy dependency if not already present
+              if [[ ! -f "poppler/lib/$dep_basename" ]]; then
+                echo "Copying dependency: $src"
+                cp "$src" poppler/lib/ || echo "Warning: Could not copy $dep_basename"
+                chmod 644 "poppler/lib/$dep_basename" || echo "Warning: Could not chmod $dep_basename"
+                chown $(whoami) "poppler/lib/$dep_basename" || echo "Warning: Could not chown $dep_basename"
+                # Recurse into this dependency
+                find_and_copy_deps "$src"
               fi
             done
           }
@@ -285,9 +290,7 @@ jobs:
             
           # Make the Poppler binaries executable
           echo "Making Poppler binaries executable..."
-          chmod +x "macOSBuild/main.app/Contents/MacOS/poppler/bin/pdfinfo"
-          chmod +x "macOSBuild/main.app/Contents/MacOS/poppler/bin/pdftoppm"
-          chmod +x "macOSBuild/main.app/Contents/MacOS/poppler/bin/pdftotext"
+          find macOSBuild -type f -path "*/poppler/bin/*" -exec chmod +x {} +
 
           # Create lib directory and copy the library files to the correct location
           echo "Creating lib directory and copying Poppler library files..."
