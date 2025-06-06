@@ -274,8 +274,8 @@ class SettingsDialog(QDialog):
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
-        self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
         self.settings_tabs.addTab(self.ocr_settings_tab, "OCR Settings")
+        self.settings_tabs.addTab(self.ocr_models_tab, "OCR Models")
 
         self.main_v_layout = QVBoxLayout()
         self.main_v_layout.addWidget(self.settings_tabs)
