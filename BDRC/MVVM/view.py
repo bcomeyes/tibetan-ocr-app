@@ -5,8 +5,9 @@ import platform
 import os
 from uuid import UUID
 from typing import Dict, List
-from PySide6.QtCore import Signal, Qt, QThreadPool
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog
+from PySide6.QtCore import Signal, Qt, QThreadPool, QThread
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog, QProgressDialog
+from PySide6.QtGui import QMovie
 from pdf2image import convert_from_path, pdfinfo_from_path
 from BDRC.Styles import DARK
 from BDRC.Inference import OCRPipeline
@@ -18,6 +19,24 @@ from BDRC.Widgets.Layout import HeaderTools, ImageGallery, Canvas, TextView
 from BDRC.MVVM.viewmodel import DataViewModel, SettingsViewModel
 import logging
 
+# Thread for asynchronous OCR
+class _OCRThread(QThread):
+    ocr_finished = Signal(object, object, object)  # status, result, guid
+    def __init__(self, pipeline, img, settings, guid, parent=None):
+        super().__init__(parent)
+        self.pipeline = pipeline
+        self.img = img
+        self.settings = settings
+        self.guid = guid
+    def run(self):
+        status, result = self.pipeline.run_ocr(
+            self.img,
+            k_factor=self.settings.k_factor,
+            bbox_tolerance=self.settings.bbox_tolerance,
+            merge_lines=self.settings.merge_lines,
+            use_tps=self.settings.dewarping
+        )
+        self.ocr_finished.emit(status, result, self.guid)
 
 class MainView(QWidget):
     s_handle_import = Signal()
@@ -112,6 +131,46 @@ class MainView(QWidget):
 
     def clear_data(self):
         self.canvas.clear()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, '_overlay'):
+            self._overlay.setGeometry(self.rect())
+
+    def run_ocr(self, guid: UUID):
+        data = self._dataview_model.get_data_by_guid(guid)
+        if not os.path.isfile(data.image_path):
+            NotificationDialog("Image not found", "The selected image could not be read from disk.").exec()
+            return
+        img = cv2.imread(data.image_path)
+        ocr_settings = self._settings_view.get_ocr_settings()
+        # show indeterminate progress dialog and lock UI
+        self._progress_dialog = QProgressDialog("Running OCR...", None, 0, 0, self)
+        self._progress_dialog.setWindowModality(Qt.ApplicationModal)
+        self._progress_dialog.setCancelButton(None)
+        self._progress_dialog.setWindowTitle("Please wait")
+        self._progress_dialog.setRange(0, 0)
+        self._progress_dialog.show()
+        self.setEnabled(False)
+        # start thread
+        thread = _OCRThread(self.ocr_pipeline, img, ocr_settings, guid)
+        self._ocr_thread = thread  # keep reference
+        thread.ocr_finished.connect(self._on_thread_finished)
+        thread.start()
+
+    def _on_thread_finished(self, status, result, guid):
+        # close progress & restore UI
+        if hasattr(self, '_progress_dialog'):
+            self._progress_dialog.close()
+        self.setEnabled(True)
+        # handle OCR result
+        if status == OpStatus.SUCCESS:
+            mask, line_data, page_text, angle = result
+            self._dataview_model.update_ocr_data(guid, page_text)
+            self._dataview_model.update_page_data(guid, line_data, mask, angle)
+
+        else:
+            NotificationDialog("Failed Running OCR", f"Failed to run OCR on selected image.\n\n{result}").exec()
 
 
 class AppView(QWidget):
@@ -399,27 +458,37 @@ class AppView(QWidget):
 
     def run_ocr(self, guid: UUID):
         data = self._dataview_model.get_data_by_guid(guid)
+        if not os.path.isfile(data.image_path):
+            NotificationDialog("Image not found", "The selected image could not be read from disk.").exec()
+            return
+        img = cv2.imread(data.image_path)
+        ocr_settings = self._settingsview_model.get_ocr_settings()
+        # show indeterminate progress dialog and lock UI
+        self._progress_dialog = QProgressDialog("Running OCR...", None, 0, 0, self)
+        self._progress_dialog.setWindowModality(Qt.ApplicationModal)
+        self._progress_dialog.setCancelButton(None)
+        self._progress_dialog.setWindowTitle("Please wait")
+        self._progress_dialog.setRange(0, 0)
+        self._progress_dialog.show()
+        self.setEnabled(False)
+        # run in background thread
+        thread = _OCRThread(self.ocr_pipeline, img, ocr_settings, guid)
+        self._ocr_thread = thread  # keep reference
+        thread.ocr_finished.connect(self._on_ocr_finished)
+        thread.start()
 
-        if os.path.isfile(data.image_path):
-            img = cv2.imread(data.image_path)
-            ocr_settings = self._settingsview_model.get_ocr_settings()
-            status, result = self.ocr_pipeline.run_ocr(
-                img,
-                k_factor=ocr_settings.k_factor,
-                bbox_tolerance=ocr_settings.bbox_tolerance,
-                merge_lines=ocr_settings.merge_lines,
-                use_tps=ocr_settings.dewarping)
-
-            if status == OpStatus.SUCCESS:
-                mask, line_data, page_text, angle = result
-                self._dataview_model.update_ocr_data(guid, page_text)
-                self._dataview_model.update_page_data(guid, line_data, mask, angle)
-            else:
-                dialog = NotificationDialog("Failed Running OCR", f"Failed to run OCR on selected image.\n\n{result}")
-                dialog.exec()
+    def _on_ocr_finished(self, status, result, guid):
+        # restore UI
+        self.setEnabled(True)
+        # close progress dialog
+        if hasattr(self, '_progress_dialog'):
+            self._progress_dialog.close()
+        if status == OpStatus.SUCCESS:
+            mask, line_data, page_text, angle = result
+            self._dataview_model.update_ocr_data(guid, page_text)
+            self._dataview_model.update_page_data(guid, line_data, mask, angle)
         else:
-            dialog = NotificationDialog("Image not found", "The selected image could not be read from disk.")
-            dialog.exec()
+            NotificationDialog("Failed Running OCR", f"Failed to run OCR on selected image.\n\n{result}").exec()
 
     def run_batch_ocr(self):
         _data = self._dataview_model.get_data()
