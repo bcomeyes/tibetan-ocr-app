@@ -9,7 +9,7 @@ a = Analysis(
     hiddenimports=[
         'numpy', 
         'numpy.core._multiarray_umath',
-        'PyPDF2',
+        'pypdf',
         'pdf2image',
         'PIL',
         'PIL.Image',

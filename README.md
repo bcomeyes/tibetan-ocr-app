@@ -13,6 +13,7 @@ Instead of providing one model that can handle all styles of Tibetan writing, we
 The models it uses are based on transcriptions available online, from BDRC, [ALL](https://asianlegacylibrary.org/), [Adarsha](https://adarshah.org/), and [NorbuKetaka](http://purl.bdrc.io/resource/PR1ER1), as well as some transcriptions by [MonlamAI](https://monlam.ai/) and the author. The data was organized and processed in collaboration with MonlamAI, and parts of it can be made available on request.
 
 See our [Huggingface account](https://huggingface.co/BDRC) for the open access part of our data as well as the models, and the following for the training code:
+
 - https://github.com/buda-base/tibetan-ocr-training
 - https://github.com/buda-base/tibetan-ocr-evaluation
 
@@ -80,10 +81,11 @@ If you encounter issues with PDF processing, it might be related to Poppler:
 
 #### Missing Dependencies
 
-If you get errors about missing Python modules:
+If you get errors about missing Python modules, make sure you've installed all requirements:
 
-1. Make sure you've installed all requirements: `pip install -r requirements.txt`
-2. For PyPDF2 or kenlm errors, run: `pip install PyPDF2 https://github.com/kpu/kenlm/archive/master.zip`
+```
+pip install -r requirements.txt
+```
 
 ### Acknowledgements
 

@@ -294,7 +294,7 @@ class AppView(QWidget):
                             create_dir(pdf_dir)
                             
                             if import_method == PDFImportDialog.IMPORT_EMBEDDED_IMAGES:
-                                # Extract embedded images using PyPDF2
+                                # Extract embedded images using pypdf
                                 self.handle_pdf_extract(file_path, pdf_dir, results)
                             else:
                                 # Convert pages to images using pdf2image
@@ -346,7 +346,7 @@ class AppView(QWidget):
                         create_dir(pdf_dir)
                         
                         if import_method == PDFImportDialog.IMPORT_EMBEDDED_IMAGES:
-                            # Extract embedded images using PyPDF2
+                            # Extract embedded images using pypdf
                             self.handle_pdf_extract(file_path, pdf_dir, results)
                         else:
                             # Convert pages to images using pdf2image
@@ -362,7 +362,7 @@ class AppView(QWidget):
                 error_dialog.exec_()
                 
     def handle_pdf_extract(self, file_path, output_dir, results):
-        """Extract embedded images from PDF using PyPDF2."""
+        """Extract embedded images from PDF using pypdf."""
         import uuid
         
         try:
