@@ -41,7 +41,8 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QGraphicsItem,
     QFrame,
-    QListView
+    QListView,
+    QToolTip
 )
 
 
@@ -826,7 +827,7 @@ class ImageList(QListWidget):
             {
                 background: none;
             }
-        """
+            """
         )
 
         self.setAutoScrollMargin(20)
@@ -1542,3 +1543,7 @@ class TextView(QFrame):
             clipboard_text += f"{ocr_line.text}\n"
 
         self.clip_board.setText(clipboard_text, mode=self.clip_board.Mode.Clipboard)
+        # position popover under copy button
+        btn = self.copy_text_btn
+        pos = btn.mapToGlobal(btn.rect().bottomLeft())
+        QToolTip.showText(pos, "Copied to clipboard", btn)

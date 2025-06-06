@@ -6,7 +6,7 @@ import os
 from uuid import UUID
 from typing import Dict, List
 from PySide6.QtCore import Signal, Qt, QThreadPool, QThread
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog, QProgressDialog, QApplication
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QMessageBox, QFileDialog, QProgressDialog, QApplication, QToolTip
 from PySide6.QtGui import QMovie, QClipboard
 from pdf2image import convert_from_path, pdfinfo_from_path
 from BDRC.Styles import DARK
@@ -140,6 +140,10 @@ class MainView(QWidget):
         full_text = "\n\n".join(texts)
         clipboard = QApplication.clipboard()
         clipboard.setText(full_text, QClipboard.Mode.Clipboard)
+        # show popover near copy button
+        btn = self.header_tools.toolbox.btn_copy_all
+        pos = btn.mapToGlobal(btn.rect().bottomLeft())
+        QToolTip.showText(pos, "Copied all text to clipboard", btn)
 
     def handle_settings(self):
         self.s_handle_settings.emit()
