@@ -206,7 +206,7 @@ class AppView(QWidget):
         super().__init__()
 
         self.setObjectName("MainWindow")
-        self.setWindowTitle("BDRC OCR [BETA] 0.1")
+        self.setWindowTitle("BDRC OCR [BETA] 0.3")
         self.setContentsMargins(0, 0, 0, 0)
         self.platform = platform
         self.threadpool = QThreadPool()
