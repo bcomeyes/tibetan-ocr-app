@@ -53,6 +53,9 @@ class ExportDialog(QDialog):
         self.main_label = QLabel("Export OCR Data")
         self.main_label.setObjectName("OptionsLabel")
         self.exporter_group, self.exporter_buttons = build_exporter_settings()
+        # hide exporter options (only TXT supported for now)
+        for btn in self.exporter_buttons:
+            btn.hide()
         self.encodings_group, self.encoding_buttons = build_encodings(self.encoding)
 
         # Restore encoding selection from settings if available
