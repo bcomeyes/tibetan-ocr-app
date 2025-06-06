@@ -219,6 +219,13 @@ class SettingsDialog(QDialog):
         k_factor_layout.addWidget(k_factor_label)
         k_factor_layout.addWidget(self.k_factor_edit)
 
+        k_factor_explanation = QLabel(
+            "The <b>k Factor</b> controls line extraction intensity. "
+            "If OCR results are poor, try increasing or decreasing this value."
+        )
+        k_factor_explanation.setWordWrap(True)
+        k_factor_explanation.setObjectName("OptionsExplanation")
+
         bbox_tolerance_layout = QHBoxLayout()
         bbox_tolerance_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         bbox_tolerance_label = QLabel("Bounding Box Tolerance")
@@ -234,30 +241,28 @@ class SettingsDialog(QDialog):
         bbox_tolerance_layout.addWidget(bbox_tolerance_label)
         bbox_tolerance_layout.addWidget(self.bbox_tolerance_edit)
 
+        bbox_tolerance_explanation = QLabel(
+            "The <b>bbox tolerance</b> defines how much of the initial line detection "
+            "(highlighted in orange) is allowed to capture descenders or vowels. "
+            "High values may cause issues on layouts with tight spacing."
+        )
+        bbox_tolerance_explanation.setWordWrap(True)
+        bbox_tolerance_explanation.setObjectName("OptionsExplanation")
+
         line_mode_label.setFixedWidth(160)
         encoding_label.setFixedWidth(160)
         dewarping_label.setFixedWidth(160)
         merge_label.setFixedWidth(160)
 
-        explanation = QLabel(
-            """
-            The above settings give some control over the OCR process. The <b>k Factor</b> is a parameter to control the intensity of the
-            line extraction if adjustments are needed. If you get poor OCR results, try to increase or decrease the value.
-            Similarly, the <b>bbox tolerance</b> parameter is the amount of the 'initial line detection' (highlighted in orange after OCR)
-            is admissive in order to interpret the rest of the line such as descenders or vowels. A high value can cause problems on pages with a tight
-            layout."""
-        )
-        explanation.setWordWrap(True)
-        explanation.setObjectName("OptionsExplanation")
-
-        # assemlbe all layouts
+        # assemble all layouts
         self.ocr_settings_layout.addLayout(line_mode_layout)
         self.ocr_settings_layout.addLayout(encoding_layout)
         self.ocr_settings_layout.addLayout(dewarping_layout)
         self.ocr_settings_layout.addLayout(merge_layout)
         self.ocr_settings_layout.addLayout(k_factor_layout)
+        self.ocr_settings_layout.addWidget(k_factor_explanation)
         self.ocr_settings_layout.addLayout(bbox_tolerance_layout)
-        self.ocr_settings_layout.addWidget(explanation)
+        self.ocr_settings_layout.addWidget(bbox_tolerance_explanation)
         self.ocr_settings_tab.setLayout(self.ocr_settings_layout)
 
         # build entire Layout
