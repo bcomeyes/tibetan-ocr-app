@@ -44,20 +44,9 @@ jobs:
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "ARTIFACT_PATH=$env:ARTIFACT_PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Cache Git LFS files
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
-          restore-keys: |
-            ${{ runner.os }}-lfs-
-
       - uses: actions/checkout@v4
         with:
-          lfs: true
-
-      - name: Pull LFS objects
-        run: git lfs pull
+          lfs: false
 
       - name: Cache Nuitka
         uses: actions/cache@v4
@@ -80,6 +69,8 @@ jobs:
           echo "Downloading OCR models..."
           mkdir -p OCRModels
           curl -L https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/bdrc_ocr_models_1.0.zip -o ocr_models.zip
+          curl -L https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/photi.onnx -o Models/Layout/photi.onnx
+          curl -L https://github.com/buda-base/tibetan-ocr-app/releases/download/v0.1/PhotiLines.onnx -o Models/Lines/PhotiLines.onnx
 
       - name: Extract OCR Models (Windows)
         if: runner.os == 'Windows'
