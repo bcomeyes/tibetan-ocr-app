@@ -589,54 +589,47 @@ class AppView(QWidget):
             self.ocr_pipeline = OCRPipeline(self.platform, ocr_model.config, line_model_config)
 
     def get_poppler_path(self):
-        # Return cached path if we've already found it
-        if self._poppler_path is not None:
+        # Return cached path
+        if self._poppler_path:
             return self._poppler_path
-            
+
         try:
-            # Determine base path: check Nuitka bundle, packaged app, or development
-            if getattr(sys, 'frozen', False):
-                base_path = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
-                print(f"Running from Nuitka bundle, base path: {base_path}")
-            else:
-                # If poppler lives next to the executable, we're in an .app bundle
-                exe_dir = os.path.dirname(sys.executable)
-                candidate = os.path.join(exe_dir, 'poppler', 'bin', 'pdfinfo' + ('.exe' if platform.system()=='Windows' else ''))
-                if os.path.exists(candidate):
-                    base_path = exe_dir
-                    print(f"Running from packaged app bundle, base path: {base_path}")
-                else:
-                    # Development mode
-                    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-                    print(f"Running in development mode, base path: {base_path}")
-            
-            # Poppler is always in ./poppler/bin
-            poppler_path = os.path.join(base_path, 'poppler', 'bin')
-            print(f"Looking for Poppler at: {poppler_path}")
-            
-            # Check if pdfinfo exists in this path
-            pdfinfo_path = os.path.join(poppler_path, 'pdfinfo')
-            if platform.system() == 'Windows':
-                pdfinfo_path += '.exe'
-            
-            print(f"Checking for pdfinfo at: {pdfinfo_path}")
-            if os.path.exists(pdfinfo_path):
-                print(f"Found Poppler at: {poppler_path}")
-                
-                # Cache the result
-                self._poppler_path = poppler_path
-                
-                # Add bundled Poppler to PATH and DYLD_LIBRARY_PATH (run once)
-                os.environ['PATH'] = poppler_path + os.pathsep + os.environ.get('PATH', '')
-                if platform.system() == 'Darwin':
-                    poppler_root = os.path.dirname(os.path.dirname(poppler_path))
-                    lib_path = os.path.join(poppler_root, 'lib')
-                    os.environ['DYLD_LIBRARY_PATH'] = lib_path + os.pathsep + os.environ.get('DYLD_LIBRARY_PATH', '')
-                return poppler_path
-            else:
-                QMessageBox.critical(self, "Error", f"Poppler binaries not found at expected location: {poppler_path}")
-                print(f"Poppler binaries not found at expected location: {poppler_path}")
-                return None
+            # Collect base dirs for onefile and dev modes
+            bases = []
+            # Nuitka onefile temp extraction
+            tmp = os.environ.get('NUITKA_ONEFILE_TEMP')
+            if tmp:
+                bases.append(tmp)
+            # PyInstaller extraction
+            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+                bases.append(sys._MEIPASS)
+            # Executable directory
+            exe_dir = os.path.dirname(sys.executable)
+            bases.append(exe_dir)
+            # CWD
+            bases.append(os.getcwd())
+            # Dev project root
+            bases.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+
+            # Find pdfinfo in any base
+            for base in bases:
+                pdfinfo = os.path.join(base, 'poppler', 'bin', 'pdfinfo')
+                if platform.system() == 'Windows':
+                    pdfinfo += '.exe'
+                if os.path.exists(pdfinfo):
+                    poppler_bin = os.path.join(base, 'poppler', 'bin')
+                    self._poppler_path = poppler_bin
+                    print(f"Found Poppler at: {poppler_bin}")
+                    # Update PATH and DYLD_LIBRARY_PATH
+                    os.environ['PATH'] = poppler_bin + os.pathsep + os.environ.get('PATH', '')
+                    if platform.system() == 'Darwin':
+                        lib_dir = os.path.join(base, 'poppler', 'lib')
+                        os.environ['DYLD_LIBRARY_PATH'] = lib_dir + os.pathsep + os.environ.get('DYLD_LIBRARY_PATH', '')
+                    return poppler_bin
+
+            # Not found
+            QMessageBox.critical(self, 'Error', 'Poppler binaries not found in any expected location')
+            return None
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error finding Poppler: {e}")
+            QMessageBox.critical(self, 'Error', f"Error finding Poppler: {e}")
             return None
