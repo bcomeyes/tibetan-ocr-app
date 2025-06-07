@@ -1,3 +1,5 @@
+import re
+
 from typing import List
 from PySide6.QtCore import Qt, QSettings
 from PySide6.QtWidgets import (
@@ -180,11 +182,8 @@ class ExportDialog(QDialog):
             # Export to a single file named after the original file, with .txt extension
             import os
             def get_original_basename(name):
-                # Remove trailing _1, _2, etc. if present
                 base = os.path.splitext(os.path.basename(name))[0]
-                if base.endswith(('_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9')):
-                    base = base.rsplit('_', 1)[0]
-                return base
+                return re.sub(r' - page \d+$', '', base)
             if self.ocr_data and hasattr(self.ocr_data[0], 'image_name'):
                 base = get_original_basename(self.ocr_data[0].image_name)
                 export_filename = base

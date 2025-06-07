@@ -38,7 +38,7 @@ def extract_images_from_pdf(pdf_path, output_folder, first_page=1, last_page=Non
             if hasattr(page, 'images') and len(page.images) > 0:
                 img_obj = page.images[0]
                 data = img_obj.data
-                tmp_img_path = os.path.join(output_folder, f"{file_n}_{idx+1}.jpg")
+                tmp_img_path = os.path.join(output_folder, f"{file_n} - page {idx+1}.jpg")
                 with open(tmp_img_path, "wb") as f:
                     f.write(data)
                 image_paths.append(tmp_img_path)

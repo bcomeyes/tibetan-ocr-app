@@ -408,7 +408,9 @@ class AppView(QWidget):
             pdf_info = pdfinfo_from_path(file_path, poppler_path=poppler_path)
             total_pages = pdf_info['Pages']
             logging.info(f"found {total_pages} pages")
-
+            
+            file_n = os.path.splitext(os.path.basename(file_path))[0]
+            
             # Create progress dialog
             progress = ImportFilesProgress("Reading PDF file...", max_length=total_pages)
             progress.setWindowModality(Qt.WindowModality.WindowModal)
@@ -436,12 +438,11 @@ class AppView(QWidget):
                     progress.setValue(page_num)
                     
                     # Save the page as an image
-                    image_path = os.path.join(output_dir, f"page_{page_num}.png")
+                    image_path = os.path.join(output_dir, f"{file_n} - page {page_num}.png")
                     page.save(image_path, "PNG")
                     
                     # Create OCR data for this page
                     file_id = uuid.uuid4()
-                    file_name = f"Page {page_num}"
                     
                     data = build_ocr_data(file_id, image_path)
                     results[file_id] = data
