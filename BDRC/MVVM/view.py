@@ -79,6 +79,8 @@ class MainView(QWidget):
         # enable save and copy when any OCR record updates
         self._data_view.s_record_changed.connect(lambda data: self.header_tools.toolbox.btn_save.setEnabled(True))
         self._data_view.s_record_changed.connect(lambda data: self.header_tools.toolbox.btn_copy_all.setEnabled(True))
+        # Update main view when page switched via header
+        self._data_view.s_data_auto_selected.connect(self.set_data)
 
         # connect to tool signals
         self.header_tools.toolbox.s_new.connect(self.handle_new)
