@@ -141,7 +141,12 @@ class ExportDialog(QDialog):
         )
 
     def export(self):
-        if self.output_dir == "":
+        # Use directory from UI input (handle manual path entries)
+        self.output_dir = self.dir_edit.text().strip()
+        # Normalize path separators for the OS
+        import os
+        self.output_dir = os.path.normpath(self.output_dir)
+        if not self.output_dir:
             return
 
         selected_id = self.exporter_group.checkedId()
