@@ -629,8 +629,22 @@ class AppView(QWidget):
                         os.environ['DYLD_LIBRARY_PATH'] = lib_dir + os.pathsep + os.environ.get('DYLD_LIBRARY_PATH', '')
                     return poppler_bin
 
-            # Not found
-            QMessageBox.critical(self, 'Error', 'Poppler binaries not found in any expected location')
+            # Not found at expected paths; try fallback recursive search under bases
+            target = 'pdfinfo.exe' if platform.system() == 'Windows' else 'pdfinfo'
+            for base in bases:
+                for root, dirs, files in os.walk(base):
+                    if target in files:
+                        poppler_bin = root
+                        self._poppler_path = poppler_bin
+                        print(f"Found Poppler via fallback at: {poppler_bin}")
+                        os.environ['PATH'] = poppler_bin + os.pathsep + os.environ.get('PATH', '')
+                        if platform.system() == 'Darwin':
+                            lib_dir = os.path.join(os.path.dirname(poppler_bin), 'lib')
+                            os.environ['DYLD_LIBRARY_PATH'] = lib_dir + os.pathsep + os.environ.get('DYLD_LIBRARY_PATH', '')
+                        return poppler_bin
+            # Final failure: show attempted base directories
+            checked = '\n'.join(bases)
+            QMessageBox.critical(self, 'Error', f"Poppler binaries not found. Checked:\n{checked}")
             return None
         except Exception as e:
             QMessageBox.critical(self, 'Error', f"Error finding Poppler: {e}")
