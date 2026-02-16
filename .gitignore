@@ -3,6 +3,7 @@ WindowsDbgBuild/
 OSXBuild/
 Build/
 DebugBuild
+grid_search_results/
 
 resources.py
 
