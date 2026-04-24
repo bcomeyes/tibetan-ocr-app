@@ -23,9 +23,13 @@ env/
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# ── Grid search — raw data ignored, per-category CSVs tracked ─────────────────
-grid_search_results/
-!grid_search_results/summary_*.csv
+# ── Grid search — ignore subdirs and raw files, but track summary CSVs ────────
+grid_search_results/_checkpoints/
+grid_search_results/logs/
+grid_search_results/temp_images/
+grid_search_results/review_export/
+grid_search_results/**/*.txt
+grid_search_results/**/*.jpg
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 .DS_Store
