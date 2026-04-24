@@ -8,9 +8,11 @@ The original BDRC app is a GUI desktop application for running Tibetan OCR on im
 
 - Tests **1,728 parameter combinations** per image across 6 tunable parameters and 3-5 OCR models
 - **Automatically scores OCR quality** using [PyBo](https://github.com/OpenPecha/pybo) tokenization — the percentage of output that consists of valid Tibetan words
+- Uses **composite scoring** (quality × token count) to avoid misleading high scores on sparse pages
 - **Resumes from checkpoint** if interrupted, so multi-hour runs don't lose progress
 - Supports **per-category parameter trimming** — run the full grid once per script type / degradation level, then use a reduced grid for remaining images in that category
-- Outputs a summary CSV and per-result text files for analysis
+- Outputs a **per-category summary CSV** and per-result text files for analysis
+- **Exports curated top results** for human review, organized by page with original JPGs
 
 ## Background
 
@@ -22,9 +24,8 @@ This pipeline finds the best parameters for each script type and degradation lev
 
 ### Prerequisites
 
-1. [Git LFS](https://git-lfs.com) installed
-2. Python 3.10+ with conda recommended
-3. Jupyter notebook
+- Python 3.12+
+- Git with Git LFS
 
 ### Setup
 
@@ -32,35 +33,76 @@ This pipeline finds the best parameters for each script type and degradation lev
 git clone https://github.com/bcomeyes/tibetan-ocr-app.git
 cd tibetan-ocr-app
 git lfs pull
-
-conda create -n tibetan-ocr python=3.11
-conda activate tibetan-ocr
-
 pip install -r requirements.txt
-pip install pybo jupyter pandas tqdm
+pip install pybo jupyter pandas tqdm matplotlib seaborn scikit-learn ipykernel ipywidgets
 ```
 
-### Running the Grid Search
+> **Note:** Some OpenPecha dependencies (pyewts, tibetan-sort) require installation from source:
+> ```bash
+> pip install wheel
+> pip install --no-build-isolation pyewts tibetan-sort
+> ```
 
-1. Open `ocr_grid_search.ipynb` in Jupyter
-2. Run cells 1-6 in order (setup, config, logging, scorer, params, engine)
-3. In Cell 2, uncomment the TARGET PDF you want to process
-4. In Cell 5, select `PARAM_VALUES = FULL_PARAMS` for first run of a category
-5. Run Cell 7 (quick test — 1 image) to verify everything works
-6. Run Cell 8 (full grid search) for real results
-7. Run Cell 9 or open `grid_search_analysis.ipynb` to analyze results
+## How to Use
 
-### Per-Category Workflow
+### Step 1 — Configure `ocr_grid_search.ipynb`
 
-Each script type / degradation combination gets its own optimization:
+In the **CONFIG cell**, set three values:
 
-1. **Phase 1**: Run full 1,728-combo grid on one representative image (~5 hours)
-2. **Analyze**: Check which parameters matter vs which are irrelevant for this category
-3. **Trim**: Create a reduced parameter set (e.g. 12 combos instead of 1,728)
-4. **Phase 2**: Run trimmed grid on remaining images in that category (~minutes)
-5. **Repeat** for next category
+```python
+TARGET_ID    = 10           # which PDF to process (see TARGETS dict)
+RUN_MODE     = 'quick'      # 'quick' = page 1 only; 'full' = all remaining pages
+PARAM_VALUES = FULL_PARAMS  # which parameter grid to use
+```
 
-See `grid_search_workflow.md` for the detailed checklist.
+That's it. Models are auto-selected based on script type (Uchen vs Umeh).
+
+### Step 2 — Run the notebook
+
+Run all cells top to bottom. The RUN cell handles everything based on `RUN_MODE`.
+
+### Step 3 — Analyze results in `grid_search_analysis.ipynb`
+
+Set `TARGET_ID` to match what you just ran. Run all cells. The notebook:
+- Loads the correct per-category CSV automatically
+- Shows quality and composite scores by parameter
+- Identifies which parameters to trim
+- Exports top results for review
+
+### Step 4 — Sync to Google Drive
+
+```bash
+rclone copy ~/Documents/tibetan-ocr-app/grid_search_results/review_export/ "gdrive:Tibetan OCR Gridsearch Project Folder/review_export" --progress
+```
+
+---
+
+## Per-Category Workflow
+
+Each script type / quality combination is a **category** (e.g. `umeh_druma_high`, `uchen_poor`).
+
+### Phase 1: Full Grid on First Page (~5 hours)
+
+1. Set `TARGET_ID` to first file in new category
+2. Set `RUN_MODE = 'quick'`
+3. Set `PARAM_VALUES = FULL_PARAMS`
+4. Run all cells — processes page 1 with 1,728 combinations
+
+### Phase 2: Trimmed Grid on Remaining Pages (~minutes)
+
+1. Analyze page 1 results in `grid_search_analysis.ipynb`
+2. Add trimmed `PARAM_VALUES` to the params cell (e.g. `UMEH_DRUMA_HIGH_PARAMS`)
+3. Set `RUN_MODE = 'full'`
+4. Set `PARAM_VALUES` to the new trimmed set
+5. Run all cells — checkpoint skips page 1, runs remaining pages
+
+### Moving to Next Category
+
+1. Change `TARGET_ID` to first file of new category
+2. Set `RUN_MODE = 'quick'`, `PARAM_VALUES = FULL_PARAMS`
+3. Repeat from Phase 1
+
+---
 
 ## Parameters Tested
 
@@ -76,72 +118,84 @@ See `grid_search_workflow.md` for the detailed checklist.
 
 ## Quality Scoring
 
-Manually reviewing 1,728 OCR outputs per image is impossible. We needed an automated way to score OCR quality without reading Tibetan.
+Each OCR output is scored two ways:
 
-We explored two Tibetan NLP tokenizers (see `botok_exploration.ipynb` and `pybo_explorer.ipynb`):
+- **Quality score (0-100):** percentage of tokens with valid Tibetan POS tags (via PyBo tokenization)
+- **Composite score:** quality × total_tokens — penalizes high scores on sparse pages (e.g. title pages with 5 words)
 
-- **[Botok](https://github.com/OpenPecha/Botok)** — OpenPecha's more advanced tokenizer with multiple tokenization modes, lemmatization, and richer linguistic attributes. Dictionary-assisted with comprehensive lexicons.
-- **[PyBo](https://github.com/OpenPecha/pybo)** — A rule-based word tokenizer using the THL (Tibetan Himalayan Library) lexicon for word matching, with POS tagging.
-
-**PyBo was chosen** because it's simpler, fast enough for our use case (scoring 1,728 outputs in reasonable time), and its rule-based approach provides a clear valid/invalid signal that works well for classical Tibetan texts like the pecha manuscripts in our corpus. Botok's additional features (lemmatization, multiple tokenization modes) weren't needed for binary quality scoring.
-
-The scoring method: each OCR output is tokenized, and the percentage of tokens with valid POS tags (excluding punctuation and NON_WORD markers) becomes the quality score (0-100). Good OCR produces mostly recognized Tibetan words; garbage OCR produces mostly unrecognized tokens. This approach was a breakthrough insight that made automated parameter optimization feasible at scale.
-
-## Test Corpus
-
-The `input_files/tibetan_texts/` directory contains 33 PDFs organized by script type and degradation:
-
-- **Uchen** (block print): 8 files across high, medium, and poor quality
-- **Umeh** (cursive): 16 files across high, medium, and poor quality, including Drutsa, Druma, Petsug, Khyug, and Dhernangdri variants
-- **Pechas**: 6 files of varying text density
-- **Standalone**: 2 additional test files
+Good OCR produces mostly recognized Tibetan words; garbage OCR produces mostly unrecognized tokens.
 
 ## Results (So Far)
 
-### Uchen High Quality — First Run
+### Uchen High Quality
+- **Best model:** Woodblock-Stacks
+- `line` mode beats `layout` by ~5pts
+- `merge_lines=True` beats False by ~10pts
+- `tps_threshold` and `class_threshold` showed no effect — trimmed to single values
+- **Trimmed grid:** 8 combos per image (from 1,728)
 
-Tested on `uchen high quality pdf.pdf` page 1 (1,728 combinations):
+### Umeh Druma High Quality
+- **Best model:** Ume_Druma (composite), Ume_Petsuk competitive on full pages
+- `layout` and `line` tied
+- `bbox_tolerance=2.5` wins on composite
+- `tps_threshold` and `class_threshold` no effect
+- **Trimmed grid:** 16 combos per image
 
-- **Best model**: Woodblock-Stacks (64.8% avg quality)
-- **line mode** beats layout mode by 5 points
-- **merge_lines=True** beats False by 10 points
-- **bbox_tolerance** shows meaningful spread (keep all values)
-- **k_factor**, **tps_threshold**, **class_threshold** showed no difference on clean pages — trimmed to single values for this category
-- **Trimmed grid**: 12 combos per image (from 1,728)
+### Umeh Drutsa High Quality
+- **Best model:** Ume_Druma (composite on full pages), Modern wins raw quality but captures fewer lines
+- `bbox_tolerance` meaningful spread — keep all 4 values
+- `tps_threshold` and `class_threshold` no effect
+- **Trimmed grid:** 32 combos per image
+
+## Test Corpus
+
+33 PDFs organized by script type and degradation in `input_files/tibetan_texts/`:
+
+| Category | Files | Pages |
+|----------|-------|-------|
+| Uchen High | 3 | 16 |
+| Uchen Medium | 2 | 7 |
+| Uchen Poor | 3 | 9 |
+| Umeh High | 6 | 18 |
+| Umeh Medium | 5 | 25 |
+| Umeh Poor | 6 | 18 |
+| Pechas (more text) | 3 | 9 |
+| Pechas (little text) | 3 | 9 |
+| Standalone | 2 | 14 |
+| **Total** | **33** | **125** |
 
 ## Output Structure
 
 ```
 grid_search_results/
-├── summary.csv                    # Master results file
+├── summary_{pdf_stem}.csv         # Per-category results (tracked in git)
 ├── _checkpoints/
 │   └── progress.json              # Resume state
 ├── logs/
-│   └── grid_search.log            # Execution log
-└── {pdf_stem}/
+│   └── grid_search.log
+├── temp_images/                   # Extracted page JPGs
+├── review_export/                 # Curated outputs for Nyima (synced to Drive)
+│   └── {category}/
+│       └── {pdf_name}/
+│           ├── page_1_original.jpg
+│           └── page_1_Ume_Druma_q73.1_c1900.1.txt
+└── {pdf_stem}/                    # Raw results (not tracked in git)
     └── {page_name}/
-        └── {model}_{mode}_{params}.txt  # Individual OCR results
+        └── {model}_{mode}_{params}.txt
 ```
 
 ## Project Files
 
 | File | Purpose |
 |------|---------|
-| `ocr_grid_search.ipynb` | Main grid search notebook (11 cells) |
-| `grid_search_analysis.ipynb` | Results analysis notebook |
-| `grid_search_workflow.md` | Per-category workflow checklist |
-| `pybo_explorer.ipynb` | PyBo tokenizer exploration and benchmarking |
-| `botok_exploration.ipynb` | Botok tokenizer exploration and comparison |
+| `ocr_grid_search.ipynb` | Main grid search notebook |
+| `grid_search_analysis.ipynb` | Results analysis and export notebook |
 | `BDRC/Inference.py` | Core OCR pipeline |
 | `BDRC/Utils.py` | Image preprocessing, model loading |
 | `BDRC/Data.py` | Data classes and enums |
 | `BDRC/line_detection.py` | Line extraction and sorting |
 | `BDRC/image_dewarping.py` | TPS dewarping |
 | `BDRC/utils/pdf_extract.py` | PDF to image extraction |
-
-## Upstream
-
-Forked from [buda-base/tibetan-ocr-app](https://github.com/buda-base/tibetan-ocr-app). The original GUI application and its OCR models were developed by Eric Werner for the Buddhist Digital Resource Center. See the upstream repo for the desktop application, model training code, and evaluation tools.
 
 ## Phase 2 (Planned)
 
@@ -154,4 +208,8 @@ Forked from [buda-base/tibetan-ocr-app](https://github.com/buda-base/tibetan-ocr
 - [Buddhist Digital Resource Center](https://www.bdrc.io) and Gene Smith's vision for Tibetan text preservation
 - Eric Werner for the original OCR application and pipeline
 - [OpenPecha](https://github.com/OpenPecha) for PyBo and Tibetan NLP tools
-- Nyima, Tenzin, and Chozin for Tibetan language expertise and sample collection
+- Nyima Gyaltsen, Tenzin, and Chozin for Tibetan language expertise and sample collection
+
+## Upstream
+
+Forked from [buda-base/tibetan-ocr-app](https://github.com/buda-base/tibetan-ocr-app).

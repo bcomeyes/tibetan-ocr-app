@@ -1,4 +1,3 @@
-{
-  "onnx-model":  "PhotiLines.onnx",
-  "patch_size": 512
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:f3b516a2a0d06768dd355f3cb7753b3327c370b2788816b3d70524d759ee8238
+size 59
