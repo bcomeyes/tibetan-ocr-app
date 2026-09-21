@@ -38,11 +38,24 @@ def run_tps(image: npt.NDArray, input_pts, output_pts, add_corners=True, alpha=0
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         height, width, _ = image.shape
 
-    input_pts = npt.NDArray(input_pts)
-    output_pts = npt.NDArray(output_pts)
+    # npt.NDArray is a TYPE ALIAS (numpy.typing), not a constructor. Calling it
+    # raised on every invocation, so run_tps() died on its first statement and
+    # TPS dewarping never once executed -- see apply_global_tps (global path)
+    # and get_line_images_via_local_tps (local path), its only two callers.
+    #
+    # The failure was version-dependent and therefore easy to misread:
+    #   older numpy -> npt.NDArray was a GenericAlias over np.ndarray, so the
+    #                  call forwarded to ndarray(shape=...) and reported
+    #                  "'list' object cannot be interpreted as an integer"
+    #   numpy 2.x   -> "'typing.TypeAliasType' object is not callable"
+    # The first string is what 2,088 grid-search rows recorded as
+    # "Line processing failed", concentrated at low tps_threshold because a low
+    # threshold is what makes dewarping fire (Inference.py: ratio > tps_threshold).
+    input_pts = np.array(input_pts)
+    output_pts = np.array(output_pts)
 
     if add_corners:
-        corners = npt.NDArray(  # Add corners ctrl points
+        corners = np.array(  # Add corners ctrl points
         [
             [0.0, 0.0],
             [1.0, 0.0],
@@ -50,6 +63,19 @@ def run_tps(image: npt.NDArray, input_pts, output_pts, add_corners=True, alpha=0
             [1.0, 1.0],
         ])
 
+        # KNOWN BUG, deliberately left in place 2026-09-20: this scaling is
+        # applied TWICE. Corner control points land at ~[h*h, w*w] -- for a
+        # 488x2800 page that is [238144, 7840000], far outside the image, which
+        # distorts the TPS fit rather than crashing it.
+        #
+        # The [height, width] ORDER is correct: check_line_tps() builds points
+        # as [y, x], verified.
+        #
+        # Not removed yet because until 2026-09-20 this function had never run
+        # (see the note above), so there is no known-good output to compare
+        # against, and an unverified change here would swap a loud crash for
+        # plausible-looking wrong geometry. Settle it by measuring OCR quality
+        # with one multiply vs two on a real warped page, then delete a line.
         corners *= [height, width]
         corners *= [height, width]
 
