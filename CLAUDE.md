@@ -803,10 +803,23 @@ review. The previous order was built around Umeh failure rates and is void.
 (see Trajectory).*
 
 1. ~~Commit the `image_dewarping.py` fix and this file.~~ Done 2026-09-20.
-2. **Pin the scoring dependency** (Track D, defect 2). Versions pinned
-   2026-10-02 (`ff290fd`). **Still open:** pass the profile explicitly, and
-   check whether botok downloads its lexicon separately at runtime. A version
-   pin would not cover that.
+2. ~~Pin the scoring dependency~~ (Track D, defect 2). **Done 2026-10-02.**
+   Versions pinned (`ff290fd`). The word list (botok's "dialect pack"; its
+   name `general` is the "profile") *was* downloaded separately at runtime
+   from GitHub to `~/Documents/pybo/`, outside the repo. It is now tracked in
+   `scoring_data/` (see its README), passed explicitly, fingerprint-checked,
+   and rebuilt at each start rather than loaded from botok's cache. A failed
+   PyBo import now stops the run instead of silently scoring every page 0.
+   Historic scores were unaffected: botok-data has only ever had one release
+   (v0.0.1, 2020). Verified: 426 sampled raw files re-scored identically under
+   old and new setups; smoke PASS on targets 1 and 12.
+   - Pre-existing oddity found while verifying (not caused by this change):
+     `sangs_rgyas_sman_gyi` p12 `...tps0.25_conf0.8.txt` records q78.12, but
+     its saved text re-scores to 78.79 under both setups. So the saved text
+     differs slightly from what was scored. One file in 426; not
+     investigated.
+   - Still unchanged: `score_text()` returns 0 on a per-page scoring
+     exception rather than raising. Left alone to keep its body byte-stable.
 3. ~~Decide what the reviewer sees~~ (Track D, defect 1). **Decided
    2026-10-02: leave filenames as they are**, scores visible to Nyima. Matt
    judged a rename not worth it. Blind review was considered and declined:

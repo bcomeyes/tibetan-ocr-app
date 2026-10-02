@@ -37,3 +37,6 @@ grid_search_results/**/*.jpg
 bdrc_ocr_models_1.0.zip
 download_models.py
 resources.py
+
+# ── Scoring word list — track the files, not botok's rebuilt cache ───────────
+scoring_data/**/*.pickled
