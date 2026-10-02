@@ -37,3 +37,8 @@ zstandard
 pdf2image
 platformdirs
 pypdf
+# Quality scoring (OCRQualityScorer). Pinned exactly: every q/c score
+# recorded so far was produced with these versions, and an upgrade could
+# silently shift all of them.
+pybo==0.8.0
+botok==1.1.4
