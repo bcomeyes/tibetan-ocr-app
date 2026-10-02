@@ -807,8 +807,22 @@ review. The previous order was built around Umeh failure rates and is void.
    2026-10-02 (`ff290fd`). **Still open:** pass the profile explicitly, and
    check whether botok downloads its lexicon separately at runtime. A version
    pin would not cover that.
-3. **Decide what the reviewer sees** (Track D, defect 1). `q` on a 20-character
-   fragment reads as 83.3. Fix before the next export reaches Nyima, not after.
+3. ~~Decide what the reviewer sees~~ (Track D, defect 1). **Decided
+   2026-10-02: leave filenames as they are**, scores visible to Nyima. Matt
+   judged a rename not worth it. Blind review was considered and declined:
+   "this isn't a clinical trial, we just want to OCR Tibetan." The fragment
+   problem is handled when the review set is assembled instead: drop pages
+   where even the best version found only a handful of words (in practice
+   page-1 covers and BDRC metadata sheets), after a glance confirms they are
+   not real pages the OCR failed on. Two related facts, verified that day:
+   - `composite = q x total words = 100 x valid words`, so `c29900` means
+     299 recognised words.
+   - **PyBo cannot detect meaningless text made of real syllables.** The best
+     Uchen page (`uchen high quality pdf` p8) scored q91.4 with 299 valid
+     words. The same syllables randomly shuffled scored **q87.6 with 319**.
+     Random letters fell to q30.4. A low q is a reliable red flag; a high q
+     says nothing about meaning. This is the case for the Claude pre-screen
+     and Nyima's review.
 4. **Run the warped page.** `uchen high quality pdf` page 3, `tps_threshold`
    across 0.1 / 0.25 / 0.5 / 0.9. First time in project history that dewarping
    can run at all. Cheap, and it is the whole return on item 7 for Uchen.
