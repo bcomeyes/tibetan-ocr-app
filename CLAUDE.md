@@ -37,6 +37,80 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
 (+16/-3), verified by smoke test and by re-running 48 previously-failing combos.
 `CLAUDE.md` itself has still never been committed.
 
+### Session of 2026-10-02
+
+- Pinned `pybo==0.8.0` and `botok==1.1.4` in `requirements.txt` (`ff290fd`).
+  First half of Track D defect 2; the lexicon/profile is still implicit.
+- **Set the project's trajectory: the calibration review.** See the section
+  of that name below. It now drives the ordering of everything else.
+- Matt and Nyima have met **several times** over outputs, not only the one
+  written July review. Nyima's sense from those meetings was that the text was
+  legitimately readable and that a q of ~70 was "ballpark C work". **Treat
+  this as unconfirmed.** Those meetings were on pre-August exports, when ~60%
+  of labels described different text, so what was opened may not have been
+  what the number described. Re-establishing it is the point of the
+  calibration review.
+- Matt asked for plain-language explanations: define `q`, `c`, "lexicon",
+  etc. when using them, and take one step at a time.
+
+---
+
+## Trajectory: the calibration review (set 2026-10-02)
+
+**This is where the project is going, and it gates contact with Nyima.**
+Everything in *Suggested order* serves it.
+
+### The goal
+
+Put in front of Nyima a collection, Uchen **high, medium and poor**, where
+every number is known to describe the text beside it. He rereads it and
+calibrates the score: does `q` 70 really mean readable, mediocre work? Does 35
+really mean bad? Until that happens, every threshold, trim and "best version"
+in this project rests on an assumed meaning of the score.
+
+His past judgments (see *Session of 2026-10-02*) are a hypothesis to test,
+not a baseline.
+
+### Design of the review set
+
+- **Span the full score range**, including deliberately weak and low-scoring
+  pages. A set made only of top-ranked 75-80s cannot locate where readable
+  ends. Pick pages by score band, not only by tier label. The tiers may not
+  track difficulty anyway: see Track C, *are the quality tiers real?*
+- **Uchen poor must exist first.** It has not been run, so Track C's
+  uchen_poor work is a prerequisite, not an afterthought.
+- **Fix what he sees before he sees it**: Track D defect 1 (a 20-character
+  fragment showing q83.3) and the filename collisions (silently missing
+  comparison options).
+- Have him review everything in the set, not a sample.
+
+### Pre-screen with Claude before using his time
+
+Write a new script that sends OCR output to the Claude API and asks for an
+independent judgment of each page's quality, on the same scale as `q`. Then
+compare the two. Possible outcomes: `q` is **roughly right**, **too
+generous** (the expected failure, given PyBo partial credit and short
+fragments), or **too harsh**.
+
+What it is for: catching obviously misleading scores, and choosing a set that
+spends Nyima's time on pages that will teach us something, before he is
+contacted.
+
+What it is not: ground truth. Claude's reading of Tibetan, especially garbled
+OCR Tibetan, is itself unvalidated. Nyima's review calibrates **both** `q` and
+the Claude judgment. If Claude agrees with him, it can later screen at scale,
+for example in uchen_poor and the remaining corpus. If it does not, that is
+also worth knowing.
+
+Load the `claude-api` skill before writing it.
+
+### Order
+
+All of the following happens **before** Nyima is contacted: score fixes
+(Track D), uchen_poor run, Claude pre-screen, review set assembled, Drive
+archived and cleaned. Then contact him, sort out the July payment, and
+schedule the review.
+
 ---
 
 ## What this project is
@@ -725,11 +799,14 @@ that evaporated once the page was actually looked at.
 Rewritten 2026-09-20 after the scope change to Uchen-only and the git-history
 review. The previous order was built around Umeh failure rates and is void.
 
-1. **Commit the `image_dewarping.py` fix.** Verified 2026-09-20, still
-   uncommitted. Also commit this file — it has never been tracked.
-2. **Pin the scoring dependency** (Track D, defect 2). Add `pybo` and `botok` to
-   `requirements.txt` at their installed versions and pass the profile
-   explicitly. Minutes of work, and every number already recorded depends on it.
+*Updated 2026-10-02: steps 9-12 restructured around the calibration review
+(see Trajectory).*
+
+1. ~~Commit the `image_dewarping.py` fix and this file.~~ Done 2026-09-20.
+2. **Pin the scoring dependency** (Track D, defect 2). Versions pinned
+   2026-10-02 (`ff290fd`). **Still open:** pass the profile explicitly, and
+   check whether botok downloads its lexicon separately at runtime. A version
+   pin would not cover that.
 3. **Decide what the reviewer sees** (Track D, defect 1). `q` on a 20-character
    fragment reads as 83.3. Fix before the next export reaches Nyima, not after.
 4. **Run the warped page.** `uchen high quality pdf` page 3, `tps_threshold`
@@ -744,9 +821,13 @@ review. The previous order was built around Umeh failure rates and is void.
    describe the pre-April interface. Fix the README's false `class_threshold`
    finding (lines 134/141/147), its stale `class_threshold` grid (line 117), and
    its outdated uchen_high numbers. Strip Umeh claims while in there.
-9. Archive Drive, clear it, push corrected files, contact Nyima. Also confirm
-   whether his ~$70 July payment was actually sent — still unrecorded.
-10. uchen_poor (Track C).
+9. uchen_poor (Track C). Needed for the low tier of the review set.
+10. **Claude API pre-screen script.** Judge OCR quality independently and
+    compare it with `q`. See Trajectory.
+11. **Assemble the calibration review set**: high, medium and poor, spanning
+    the score range.
+12. Archive Drive, clear it, push the review set, contact Nyima. Also confirm
+    whether his ~$70 July payment was actually sent; that is still unrecorded.
 
 Note the reordering rationale: steps 2 and 3 come before any new run because
 they change what the numbers mean. Running more grids against an untrustworthy
