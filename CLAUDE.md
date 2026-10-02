@@ -52,6 +52,47 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   calibration review.
 - Matt asked for plain-language explanations: define `q`, `c`, "lexicon",
   etc. when using them, and take one step at a time.
+- Word list now tracked and fingerprinted (`a30bb5d`); see Suggested order
+  step 2. The credential hook was fixed by Matt (variable names now matched
+  case-sensitively), so `tokenize` etc. no longer trip it. Verified: lowercase
+  passes, `GITHUB_TOKEN` still blocked.
+
+#### STOPPED HERE (2026-10-02). Pick up with these, in order
+
+1. **Matt is verifying the tsalyig finding** (below) by opening the PDF:
+   `xdg-open "input_files/tibetan_texts/uchen_poor_quality_examples/uchen_tsalyig_poor quality.pdf"`
+2. Once he confirms, update the rest of this file to match the three
+   findings below. Not yet done anywhere except here: Track B item 7, the
+   Track C table, and Suggested order steps 3, 4 and 9 still say the old
+   thing. Then commit.
+3. Next step after that: the quality-tier check (Suggested order step 5 / 6).
+
+**Findings, 2026-10-02, not yet folded into the sections below:**
+
+- **`uchen high quality pdf` page 3 is NOT a curved page.** It is a flat
+  **title page**: one short line in a decorative frame, stored at 172x971 px
+  versus ~330x2100 for pages 4-10. All 36 runs failed with "No valid lines
+  after filtering", raised at `Inference.py:418`, **before** the TPS step.
+  That error is not the TPS crash, and every run used `tps_threshold` 0.5,
+  so no TPS value could have helped. The planned 4-value TPS test was
+  dropped as pointless. The page would be excluded from the review set
+  anyway, under the cover/fragment rule.
+- **Uchen poor pages do not look warped (viewed by eye, all three files).**
+  `uchen_poor quality` (target 7) is flat photographs with torn edges and
+  stains. `uchen_poor quality(1)` (target 8) is faint thin text with an ink
+  blot; the problem is faintness, not warp. Proposed and agreed in
+  principle: park both TPS items (the warped-page test and the duplicated
+  corner scaling) unless the pipeline's own warp measurement shows a need.
+  To support that, **log the warp ratio** (`check_for_tps` result) during
+  the uchen_poor run. Not yet implemented.
+- **`uchen_tsalyig_poor quality` (target 6) appears to contain no body
+  text.** Page 1 is a title page with an English library card pasted on it
+  ("DUL-BA (KHA) ... Library of Tibetan Works"). Page 2 is a large
+  decorative title, light on black. *Pending Matt's check.* If confirmed,
+  drop it from uchen_poor (leaving 7 pages, 2 files). Whether to find a real
+  replacement poor-quality Uchen file is Matt's call.
+- The PDFs live under `input_files/tibetan_texts/`. `test_samples/` holds
+  copies.
 
 ---
 
