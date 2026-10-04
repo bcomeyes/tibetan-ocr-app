@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Written 2026-09-20. Track A last verified 2026-09-20; everything else
+**Written 2026-09-20. Track A last verified 2026-10-04; everything else
 2026-08-06.** Verify before trusting any status claim here:
 
 ```bash
@@ -57,17 +57,19 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   case-sensitively), so `tokenize` etc. no longer trip it. Verified: lowercase
   passes, `GITHUB_TOKEN` still blocked.
 
-#### STOPPED HERE (2026-10-02). Pick up with these, in order
+#### Session of 2026-10-04
 
-1. **Matt is verifying the tsalyig finding** (below) by opening the PDF:
-   `xdg-open "input_files/tibetan_texts/uchen_poor_quality_examples/uchen_tsalyig_poor quality.pdf"`
-2. Once he confirms, update the rest of this file to match the three
-   findings below. Not yet done anywhere except here: Track B item 7, the
-   Track C table, and Suggested order steps 3, 4 and 9 still say the old
-   thing. Then commit.
-3. Next step after that: the quality-tier check (Suggested order step 5 / 6).
+- **Matt confirmed the tsalyig finding**: both pages are title pages, not
+  worth OCR. Target 6 is dropped from uchen_poor, which is now 2 files,
+  7 pages (targets 7 and 8). The PDF has exactly 2 pages, one image each.
+- The three findings below are now folded into Track B items 7 and 8, the
+  Track C table, and Suggested order steps 3, 4, 5 and 9.
+- Audit re-run: still 142 files, 0% mislabelled.
+- **Next step: the quality-tier check** (Suggested order step 6).
+- Still open, Matt's call: whether to find a replacement poor-quality Uchen
+  file with real body text.
 
-**Findings, 2026-10-02, not yet folded into the sections below:**
+**Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
 - **`uchen high quality pdf` page 3 is NOT a curved page.** It is a flat
   **title page**: one short line in a decorative frame, stored at 172x971 px
@@ -88,8 +90,8 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
 - **`uchen_tsalyig_poor quality` (target 6) appears to contain no body
   text.** Page 1 is a title page with an English library card pasted on it
   ("DUL-BA (KHA) ... Library of Tibetan Works"). Page 2 is a large
-  decorative title, light on black. *Pending Matt's check.* If confirmed,
-  drop it from uchen_poor (leaving 7 pages, 2 files). Whether to find a real
+  decorative title, light on black. **Confirmed by Matt 2026-10-04.**
+  Dropped from uchen_poor (leaving 7 pages, 2 files). Whether to find a real
   replacement poor-quality Uchen file is Matt's call.
 - The PDFs live under `input_files/tibetan_texts/`. `test_samples/` holds
   copies.
@@ -251,8 +253,8 @@ from B on 2026-09-20 for exactly that reason.
 | Track | What it is | Status |
 |---|---|---|
 | **A. Export integrity** | Does the number on the file describe the text in the file? | **Done and verified.** 0/142 mislabelled. |
-| **B. OCR quality** | Is the text itself any good? | **Open.** Item 7 (TPS) root-caused and fixed 2026-09-20, not yet re-run. Nyima's findings otherwise untouched. |
-| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high + uchen_medium done; uchen_poor not started. |
+| **B. OCR quality** | Is the text itself any good? | **Open.** Item 7 (TPS) crash fixed 2026-09-20; remaining TPS work parked 2026-10-02 (no warped Uchen page found). Nyima's findings otherwise untouched. |
+| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high + uchen_medium done; uchen_poor not started (2 files, 7 pages). |
 | **D. Scoring integrity** | Does the number mean what it claims to mean? | **Open, newly opened 2026-09-20.** Three concrete defects, none fixed. |
 
 Track A being finished does **not** improve a single character of OCR output. It
@@ -468,20 +470,32 @@ geometry would trade a loud crash for plausible-looking wrong output — the one
 failure mode this project cannot afford. Settle it by measurement, not by
 reading.
 
+**Parked 2026-10-02.** The hook is fixed, so the test is no longer blocked,
+but no Uchen page seen so far is warped (see below), so the dewarp path is
+not expected to fire. Reopen only if the logged warp ratio during the
+uchen_poor run shows pages above the threshold.
+
 #### What still needs re-running
 
 The fix does not retroactively repair any CSV. The 2,088 dead rows are still
 dead, so every category with a nonzero failure rate has a partly-fictional
 grid — the low-`tps_threshold` arm was never actually tested anywhere.
 
-The headline test is still untried: `uchen high quality pdf` page 3 fails all
-36 combos with "No valid lines after filtering". The scan is **curved** — bowed
-paper, photographed bound — and dewarping is exactly the remedy. It has now
-been possible for zero runs in this project's history. Try it first; it does
-not depend on the corners question.
+**Corrected 2026-10-02: there is no warped-page test to run.** This section
+used to call `uchen high quality pdf` page 3 a curved scan that dewarping
+would rescue. It is not. It is a flat **title page**: one short line in a
+decorative frame, 172x971 px versus ~330x2100 for pages 4-10. Its 36
+failures are "No valid lines after filtering", raised at `Inference.py:418`,
+**before** the TPS step, and every run used `tps_threshold` 0.5. No TPS
+value could have changed the outcome. The page is excluded from the review
+set under the cover/fragment rule.
 
-This matters more for the work ahead than the work behind: poor-quality
-categories will contain more warped scans than high-quality ones.
+The expectation that poor-quality scans would be warped also did not hold
+by eye: the two real uchen_poor files are flat (torn edges, stains, faint
+ink). So the low-`tps_threshold` arm stays untested, deliberately. The one
+thing still to do is **log the warp ratio** (the `check_for_tps` result)
+during the uchen_poor run, so "not warped" rests on the pipeline's own
+measurement rather than on looking. Not yet implemented.
 
 ### 8. Failure rates — EXPLAINED 2026-09-20
 
@@ -502,13 +516,14 @@ Uchen grids were already nearly complete:
 | `uchen_high_quality_` | 0 | 108 | 0% |
 | `uchen_high_quality_pdf` | 0 | 108 | 0% |
 
-The 36 in `uchen high quality pdf` are **entirely** the one warped page x 36
-combos — already understood, and the direct target of the item 7 fix. Everything
-else is under 1.5%.
+The 36 in `uchen high quality pdf` are **entirely** one page x 36 combos:
+page 3, a title page with no detectable body lines (see item 7; it was
+wrongly described as warped until 2026-10-02). Not a TPS failure and not
+fixable by the item 7 fix. Everything else is under 1.5%.
 
-So the item 7 fix does **not** buy a broad recovery for Uchen. It buys that one
-warped page, plus resilience for poor-quality scans still to be run, which will
-contain more warped folios. Worth having, not worth re-running clean grids over.
+So the item 7 fix does **not** buy a broad recovery for Uchen. It buys
+resilience if a warped scan ever turns up. Worth having, not worth re-running
+clean grids over.
 
 *(For the record, since it drove prioritisation before the scope change: the
 Umeh categories ran 7.1%-37.5% failure, worst being `umeh_dhernangdri_high
@@ -541,7 +556,7 @@ actually tested — which changes what the trimmed grids mean.
 
 | Category | Files | Pages | Trimmed params exist? |
 |---|---|---|---|
-| uchen_poor | 3 | 9 | No |
+| uchen_poor | 2 | 7 | No |
 | pechas (more text) | 3 | 9 | No |
 | pechas (little text) | 3 | 9 | No |
 | standalone (target 30) | 1 | 2 | No |
@@ -551,8 +566,10 @@ the TARGETS dict. Each needs Phase 1 (full grid on page 1) before its remaining
 pages can run trimmed. With `class_threshold` pinned, Phase 1 is 576 combos —
 under 2 hours instead of 5.
 
-Next up: **uchen_poor**, targets 7 and 8 first, tsalyig (target 6) last since it
-is the most degraded.
+Next up: **uchen_poor**, targets 7 and 8 only. **Target 6 (tsalyig) is
+dropped**: both of its pages are title pages with no body text (confirmed by
+Matt 2026-10-04). Do not run it. Finding a replacement poor-quality file is
+Matt's call.
 
 ### Before running uchen_poor: are the quality tiers real?
 
@@ -877,11 +894,12 @@ review. The previous order was built around Umeh failure rates and is void.
      Random letters fell to q30.4. A low q is a reliable red flag; a high q
      says nothing about meaning. This is the case for the Claude pre-screen
      and Nyima's review.
-4. **Run the warped page.** `uchen high quality pdf` page 3, `tps_threshold`
-   across 0.1 / 0.25 / 0.5 / 0.9. First time in project history that dewarping
-   can run at all. Cheap, and it is the whole return on item 7 for Uchen.
-5. **Settle the duplicated corner scaling** (item 7, "still open"). Needs the
-   Bash hook resolved — see below.
+   - Title pages fall under the same rule. Known so far: `uchen high quality
+     pdf` p3, and both pages of the dropped tsalyig file.
+4. ~~Run the warped page.~~ **Dropped 2026-10-02.** The page is a flat title
+   page, not a warped one. See Track B item 7.
+5. ~~Settle the duplicated corner scaling.~~ **Parked 2026-10-02** unless the
+   warp ratio logged in step 9 shows a need. See Track B item 7.
 6. **Check whether the quality tiers mean anything** before running uchen_poor —
    see Track C. An hour of analysis that may reshape the remaining corpus plan.
 7. Filename collisions — mechanical, re-export only (Track A leftover).
@@ -889,7 +907,8 @@ review. The previous order was built around Umeh failure rates and is void.
    describe the pre-April interface. Fix the README's false `class_threshold`
    finding (lines 134/141/147), its stale `class_threshold` grid (line 117), and
    its outdated uchen_high numbers. Strip Umeh claims while in there.
-9. uchen_poor (Track C). Needed for the low tier of the review set.
+9. uchen_poor (Track C), targets 7 and 8 only: 2 files, 7 pages. Needed for
+   the low tier of the review set. Add warp-ratio logging first.
 10. **Claude API pre-screen script.** Judge OCR quality independently and
     compare it with `q`. See Trajectory.
 11. **Assemble the calibration review set**: high, medium and poor, spanning
