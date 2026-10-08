@@ -388,6 +388,9 @@ class OCRPipeline:
                 tps_threshold: float = 0.25,
                 target_encoding: Encoding = Encoding.Unicode
                 ):
+        # Warp ratio measured by check_for_tps on this call (share of lines judged
+        # curved). Stays None if the run fails before the TPS step.
+        self.last_tps_ratio = None
         try:
             if not self.ready:
                 return OpStatus.FAILED, "OCR pipeline not ready"
@@ -422,6 +425,7 @@ class OCRPipeline:
             try:
                 if use_tps:
                     ratio, tps_line_data = check_for_tps(rot_img, filtered_contours)
+                    self.last_tps_ratio = ratio
                     if ratio > tps_threshold:
                         dewarped_img, dewarped_mask = apply_global_tps(rot_img, rot_mask, tps_line_data)
                         if len(dewarped_mask.shape) == 3:
