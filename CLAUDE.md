@@ -69,6 +69,30 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
 - Still open, Matt's call: whether to find a replacement poor-quality Uchen
   file with real body text.
 
+#### Sessions of 2026-10-04 to 2026-10-08: uchen_poor is run
+
+- **uchen_poor is complete: full grid, all 7 pages, no trim.** 4,032 runs,
+  0 failures. Results in Track C.
+- **No trimming for poor. Matt's decision, 2026-10-05.** His reasoning:
+  "high" is a fairly standard thing (crisp, easy to read), but "poor" can
+  mean very different things from file to file, and the volume is small
+  enough to afford the full grid everywhere. The run proved him right: the
+  trim suggested from target 7 page 1 would have pinned `tps_threshold` to
+  0.5, switching dewarping off on target 8, where the best version of every
+  body page is a dewarped one.
+- **Memory root cause found and fixed 2026-10-07.** The run died twice at
+  exactly combo 481 of 576 on target 8 page 1. See *Memory: one pipeline at
+  a time* under *The two drivers*.
+- **Duplicated corner scaling settled by measurement 2026-10-08: leave the
+  code as it is.** See Track B item 7.
+- **Dewarping fires on target 8** (pages 2-4). The pages are slightly
+  tilted scans, not curved ones.
+- The run took four days of calendar time for about 17 hours of computing:
+  one laptop shutdown mid-run (2026-10-04), then the two memory stops.
+- **Next step:** filename collisions (Suggested order step 7), then export
+  and audit uchen_poor (`batch_export.py 7 8`, `audit_export_labels.py`).
+  Nothing from uchen_poor has been exported yet.
+
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
 - **`uchen high quality pdf` page 3 is NOT a curved page.** It is a flat
@@ -86,7 +110,7 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   principle: park both TPS items (the warped-page test and the duplicated
   corner scaling) unless the pipeline's own warp measurement shows a need.
   To support that, **log the warp ratio** (`check_for_tps` result) during
-  the uchen_poor run. Not yet implemented.
+  the uchen_poor run. Implemented 2026-10-04; see Track B item 7.
 - **`uchen_tsalyig_poor quality` (target 6) appears to contain no body
   text.** Page 1 is a title page with an English library card pasted on it
   ("DUL-BA (KHA) ... Library of Tibetan Works"). Page 2 is a large
@@ -253,8 +277,8 @@ from B on 2026-09-20 for exactly that reason.
 | Track | What it is | Status |
 |---|---|---|
 | **A. Export integrity** | Does the number on the file describe the text in the file? | **Done and verified.** 0/142 mislabelled. |
-| **B. OCR quality** | Is the text itself any good? | **Open.** Item 7 (TPS) crash fixed 2026-09-20; remaining TPS work parked 2026-10-02 (no warped Uchen page found). Nyima's findings otherwise untouched. |
-| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high + uchen_medium done; uchen_poor not started (2 files, 7 pages). |
+| **B. OCR quality** | Is the text itself any good? | **Open.** Item 7 (TPS) crash fixed 2026-09-20; duplicated corner scaling measured 2026-10-08 and left as is. Nyima's findings otherwise untouched. |
+| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high, uchen_medium and uchen_poor run (poor finished 2026-10-07, not yet exported). pechas and standalone remain. |
 | **D. Scoring integrity** | Does the number mean what it claims to mean? | **Open, newly opened 2026-09-20.** Three concrete defects, none fixed. |
 
 Track A being finished does **not** improve a single character of OCR output. It
@@ -449,7 +473,7 @@ everything crashed. There was never a working dewarp path to measure.
 - the 48 combos that failed 48/48 on `umeh_dhernangdri_high quality(2)` page 1
   → 48/48 succeed
 
-#### Still open — a second bug in the same function
+#### The duplicated corner scaling — measured 2026-10-08, left in place
 
 `run_tps()` lines ~65-66 apply the corner scaling **twice**:
 
@@ -475,6 +499,48 @@ but no Uchen page seen so far is warped (see below), so the dewarp path is
 not expected to fire. Reopen only if the logged warp ratio during the
 uchen_poor run shows pages above the threshold.
 
+**Reopened and settled 2026-10-08: leave both lines in place.** The
+uchen_poor run logged warp ratios above 0.1 on target 8 pages 2, 3 and 4,
+so the test was run: 16 configurations on those pages (Woodblock and
+Woodblock-Stacks, two settings each), every one with dewarping firing, once
+with the code as it stands ("twice") and once with the duplicate line
+removed in memory ("once"). The "twice" runs reproduced the grid's recorded
+valid-word counts in 16 of 16 cases, so the test exercised the same path
+the grid used.
+
+| Page, line mode | Mean valid words: no dewarp | Twice (current code) | Once |
+|---|---|---|---|
+| 2, layout | 203 | 213 | 200 |
+| 3, layout | 211 | 256 | 170 |
+| 3, line | 223 | 253 | 266 |
+| 4, line | 208 | 225 | 219 |
+
+- The output text differs in all 16 pairs, but with no consistent winner:
+  "once" had more valid words in 8 and fewer in 8.
+- The only large differences favour the current code. On page 3 in layout
+  mode with `merge_lines` on, "once" collapsed from 273 valid words to 36
+  and from 262 to 132. "Twice" collapsed nowhere.
+- **The dewarped images were viewed by eye, both variants, against the
+  input.** Lines are straight and text is in the same place in all three.
+  The two variants differ by about a pixel along letter edges. Neither
+  shows distorted geometry.
+
+So the duplicate line is probably a mistake in upstream's code, but on the
+evidence removing it makes results worse, and the output it produces is
+not the plausible-looking wrong geometry that was feared. **Do not remove
+it without a new measurement that says otherwise.** Dewarped rows in the
+existing CSVs are not suspect on this account.
+
+Side finding: on these faint pages a one-pixel shift in the image moves
+the count by up to 24 valid words between otherwise identical runs.
+Differences of that size between two versions of a target 8 page are
+noise, not a ranking.
+
+The test script was a throwaway and is not in the repo. To repeat it: load
+the notebook cells as `batch_grid_search.py` does, swap
+`BDRC.image_dewarping.run_tps` for a copy with one scaling line removed,
+and run the same `GridSearchParams` under both.
+
 #### What still needs re-running
 
 The fix does not retroactively repair any CSV. The 2,088 dead rows are still
@@ -495,7 +561,45 @@ by eye: the two real uchen_poor files are flat (torn edges, stains, faint
 ink). So the low-`tps_threshold` arm stays untested, deliberately. The one
 thing still to do is **log the warp ratio** (the `check_for_tps` result)
 during the uchen_poor run, so "not warped" rests on the pipeline's own
-measurement rather than on looking. Not yet implemented.
+measurement rather than on looking.
+
+**Implemented 2026-10-04.** `OCRPipeline.run_ocr` stores the ratio in
+`self.last_tps_ratio`; the notebook wrapper logs it once per (page,
+line_mode) as a `WARP ...` line, to the console and
+`grid_search_results/logs/grid_search.log`. The ratio is the share of
+detected lines judged curved. Smoke PASS on targets 1, 7, 8, 31. Readings,
+page 1 only:
+
+| File, page 1 | line mode | layout mode |
+|---|---|---|
+| `uchen_poor quality` (7) | 0.000 | 0.000 |
+| `uchen_poor quality(1)` (8) | 0.000 | 0.000 |
+| `uchen high quality pdf` (1) | 0.000 | 0.000 |
+| `sangs_rgyas_sman_gyi` (31) | **0.182** | 0.000 |
+
+The 0.182 validates the logging: that page crashed on exactly the 216
+line-mode combos at `tps_threshold` 0.1 and on none at 0.25, which is what
+a ratio between the two predicts. It also means **dewarping now really
+fires on that page at 0.1, through the duplicated corner scaling.** That
+geometry was measured on 2026-10-08 and found sound (see above), so those
+rows are not suspect.
+
+Full uchen_poor readings, logged during the 2026-10-05 to 2026-10-07 run.
+Dewarping fires where the ratio exceeds `tps_threshold`:
+
+| Page | line mode | layout mode |
+|---|---|---|
+| target 7, pages 1-3 | 0.000 | 0.000 |
+| target 8, page 1 (title page) | 0.000 | 0.000 |
+| target 8, page 2 | 0.000 | **0.111** |
+| target 8, page 3 | **0.333** | **0.400** |
+| target 8, page 4 | **0.200** | 0.053 |
+
+This corrects the 2026-10-02 expectation that dewarping would not fire on
+uchen_poor. The by-eye reading was right that the pages are not curved:
+target 8's scans sit at a slight tilt, and that is what the ratio picks
+up. Where it fires, dewarping helps (see the table above: 223 to 253 mean
+valid words on page 3, line mode).
 
 ### 8. Failure rates — EXPLAINED 2026-09-20
 
@@ -556,7 +660,7 @@ actually tested — which changes what the trimmed grids mean.
 
 | Category | Files | Pages | Trimmed params exist? |
 |---|---|---|---|
-| uchen_poor | 2 | 7 | No |
+| uchen_poor | 2 | 7 | **Run 2026-10-07, full grid on every page, deliberately no trim** |
 | pechas (more text) | 3 | 9 | No |
 | pechas (little text) | 3 | 9 | No |
 | standalone (target 30) | 1 | 2 | No |
@@ -566,10 +670,60 @@ the TARGETS dict. Each needs Phase 1 (full grid on page 1) before its remaining
 pages can run trimmed. With `class_threshold` pinned, Phase 1 is 576 combos —
 under 2 hours instead of 5.
 
-Next up: **uchen_poor**, targets 7 and 8 only. **Target 6 (tsalyig) is
+**uchen_poor is run** (see *uchen_poor results* below); the notes that
+follow are kept as the record of how it was set up. Targets 7 and 8 only. **Target 6 (tsalyig) is
 dropped**: both of its pages are title pages with no body text (confirmed by
 Matt 2026-10-04). Do not run it. Finding a replacement poor-quality file is
 Matt's call.
+
+Page-1 check, done by eye 2026-10-04:
+
+- **Target 7** (`uchen_poor quality`) page 1 is a real body page: a colour
+  photograph, 7 lines, stained, torn bottom edge. Valid for Phase 1. Phase 1
+  (full grid, page 1) started 2026-10-04.
+- **Target 8** (`uchen_poor quality(1)`) page 1 is folio "1a": a near-blank
+  title page with one short faint line. **Not valid for Phase 1.** Pages 2-4
+  (folios 1b, 2a, 2b) are real body text: black-and-white scans, 7 lines of
+  small faint print, 5100x1200 px. Its extracted "`.jpg`" files are actually
+  TIFFs; the pipeline reads them fine, image viewers may not.
+- So uchen_poor has **6 body pages**, not 7.
+- The two files are very different kinds of image (colour photograph versus
+  black-and-white scan). A trim chosen on target 7 page 1 may not transfer
+  to target 8. **Resolved 2026-10-05 by not trimming at all**: every page
+  got the full grid, run as `--mode full --params FULL_PARAMS 7 8`.
+
+### uchen_poor results (run finished 2026-10-07)
+
+576 combinations on each of 7 pages: 4,032 runs, 0 failures. "Best" is the
+version with the most valid words, which is how the export ranks.
+
+| File | Page | Best q | Valid / total words | Distinct texts of 576 |
+|---|---|---|---|---|
+| target 7 | 1 | 68.2 | 88 / 129 | 81 |
+| target 7 | 2 | 80.5 | 99 / 123 | 108 |
+| target 7 | 3 | 69.8 | 97 / 139 | 91 |
+| target 8 | 1 (title page) | 53.9 | 28 / 52 | 86 |
+| target 8 | 2 | 75.4 | 239 / 317 | 147 |
+| target 8 | 3 | 78.9 | 273 / 346 | 164 |
+| target 8 | 4 | 72.5 | 250 / 345 | 158 |
+
+- **Poor is not uniformly poor.** Best q runs from 68 to 80 on the six body
+  pages, overlapping medium (median 67.8) and reaching the bottom of high
+  (median 81.0). Remember q cannot detect meaningless text (shuffle test).
+- **The best version of each target 8 body page is a dewarped one**
+  (`tps_threshold` 0.1). The dewarp geometry was checked on 2026-10-08;
+  see Track B item 7.
+- **Target 8 page 1 is the title page.** It got the full grid only because
+  skipping it needed a code change. Exclude it from the review set.
+- On target 7 `tps_threshold` has no effect at all (ratio 0.000). On
+  target 7 page 1 the Modern model is clearly worst (median q 52 against
+  63-64) and `bbox_tolerance` 3.5 is best. These were not re-checked page
+  by page; there is no trim to justify.
+- Run time is about 1.7 hours per page for target 7 (2450x1135) and 2 to
+  3.5 hours per page for target 8 (5100x1200).
+
+The checkpoint as it stood before this run (16 uchen_high pages, last
+updated 2026-08-06) is saved as `_checkpoints/progress.backup-2026-10-04.json`.
 
 ### Before running uchen_poor: are the quality tiers real?
 
@@ -597,6 +751,35 @@ Caveats before over-reading it: these are medians over the entire grid including
 deliberately-bad combos, the files are different documents with different line
 density, and `q` carries the Track D defects. Suggestive, not settled. Worth an
 hour before committing to two more subjective tiers.
+
+#### Re-checked 2026-10-04: the tiers do separate
+
+The table above was misleading for the reasons its own caveats give. Redone
+per **page**, taking the version the export would rank first (highest
+`q x word count`), and leaving out pages whose top version has under 50
+words (covers, title pages, fragments):
+
+| Tier | Pages | q of top version: min / median / max | Words per page |
+|---|---|---|---|
+| high | 12 | 74.0 / **81.0** / 89.2 | 132-353 |
+| medium | 14 | 42.0 / **67.8** / 77.6 | 67-146 |
+
+Only a small overlap (74-78). Per file: `uchen_high_quality_pdf` 86.7,
+`uchen high quality pdf` 79.3, `uchen_high_quality_` 79.5,
+`sangs_rgyas_sman_gyi` 68.2, `uchen_medium quality(1)` 61.4. Every high
+file sits above every medium file.
+
+So the high/medium label **does** track OCR difficulty, and running
+uchen_poor as its own category is reasonable. Limits: 3 high files and 2
+medium files; `q` cannot detect meaningless text (shuffle test); the high
+grids were 36 runs per page against 108-1,728 for medium, which if anything
+favours medium.
+
+Side finding: all three pages of `uchen_medium quality` have top versions
+of only 18-35 words, so the file dropped out of this comparison entirely.
+Not yet looked at: sparse pages, or OCR capturing almost nothing?
+
+Run with `.venv/bin/python`; system `python3` has no pandas.
 
 ### Moot: TARGETS dict is wrong for umeh medium
 
@@ -831,6 +1014,36 @@ category/param mismatches used to happen.
   just this target's entries. Do not use while another run is in flight.
 - `full` — all remaining pages, trimmed grid, resumes from checkpoint.
 
+### Memory: one pipeline at a time (fixed 2026-10-07)
+
+`GridSearchOCR` used to cache one loaded pipeline (OCR model plus
+line-detection model) for each of the six (model, line_mode) pairs and
+keep all six for the whole run. Each holds 1.3 to 2 GB and never gives it
+back, so the process reached 11-12 GB on this 15 GB laptop at the moment
+the sixth was built, which is combo 481 of 576. Measured on target 8
+page 1: 1.7, 3.0, 4.4, 5.7, 7.0, 8.2 GB after pipelines one to six, each
+on its first use, and each grows another ~0.6 GB on its second.
+
+It now keeps only the current pipeline (`self.pipelines.clear()` before
+building the next). Peak is about 3 GB. The grid visits each pair as one
+block, so nothing is rebuilt. Output is unchanged: the 480 files written
+before the fix match the files written after it exactly. **Do not restore
+the six-way cache.**
+
+How it showed up, for the next person who meets it: the run was stopped
+twice at the same combo, with **no out-of-memory entry in the kernel
+log**. Claude Code stops its own background jobs when system memory gets
+critically low. Run by hand from the notebook, the same condition would
+have shown as heavy swapping, not a kill. Target 7 page 1 measured only
+0.4 GB less, so earlier runs were probably close to the limit all along.
+Ruled out by measurement: a corrupt page image, one bad combination (it
+runs fine alone), and gradual leak (14 repeats of one pipeline stay flat).
+
+Two practical points for long runs: start them under
+`systemd-inhibit --what=idle:sleep` so the laptop does not idle-sleep, and
+expect an interruption to cost only the page in progress, because the CSV
+and checkpoint are written per page.
+
 ### Per-category workflow
 
 1. `--mode quick --params FULL_PARAMS <first file in category>` — full grid on
@@ -898,17 +1111,18 @@ review. The previous order was built around Umeh failure rates and is void.
      pdf` p3, and both pages of the dropped tsalyig file.
 4. ~~Run the warped page.~~ **Dropped 2026-10-02.** The page is a flat title
    page, not a warped one. See Track B item 7.
-5. ~~Settle the duplicated corner scaling.~~ **Parked 2026-10-02** unless the
-   warp ratio logged in step 9 shows a need. See Track B item 7.
-6. **Check whether the quality tiers mean anything** before running uchen_poor —
-   see Track C. An hour of analysis that may reshape the remaining corpus plan.
+5. ~~Settle the duplicated corner scaling.~~ **Done 2026-10-08.** Measured
+   on target 8; the code stays as it is. See Track B item 7.
+6. ~~Check whether the quality tiers mean anything.~~ **Done 2026-10-04.**
+   They do separate; see Track C.
 7. Filename collisions — mechanical, re-export only (Track A leftover).
 8. Delete stale docs: `tibetan_ocr_workflow.pdf` and `grid_search_workflow.md`
    describe the pre-April interface. Fix the README's false `class_threshold`
    finding (lines 134/141/147), its stale `class_threshold` grid (line 117), and
    its outdated uchen_high numbers. Strip Umeh claims while in there.
-9. uchen_poor (Track C), targets 7 and 8 only: 2 files, 7 pages. Needed for
-   the low tier of the review set. Add warp-ratio logging first.
+9. ~~uchen_poor (Track C), targets 7 and 8 only.~~ **Run 2026-10-07**, full
+   grid on all 7 pages. **Not yet exported or audited**: do step 7 first so
+   it is exported once, then `batch_export.py 7 8` and the audit.
 10. **Claude API pre-screen script.** Judge OCR quality independently and
     compare it with `q`. See Trajectory.
 11. **Assemble the calibration review set**: high, medium and poor, spanning

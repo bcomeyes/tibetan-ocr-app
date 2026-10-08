@@ -63,19 +63,23 @@ def run_tps(image: npt.NDArray, input_pts, output_pts, add_corners=True, alpha=0
             [1.0, 1.0],
         ])
 
-        # KNOWN BUG, deliberately left in place 2026-09-20: this scaling is
-        # applied TWICE. Corner control points land at ~[h*h, w*w] -- for a
-        # 488x2800 page that is [238144, 7840000], far outside the image, which
-        # distorts the TPS fit rather than crashing it.
+        # This scaling is applied TWICE, which puts the corner control points
+        # at ~[h*h, w*w], far outside the image. It looks like a mistake, and
+        # was flagged as a known bug on 2026-09-20.
+        #
+        # MEASURED 2026-10-08, and deliberately kept: 16 configurations on
+        # three pages where dewarping fires (uchen_poor quality(1), pages 2-4),
+        # run with two multiplies and with one. With ONE multiply the output
+        # was no better on average (8 better, 8 worse by valid-word count) and
+        # collapsed badly in two cases (273 valid words -> 36). The dewarped
+        # images from both variants were viewed against the input: lines are
+        # straight in both, and they differ by about a pixel.
+        #
+        # So do not "fix" this by deleting a line unless a new measurement on
+        # real pages says to. Details: CLAUDE.md, Track B item 7.
         #
         # The [height, width] ORDER is correct: check_line_tps() builds points
         # as [y, x], verified.
-        #
-        # Not removed yet because until 2026-09-20 this function had never run
-        # (see the note above), so there is no known-good output to compare
-        # against, and an unverified change here would swap a loud crash for
-        # plausible-looking wrong geometry. Settle it by measuring OCR quality
-        # with one multiply vs two on a real warped page, then delete a line.
         corners *= [height, width]
         corners *= [height, width]
 
