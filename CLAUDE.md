@@ -431,8 +431,8 @@ Two other changes went into the same cell:
   data under a `.jpg` name. The reviewer's copy is now converted to a
   genuine JPEG (quality 95); true JPEGs are copied untouched.
 
-**Still stale on Drive**: none of this has been pushed. Drive holds the old
-mislabelled files; see *Before clearing Google Drive*.
+**Pushed to Drive 2026-10-09**, after archiving the old folder; see *Drive
+as of 2026-10-09*.
 
 ---
 
@@ -957,6 +957,25 @@ stale. As of 2026-09-20:
 - **Payment for the July review was intended** (~$70, 2 hours at $35/hr, framed
   as payment for skilled work rather than a gift). Whether it was sent is not
   recorded here — check before assuming.
+
+### Drive as of 2026-10-09: archived and replaced
+
+Done on Matt's instruction, 2026-10-09. The Drive project folder now holds:
+
+- `review_export/`: **only** `uchen_high`, `uchen_medium`, `uchen_poor`.
+  160 files: 40 pages, each with one page image and three ranked OCR
+  texts. Verified against the local export with `rclone check`.
+- `review_export_archive_2026-07_mislabelled/`: the old folder, renamed,
+  all 139 files intact. This is the batch Nyima reviewed in July, plus the
+  Umeh exports. Do not delete it; his comments reference those filenames.
+- `tibetan_texts/`: source PDFs, untouched.
+
+Matt's rule for that folder: the three Uchen tiers in one consistent
+format, and anything else archived. What is there is the **whole** export,
+including cover and title pages in high and medium, not yet the chosen
+calibration review set. **Nyima has still not been told.**
+
+The section below is kept as the reasoning behind the archive step.
 
 ### Before clearing Google Drive, read this
 
