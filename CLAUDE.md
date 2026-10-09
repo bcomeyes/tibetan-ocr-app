@@ -106,13 +106,13 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   are in *Claude reading and repair, 2026-10-09* under Trajectory.
 - **Each page now has a `page_N_claude_revision.txt`** beside its image in
   `review_export/`: what the page says, read from the image, unsure
-  syllables in brackets. Local only; **not yet on Drive**.
+  syllables in brackets. Uploaded to Drive the same day.
 - Matt's vocabulary, agreed this session: the corrected text is a
   **revision** (not a "reading"); the **blind repair** is the experiment of
   fixing OCR text without seeing the page.
-- **Next step:** Matt's call. Either push the revisions to Drive and
-  assemble the review set for Nyima (step 11), or first score the rank 2
-  and rank 3 texts, which were not looked at.
+- **Next step:** wait for Nyima's corrections (`page_N_nyima.txt` on
+  Drive), then score Claude's revisions against them. Not yet done, and
+  not asked for: scoring the rank 2 and rank 3 texts.
 
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
@@ -1083,8 +1083,13 @@ Done on Matt's instruction, 2026-10-09. The Drive project folder now holds:
   Umeh exports. Do not delete it; his comments reference those filenames.
 - `tibetan_texts/`: source PDFs, untouched.
 
-The 40 `page_N_claude_revision.txt` files added locally later on
-2026-10-09 are **not** on Drive yet.
+The 40 `page_N_claude_revision.txt` files were added to Drive later on
+2026-10-09 (`rclone copy`, verified with `rclone check`: 200 files).
+A draft letter to Nyima with a checking guide is at
+`letter_to_nyima_2026-10-09.md` / `.pdf` (untracked). **Matt is editing
+and sending it himself**; check with him before assuming Nyima has it.
+The draft asks him to save corrections as `page_N_nyima.txt` and to start
+with `sangs_rgyas_sman_gyi` pages 2-12.
 
 Matt's rule for that folder: the three Uchen tiers in one consistent
 format, and anything else archived. What is there is the **whole** export,
