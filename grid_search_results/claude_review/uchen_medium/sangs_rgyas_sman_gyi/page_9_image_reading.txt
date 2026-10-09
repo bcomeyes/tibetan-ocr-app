@@ -1,0 +1,11 @@
+# source_image: page_9_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 80
+# leaned_on_memory: some — verse metre and stock aspiration phrases helped confirm worn syllables; not a text I can recite
+# notes: large-type verse, pale grey streaky impression. Line 1 is the weakest: the third syllable after the yig-mgo and most of the right half have broken stacks. Small folio letter in the left margin beside line 3 (not transcribed); dotted filler at the end of line 1.
+༄༅། །བཅས་པ་[illegible] །[སྟོན་ཅིང་སྒྲུབ་པའི་སྦྱིན་བདག་འཁོར་]
+བཅས་པ་བཞིན། །དགྲ་དང་གནོད་པ་ནད་རིམས་[བཟློག་]པ་དང་། །
+འཐབ་རྩོད་ཀུན་ཞི་[ཕན་]སེམས་བདེ་བ་རྒྱས། །ལོངས་སྤྱོད་[དབང་]
+ཕྱུག་ནོར་འབྲུ་ཚེ་འཕེལ་ཞིང་། །བསམ་པའི་དོན་རྣམས་ཡིད་བཞིན་
+འགྲུབ་པ་དང་། །རྟག་ཏུ་བསྲུང་སྐྱོབ་གཡེལ་བ་མེད་པར་མཛོད། །

@@ -1,0 +1,41 @@
+tier,pdf,page,q,valid_words,as_is,recoverable_guess,lines_ocr,lines_repair,identified_as
+uchen_high,uchen high quality pdf,1,68.4,13,15,20,10,10,cover / catalogue sheet (not body text); one line names a compilation by Situ Panchen Chokyi Jungne
+uchen_high,uchen high quality pdf,2,65.2,30,0,0,14,14,unknown; almost certainly a non-Tibetan (English/roman) metadata or cover sheet
+uchen_high,uchen high quality pdf,4,74.0,111,90,93,6,6,"Vinayavastu ('dul ba gzhi), opening of bam po 1: title, homage verses, general summary (spyi sdom) of the vastus"
+uchen_high,uchen high quality pdf,5,79.3,199,88,93,7,7,"Vinayavastu, Pravrajyavastu: end of general summary, section summaries, start of the Anga / Magadha (King Mahapadma) narrative"
+uchen_high,uchen high quality pdf,6,81.8,283,80,86,7,7,"Vinayavastu, Pravrajyavastu: the King of Anga defeats King Mahapadma of Magadha and sends an ultimatum"
+uchen_high,uchen high quality pdf,7,89.2,297,95,97,7,7,"Vinayavastu, Pravrajyavastu: ministers' verse, Mahapadma submits; the Bodhisattva's descent from Tushita and birth; sons born to the four great kings"
+uchen_high,uchen high quality pdf,8,87.2,308,94,97,8,8,"Vinayavastu, Pravrajyavastu: the light at the Bodhisattva's birth; the four kings name their sons (Bimbisara, Prasenajit, Udayana, Pradyota)"
+uchen_high,uchen high quality pdf,9,77.0,228,93,95,7,7,"Vinayavastu, Pravrajyavastu: Prince Bimbisara's birth with 500 ministers' sons, the eight nurses, his education (eight examinations, arts of a kshatriya king)"
+uchen_high,uchen high quality pdf,10,76.1,245,78,85,7,7,"Vinayavastu, Pravrajyavastu: end of the martial-arts list; Bimbisara meets the King of Anga's tax collectors and forbids the tribute"
+uchen_high,uchen_high_quality_,1,60.0,6,5,10,1,1,"unknown; probably a title page / marginal caption (possibly a Vinaya volume title with a Sanskrit homage), guessed mainly from the ""འདུ"" and ""དྡྷཱ"" traces"
+uchen_high,uchen_high_quality_,2,80.3,106,85,95,5,5,"Vinayavastu (འདུལ་བ་གཞི།), opening of bam po 1, Kangyur: title, homage verses, general summary verse (spyi sdom) of the seventeen vastus"
+uchen_high,uchen_high_quality_,3,78.8,193,90,96,6,6,"Vinayavastu (འདུལ་བ་གཞི།), Pravrajyavastu: end of general summary verse, summary verses of the Pravrajyavastu, start of the narrative of the kings of Anga and Magadha (Padma chen po)"
+uchen_high,uchen_high_quality_pdf,1,88.3,166,72,85,7,7,"Story of Prince Sudhana (གཞོན་ནུ་ནོར་བཟངས།) and Manohara, Kangyur Vinaya narrative (I believe Bhaisajyavastu of the Vinayavastu): the two brahmins and the court chaplain (མདུན་ན་འདོན།)"
+uchen_high,uchen_high_quality_pdf,2,86.4,209,82,90,8,8,"Story of Prince Sudhana and Manohara, Kangyur Vinaya narrative (continues previous page): seven failed expeditions against the hill people, the chaplain's plot to send the prince"
+uchen_high,uchen_high_quality_pdf,3,86.7,221,87,93,8,8,"Story of Prince Sudhana and Manohara, Kangyur Vinaya narrative (continues previous page): the army is readied, the prince entrusts Manohara's crest jewel to his mother, sets out; Vaisravana and his yaksha retinue appear"
+uchen_medium,sangs_rgyas_sman_gyi,1,73.9,17,15,35,9,9,title page of a condensed Medicine Buddha (sman bla) sutra ritual (mdo chog)
+uchen_medium,sangs_rgyas_sman_gyi,2,73.3,63,40,45,11,11,"opening of a condensed Medicine Buddha sutra ritual (homage, statement of purpose, start of refuge)"
+uchen_medium,sangs_rgyas_sman_gyi,3,68.1,49,50,70,8,8,"Medicine Buddha ritual: homage verse to lineage lamas, seven Sugatas, Shakyamuni, Dharma, Manjushri, Trāṇamukta (skyabs grol); start of seven-limb offering"
+uchen_medium,sangs_rgyas_sman_gyi,4,73.5,61,50,65,15,15,"Medicine Buddha ritual: end of seven-limb verse (confession, rejoicing, requesting, dedication) and the appeal to the seven Sugatas' former prayers"
+uchen_medium,sangs_rgyas_sman_gyi,5,68.4,65,40,60,8,8,"Medicine Buddha ritual: prose homage/offering/refuge formula to the seven Sugata brothers, with an abbreviated instruction to repeat the offering verses"
+uchen_medium,sangs_rgyas_sman_gyi,6,54.9,56,25,30,8,8,Medicine Buddha ritual: prayer verses asking for outer harms and inner afflictions to be pacified and for rebirth from a lotus after death; seven Sugatas
+uchen_medium,sangs_rgyas_sman_gyi,7,77.6,52,65,85,6,6,"Medicine Buddha ritual: homage verse to the Dharma Jewel (lamp dispelling ignorance, medicine removing suffering), then aspiration verse by the truth of the Dharma Jewel"
+uchen_medium,sangs_rgyas_sman_gyi,8,62.1,54,25,30,7,7,"Medicine Buddha ritual: end of Dharma aspiration verse; verses to the bodhisattva assembly (the ""...thirty-six thousand"") and to the world protectors / yaksha generals"
+uchen_medium,sangs_rgyas_sman_gyi,9,68.3,56,40,55,9,9,"Medicine Buddha ritual: request verses to the protectors (pacify enemies, harm, illness, quarrels; increase wealth, grain, lifespan; fulfil wishes; protect always)"
+uchen_medium,sangs_rgyas_sman_gyi,10,42.0,60,10,12,16,16,"Medicine Buddha ritual: probably dhāraṇī/mantra passage (transliterated Sanskrit), followed by concluding instructions (recite the dhāraṇī, brief offering, request forbearance, long-life/stability request if there is an image)"
+uchen_medium,sangs_rgyas_sman_gyi,11,67.8,82,50,60,8,8,"colophon of the condensed Medicine Buddha offering ritual: composed at a temple in the Manchu emperor's town of Jehol at the request of a lama-monk Lobzang Samdrub, condensing the rituals of Panchen Chökyi Gyaltsen and the Fifth Dalai Lama"
+uchen_medium,sangs_rgyas_sman_gyi,12,69.4,34,45,60,9,9,"end of colophon: composed by the Shakya monk Lobzang Palden Yeshe (Sixth/Third Panchen Lama), scribe named; printing note that the blocks are kept at Ganden Damchö Ling"
+uchen_medium,uchen_medium quality,1,66.7,12,30,75,1,1,title page of the Mañjuśrī-nāma-saṃgīti ('phags pa 'jam dpal gyi mtshan yang dag par brjod pa)
+uchen_medium,uchen_medium quality,2,84.0,21,55,85,2,2,"opening of the Mañjuśrī-nāma-saṃgīti: Sanskrit title, then start of the Tibetan title"
+uchen_medium,uchen_medium quality,3,65.7,23,35,60,2,2,"Mañjuśrī-nāma-saṃgīti: end of title, translator's homage to Mañjuśrī Kumārabhūta, first verse (Vajradhara, tamer of the hard to tame)"
+uchen_medium,uchen_medium quality(1),1,63.9,83,75,80,7,7,Vasudhārā-dhāraṇī sutra (nor gyi rgyun zhes bya ba'i gzungs): householder Sucandra (zla ba bzang po) approaches the Buddha and asks leave to question him
+uchen_medium,uchen_medium quality(1),2,67.9,57,65,88,6,6,Vasudhārā-dhāraṇī sutra: Sucandra asks permission; the Buddha invites him to ask whatever he wishes and promises to satisfy his mind
+uchen_medium,uchen_medium quality(1),3,58.9,86,55,72,7,7,"Vasudhārā-dhāraṇī sutra: Sucandra's question (how do sons and daughters of good family become free of poverty and illness); the Buddha, knowing, replies"
+uchen_medium,uchen_medium quality(1),4,57.1,56,40,50,5,5,Vasudhārā-dhāraṇī sutra: the Buddha asks why Sucandra asks on behalf of the poor; Sucandra begins his answer (he is poor with many dependants)
+uchen_poor,uchen_poor quality,1,68.2,88,68,85,7,7,"tantric ritual manual (sadhana / torma liturgy, Yamantaka cycle by the HRIH SHTRIH mantra) - blessing of the outer offerings; exact text unknown"
+uchen_poor,uchen_poor quality,2,80.5,99,72,85,7,7,"same tantric ritual manual - blessing of the torma, then generation of the samaya being in 9-syllable verse; exact text unknown"
+uchen_poor,uchen_poor quality,3,69.8,97,50,75,8,8,"same tantric ritual manual - samaya-being verses, then invitation of the wisdom beings (lamas, yidams, Yamantaka, Six-Armed Mahakala); exact text unknown"
+uchen_poor,uchen_poor quality(1),2,75.4,239,65,75,7,7,"opening of a commentary on the Manjushri-nama-samgiti (title reads as Nama-mantrartha-avalokini-tika); old orthography, wording differs from the canonical title, so not normalised"
+uchen_poor,uchen_poor quality(1),3,78.9,273,45,65,8,8,same Manjushri-nama-samgiti commentary - outline assigning verse ranges (quoted by first and last line) to each topic and wisdom
+uchen_poor,uchen_poor quality(1),4,71.2,250,40,55,8,8,"same Manjushri-nama-samgiti commentary - end of the verse-range outline, then the discussion of connection, subject matter, purpose and further purpose"

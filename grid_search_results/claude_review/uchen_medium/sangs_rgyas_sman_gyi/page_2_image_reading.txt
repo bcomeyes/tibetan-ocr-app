@@ -1,0 +1,11 @@
+# source_image: page_2_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 84
+# leaned_on_memory: some — homage formula and stock ritual phrases helped; worn spots are bracketed
+# notes: lines 1 (after the homage) and 2 are small-type instructions; lines 3-5 are large-type verse. Pale grey impression with show-through between lines 3 and 4; right half of line 5 is the weakest.
+༄༅། །ན་མོ་གུ་རུ་ཤཱཀྱ་མུ་ནེ་ཡེ། འདིར་བཅོམ་ལྡན་འདས་སྨན་གྱི་བླ་ཤིན་ཏུ་
+བསྡུས་པའི་སྒོ་ནས་མཆོད་པར་འདོད་པས། སྐྱབས་སེམས་སྔོན་དུ་བཏང་། དམིགས་པ་བརྟན་པོས།
+རྒྱལ་བ་སྲས་དང་བཅས་པའི་བདེན་[མཐུ་]ལས། །ཡོན་ཏན་ཕུན་[ཚོགས་]
+དང་ལྡན་ཞིང་དེའི་དབུས། །ཐུབ་པའི་དབང་པོ་བདེ་གཤེགས་
+བདུན་ལ་སོགས། །དམ་ཆོས་[འཁོར་]དང་བཅས་པ་[གཤེགས་གྱུར་]

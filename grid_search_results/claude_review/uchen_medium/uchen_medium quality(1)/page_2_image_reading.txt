@@ -1,0 +1,11 @@
+# source_image: page_2_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 93
+# leaned_on_memory: some — formulaic sutra phrasing helped confirm over-inked letters
+# notes: clear block print, heavily inked in places (line 2 right, line 4); opening yig-mgo then a wide gap before the text on line 1; rotated folio label in the left margin (not transcribed)
+༄༅། །དག་པར་རྫོགས་པའི་སངས་རྒྱས་ལ་བདག་ཕྱོགས་འགའ་ཞིག་
+ཞུ་ལགས་སོ། །དེ་སྐད་ཅེས་གསོལ་པ་དང་། །བཅོམ་ལྡན་འདས་ཀྱིས་ཁྱིམ་
+བདག་ཟླ་བ་བཟང་པོ་ལ་འདི་སྐད་ཅེས་བཀའ་སྩལ་ཏོ། །ཁྱིམ་བདག་ཁྱོད་ཅི་དང་
+ཅི་འདོད་པ་དྲིས་ཤིག །ཁྱོད་ཀྱིས་ཇི་སྐད་དྲིས་པའི་དྲི་བ་ལུང་བསྟན་པས་ངས་ཁྱོད་
+ཀྱི་སེམས་རངས་པར་བྱའོ། །དེ་སྐད་ཅེས་བཀའ་སྩལ་པ་དང་། ཁྱིམ་བདག་ཟླ་

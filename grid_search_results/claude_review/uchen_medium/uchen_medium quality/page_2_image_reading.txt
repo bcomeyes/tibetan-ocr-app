@@ -1,0 +1,8 @@
+# source_image: page_2_original.jpg
+# page_type: body
+# printed_lines: 2
+# reading_confidence: 80
+# leaned_on_memory: some — standard "rgya gar skad du" opening; syllables under the red blot and the faint Sanskrit stacks are bracketed
+# notes: handwritten manuscript, 2 lines; line 1 in faded red ink with a red blot over the second and third syllables; line 2 in black, ending in dotted fillers; Sanskrit title written without long-vowel marks as far as can be seen; folio label in left margin panel (not transcribed)
+༄༅༅། །རྒྱ་[གར་སྐད་]དུ། ཨརྱ་[མཉྫུ་ཤྲི་]ན་མ་[སཾ་གི་ཏི།] བོད་
+སྐད་དུ། འཕགས་པ་འཇམ་དཔལ་གྱི་མཚན་ཡང་དག་པར་

@@ -84,6 +84,10 @@ def main() -> None:
             file_name = pdf_dir.name
 
             for exported in sorted(pdf_dir.glob("*.txt")):
+                # Claude's corrected reading of the page. It carries no
+                # score and has no raw OCR file to be matched against.
+                if exported.name.endswith("_claude_revision.txt"):
+                    continue
                 m = EXPORT_RE.match(exported.name)
                 if not m:
                     unresolved.append(

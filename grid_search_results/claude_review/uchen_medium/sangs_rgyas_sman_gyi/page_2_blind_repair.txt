@@ -1,0 +1,16 @@
+# source: page_2_rank1_Woodblock-Stacks_q73.3_c6300.4.txt
+# as_is: 40
+# recoverable_guess: 45
+# identified_as: opening of a condensed Medicine Buddha sutra ritual (homage, statement of purpose, start of refuge)
+# notes: spurious tsheg splitting, wrong stacks/vowels; first three lines followable, lower lines are short fragments (possibly small-print annotations) I could not recover
+༄༅། །ན་མོ་གུ་རུ་ཤཱཀྱ་མུ་ན་ཡེ། འདིར་བཅོམ་ལྡན་འདས་སྨན་གྱི་[བླ་]ཤིན་ཏུ།
+བསྡུས་[པའི་སྒོ་ནས་]མཆོད་པར་འདོད་པས། སྐྱབས་སེམས་སྔོན་དུ་[འགྲོ་བ་]དང་། དམིགས་པ་བརྟན་པོས།
+རྒྱལ་བ་སྲས་དང་བཅས་པའི་བདེན་མཐུ་[ལས]།
+[?]རྗེ[?]ཀྱི་[?]།
+[junk]
+[?]
+[junk]
+[junk]
+[?]
+[junk]
+[དཀོན་མཆོག་][?]། །དང་། [?]ལྔ་པོ་[?]

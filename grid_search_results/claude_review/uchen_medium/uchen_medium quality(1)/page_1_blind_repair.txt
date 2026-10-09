@@ -1,0 +1,12 @@
+# source: page_1_rank1_Woodblock_q63.9_c8300.5.txt
+# as_is: 75
+# recoverable_guess: 80
+# identified_as: Vasudhārā-dhāraṇī sutra (nor gyi rgyun zhes bya ba'i gzungs): householder Sucandra (zla ba bzang po) approaches the Buddha and asks leave to question him
+# notes: lines 2-6 nearly clean (a few split words, one wrong letter); first and last lines are long runs of a/ma/cha letters. Line 7 does not fit the sequence (page 2 continues directly from line 6), so it is marked junk; line 1 may be real text but is unrecoverable
+[?]
+[དེར་]སོང་སྟེ་ཕྱིན་ནས། བཅོམ་ལྡན་འདས་ཀྱི་ཞབས་ལ་མགོ་བོས་ཕྱག་འཚལ་ཏེ། ལན་
+འབུམ་ཕྲག་དུ་མར་བསྐོར་བ་བྱས་ནས། ཕྱོགས་གཅིག་ཏུ་འདུག་གོ། །ཕྱོགས་
+གཅིག་ཏུ་འདུག་ནས། ཁྱིམ་བདག་ཟླ་བ་བཟང་པོས། བཅོམ་ལྡན་འདས་ལ་འདི་སྐད་
+ཅེས་གསོལ་ཏོ། །གལ་ཏེ་[བདག་གིས་ཞུས་]ནས་ཞུ་བ་ལུང་བསྟན་པའི་སླད་དུ་བཅོམ་ལྡན་འདས
+ཀྱིས་བདག་ལ་སྐབས་ཕྱེ་ན། བཅོམ་ལྡན་འདས་དེ་བཞིན་གཤེགས་པ་དགྲ་བཅོམ་པ་ཡང་
+[junk]

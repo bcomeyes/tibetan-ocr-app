@@ -1,0 +1,6 @@
+# source_image: page_2_original.jpg
+# page_type: metadata
+# printed_lines: 0
+# reading_confidence: 100
+# leaned_on_memory: none
+# notes: Library of Congress catalogue record in English only (LC Control Number 76902420, "The Sde-dge Black Bka'-'gyur", contents list of volumes in romanised Tibetan). There is no Tibetan script on the page, so there is nothing to transcribe; any Tibetan the OCR produced here is invented.

@@ -1,0 +1,12 @@
+# source: page_1_rank1_Woodblock_q68.2_c8800.4.txt
+# as_is: 68
+# recoverable_guess: 85
+# identified_as: tantric ritual manual (sadhana / torma liturgy, Yamantaka cycle by the HRIH SHTRIH mantra) - blessing of the outer offerings; exact text unknown
+# notes: spurious tsheg inside words, offering-substance names and Sanskrit offering mantras badly garbled; end of last line (after the offering mantras) unrecoverable, may be small-print annotation
+འཁོར་སྔོན་པོའི་ཞེས་པ་ནས་[སྦར་]ཞིང་[སྤེལ་བར་]གྱུར།[ཨོཾ་ཨཱཿཧཱུཾ།]ལན་གསུམ་བརྗོད།
+དེ་ནས་མཆོད་པ་བྱིན་གྱིས་རླབས་པ་ནི།ཧྲཱིཿཥྚྲཱིཿས་བསངས་སྦྱངས།སྟོང་པའི་ངང་ལས་[ཨཱཿ]ལས་བྱུང་བའི་
+ཐོད་པ་ཡངས་ཤིང་རྒྱ་ཆེ་བ་རྣམས་ཀྱི་ནང་དུ་[ཧཱུཾ་ཧཱུཾ་]ཞུ་བ་ལས་བྱུང་བའི་མཆོད་ཡོན།ཞབས་བསིལ།
+མེ་ཏོག།བདུག་སྤོས།སྣང་གསལ།དྲི་[ཆབ།]ཞལ་ཟས།རོལ་མོ་ལ་སོགས་པ་རྣམས་རང་
+བཞིན་བདེ་སྟོང་རྣམ་པ་མཆོད་རྫས་བྱེད་ལས་དབང་པོ་དྲུག་གི་སྤྱོད་ཡུལ་དུ་ཟག་པ་མེད་པའི་
+བདེ་བ་ཁྱད་པར་ཅན་བསྐྱེད་པར་གྱུར།ཨོཾ་ཨརྒྷཾ་ཨཱཿཧཱུཾ།དེ་བཞིན་དུ་སྦྱར་ཏེ།པཱ་དྱཾ།པུཥྤེ།དྷཱུ་པེ།
+ཨཱ་ལོ་ཀེ།[གནྡྷེ།]ནཻ་ཝི་དྱེ།[ཤཔྟ་ཨཱཿཧཱུཾ།][ཨོཾ་][?]

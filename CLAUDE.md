@@ -94,8 +94,25 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   High and medium were re-exported under the new names. Audit: **168 files,
   0 mislabelled; 120 of them Uchen** (high 45, medium 57, poor 18). See
   *Track A leftovers*.
-- **Next step:** stale docs (Suggested order step 8), then the Claude
-  pre-screen (step 10).
+- Stale docs cleaned up 2026-10-09 (Suggested order step 8).
+- Claude pre-screen done 2026-10-09 (step 10); see that session's block.
+
+#### Session of 2026-10-09: docs, Drive, and Claude reads the pages
+
+- Drive archived and replaced; stale docs deleted and README rewritten
+  (Suggested order steps 8 and 12, first half).
+- **Claude read all 40 exported Uchen pages, in this session, with no API.**
+  This replaces the planned API pre-screen (step 10). Method and results
+  are in *Claude reading and repair, 2026-10-09* under Trajectory.
+- **Each page now has a `page_N_claude_revision.txt`** beside its image in
+  `review_export/`: what the page says, read from the image, unsure
+  syllables in brackets. Local only; **not yet on Drive**.
+- Matt's vocabulary, agreed this session: the corrected text is a
+  **revision** (not a "reading"); the **blind repair** is the experiment of
+  fixing OCR text without seeing the page.
+- **Next step:** Matt's call. Either push the revisions to Drive and
+  assemble the review set for Nyima (step 11), or first score the rank 2
+  and rank 3 texts, which were not looked at.
 
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
@@ -174,6 +191,102 @@ for example in uchen_poor and the remaining corpus. If it does not, that is
 also worth knowing.
 
 Load the `claude-api` skill before writing it.
+
+### Claude reading and repair, 2026-10-09
+
+Done in a Claude Code session, not through the API. Matt's question was
+twofold: does the score (`q`) look right to a reader, and can a language
+model fix the text the way it fixes "stor" to "store"?
+
+**Method.** Two passes over the 40 exported Uchen pages, by helper agents
+that were kept apart:
+
+1. **Blind repair.** Given only the rank 1 OCR text, never the image:
+   write what the page probably says, bracket unsure syllables, grade how
+   the OCR text reads as it stands (0-100), and guess the share recovered.
+2. **Image reading.** A different agent, forbidden to open the blind
+   repairs, reads the page image (cropped and enlarged) and writes what it
+   says. This is the yardstick, and it is what became the revision.
+
+`grid_search_results/claude_review/score_blind_vs_image.py` then lines up
+syllables and counts. Everything is in `grid_search_results/claude_review/`
+(tracked): the two briefs, both texts per page, `blind_pass.csv`,
+`blind_vs_image.csv`.
+
+**Results**, medians over the 32 body pages. "Right" means "matches
+Claude's reading of the image", which no person has checked.
+
+| Tier | q | Raw OCR syllables right | After blind repair | Confident fixes wrong |
+|---|---|---|---|---|
+| high | 81 | 96% | 99% | 1% |
+| medium | 68 | 41% | 85% | 7% |
+| poor | 73 | 68% | 87% | 5% |
+
+- **Most damaged text is recoverable without the image.** No page got
+  worse. `sangs_rgyas_sman_gyi` page 3, the page Nyima called junk at a
+  correctly-labelled q68: raw OCR 22% right, blind repair 88%.
+- **Why that page scores 68.** The OCR's main error there is a tsheg
+  (syllable dot) inserted inside words: `ཕྱག` becomes `ཕྱ་ག`. Each lone
+  letter is a valid word to PyBo. The letters are mostly right, which is
+  also why it can be repaired. This is the mechanism behind the PyBo
+  partial-credit problem in Track B.
+- **Repair has a cost.** On medium and poor pages 5-7% of the repair's
+  unbracketed syllables were wrong: fixes that look right and are not.
+  Brackets only catch doubts the model knows it has.
+- **Some pages cannot be rescued**: lines that come out as
+  Sanskrit-looking garble. `sangs_rgyas_sman_gyi` page 10 (the Medicine
+  Buddha dharani, Nyima's stacked-letter example) went 10% to 19%, with
+  29% of confident fixes wrong. Pages 6 and 8 stayed at or below 50%.
+- **`q` is a rough gauge with a compressed scale, not a meaningless one.**
+  Tier medians span 68-81 while measured accuracy spans 41-96%. It reads
+  low on clean pages (page 4 of `uchen high quality pdf`: q74, every
+  syllable right) and high on damaged ones (`uchen_poor quality(1)` page
+  3: q79, 38% right). Correlation with measured accuracy: 0.72.
+- **Claude's blind "reads as it stands" grade tracked measured accuracy
+  much better: 0.93.** So a Claude grade is a usable pre-screen.
+- **`q` is fooled by non-text.** `uchen high quality pdf` page 2 has no
+  Tibetan on it at all (an English catalogue record) and scored q65 on 30
+  "valid words" the model invented.
+
+**Limits, all of which matter:**
+
+- Only the **rank 1** text of each page was repaired and scored: 40 of
+  120 texts.
+- Syllable matching is strict: a word split by a stray tsheg counts as
+  wrong even with every letter right. That is partly why raw medium is 41%.
+- The image readings are soft on look-alike letters (pa/ba, subjoined
+  ra/ya, vowel signs) in the small high scans (lines ~45 px tall) and the
+  faint target 8 scans, and on mantras and proper names everywhere. Two
+  are not yardsticks by the reader's own account: `sangs_rgyas_sman_gyi`
+  pages 10 and 12.
+- Where both agents knew the text from memory (the Vinayavastu pages),
+  their agreement is partly shared memory, not two independent readings.
+
+**Facts about the files learned along the way:**
+
+- `uchen_high_quality_pdf` and `uchen_medium quality` are **handwritten
+  manuscripts**, not block prints. `uchen_medium quality` has only 1-2
+  lines per page, which answers the Track C side question about its
+  18-35 word pages: sparse pages, not failed OCR.
+- Texts: `uchen high quality pdf` and `uchen_high_quality_` are the
+  Vinayavastu opening; `uchen_high_quality_pdf` the Sudhana and Manohara
+  story; `sangs_rgyas_sman_gyi` a condensed Medicine Buddha ritual;
+  `uchen_medium quality` the Mañjuśrī-nāma-saṃgīti; `uchen_medium
+  quality(1)` a Vasudhārā dhāraṇī sutra; target 7 a Yamantaka ritual
+  manual; target 8 a commentary on the Mañjuśrī-nāma-saṃgīti.
+- More non-body pages for the review-set rule: `uchen high quality pdf`
+  pages 1-2 (English metadata sheets), `uchen_high_quality_` page 1,
+  `sangs_rgyas_sman_gyi` page 1 and `uchen_medium quality` page 1 (title
+  pages).
+- Junk first/last lines in several exports correspond to margin labels,
+  captions, or dotted line-end fillers, not to printed text.
+
+**The revisions.** Each image reading was copied to
+`review_export/{tier}/{pdf}/page_N_claude_revision.txt` with a header
+saying it is not OCR output and not verified. The export cell leaves these
+files alone on re-export and `audit_export_labels.py` skips them (audit
+after: 168 files, 0 mislabelled). Regenerate them from
+`claude_review/*_image_reading.txt` if the export folder is ever rebuilt.
 
 ### Order
 
@@ -970,6 +1083,9 @@ Done on Matt's instruction, 2026-10-09. The Drive project folder now holds:
   Umeh exports. Do not delete it; his comments reference those filenames.
 - `tibetan_texts/`: source PDFs, untouched.
 
+The 40 `page_N_claude_revision.txt` files added locally later on
+2026-10-09 are **not** on Drive yet.
+
 Matt's rule for that folder: the three Uchen tiers in one consistent
 format, and anything else archived. What is there is the **whole** export,
 including cover and title pages in high and medium, not yet the chosen
@@ -1166,15 +1282,18 @@ review. The previous order was built around Umeh failure rates and is void.
 6. ~~Check whether the quality tiers mean anything.~~ **Done 2026-10-04.**
    They do separate; see Track C.
 7. ~~Filename collisions.~~ **Done 2026-10-08**; see Track A leftovers.
-8. Delete stale docs: `tibetan_ocr_workflow.pdf` and `grid_search_workflow.md`
-   describe the pre-April interface. Fix the README's false `class_threshold`
-   finding (lines 134/141/147), its stale `class_threshold` grid (line 117), and
-   its outdated uchen_high numbers. Strip Umeh claims while in there.
+8. ~~Delete stale docs.~~ **Done 2026-10-09.** `tibetan_ocr_workflow.pdf`
+   and `grid_search_workflow.md` deleted (both in git history). README
+   rewritten for Uchen-only scope: 576-combo grid, `class_threshold` stated
+   as never tested, the pre-August "Results" sections replaced by the
+   audited three-tier figures, CLI drivers documented.
 9. ~~uchen_poor (Track C), targets 7 and 8 only.~~ **Run 2026-10-07**, full
    grid on all 7 pages. **Exported and audited 2026-10-08**: 18 files, 0
    mislabelled (6 body pages; target 8's title page is excluded).
-10. **Claude API pre-screen script.** Judge OCR quality independently and
-    compare it with `q`. See Trajectory.
+10. ~~Claude API pre-screen script.~~ **Done differently 2026-10-09**: Claude
+    read and graded all 40 pages in a session, no API or script needed at
+    this size. See *Claude reading and repair* under Trajectory. An API
+    script is only worth writing to run this over a much larger corpus.
 11. **Assemble the calibration review set**: high, medium and poor, spanning
     the score range.
 12. Archive Drive, clear it, push the review set, contact Nyima. Also confirm

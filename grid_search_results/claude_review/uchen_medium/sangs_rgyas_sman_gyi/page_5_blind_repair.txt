@@ -1,0 +1,13 @@
+# source: page_5_rank1_Woodblock-Stacks_q68.4_c6499.9.txt
+# as_is: 40
+# recoverable_guess: 60
+# identified_as: Medicine Buddha ritual: prose homage/offering/refuge formula to the seven Sugata brothers, with an abbreviated instruction to repeat the offering verses
+# notes: very heavy tsheg splitting and letter confusion; the stock epithet formula is recoverable, the end of line 4 and all of line 8 are largely guesses
+[junk]
+[བསྟན་དུ་]གསོལ། །བཅོམ་ལྡན་འདས་དེ་བཞིན་གཤེགས་
+[པ་]དགྲ་བཅོམ་པ་ཡང་དག་པར་རྫོགས་པའི་སངས་རྒྱས་བདེ་བར་གཤེགས་
+[པ་]མཆེད་བདུན་[འཁོར་དང་བཅས་པ་ལ་]ཕྱག་འཚལ་ལོ། །
+[?]
+མཆོད་དོ་སྐྱབས་སུ་མཆིའོ། །
+དངོས་བཤམས་ནས་བསྔོ། །[?]། །
+[རྣམས་ཀྱི་མཚན་]བརྗོད་དྲན་པའི་མཐུས། །[?]

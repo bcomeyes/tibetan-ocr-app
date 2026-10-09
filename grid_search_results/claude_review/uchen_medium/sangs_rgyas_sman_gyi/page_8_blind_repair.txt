@@ -1,0 +1,12 @@
+# source: page_8_rank1_Woodblock_q62.1_c5400.1.txt
+# as_is: 25
+# recoverable_guess: 30
+# identified_as: Medicine Buddha ritual: end of Dharma aspiration verse; verses to the bodhisattva assembly (the "...thirty-six thousand") and to the world protectors / yaksha generals
+# notes: four of seven lines are garble in wrong letter classes with '+' marks; lines 1, 4, 7 partly readable; "gleng bslangs" in line 4 is a guess from context
+[ལུས་པ]། །རྒྱལ་བའི་དགོངས་པ་[ཇི་བཞིན་]འགྲུ[བ]
+[?]
+[?]
+ཁྲི་དྲུག་སྟོང་གིས། །རྒྱལ་བའི་ཐུགས་དམ་བསྐུལ་ཞིང་[གླེང་བསླངས་]
+[junk]
+[?]
+[?]མཆོག་ཏུ་འགྱུར་བར་མཛོད། །འཇིག་རྟེན་སྐྱོང་[དང་]སྡེ་དཔོན་

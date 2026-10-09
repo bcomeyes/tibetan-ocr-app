@@ -1,0 +1,13 @@
+# source_image: page_2_original.jpg
+# page_type: body
+# printed_lines: 7
+# reading_confidence: 88
+# leaned_on_memory: some — standard torma-blessing and deity-generation liturgy; the torn first line is bracketed where the upper halves of letters are missing
+# notes: colour photograph, bold clear woodblock print; top edge torn through line 1, removing the tops of most letters and a stretch at the right; brown stain through lines 2-6 left of centre; small mark in the left margin (not transcribed).
+པ་དང་། དེ་ནས་གཏོར་མ་བྱིན་གྱིས་[རླབས་པ་ནི།] ཧྲཱིཿ[ཥྚྲཱིཿས་བསངས་]སྦྱངས། [སྟོང་པའི་][illegible]
+རླུང་། རཾ་ལས་མེ། ཨ་ལས་མི་མགོའི་སྒྱེད་པུ་གསུམ་གྱི་སྟེང་དུ་ཨ་ལས་བྱུང་བའི་ཐོད་པ་
+ཕྱི་དཀར་ལ་ནང་དམར་བ་ཡངས་ཤིང་རྒྱ་ཆེ་བ་རྣམས་ཀྱི་ནང་དུ་ཤ་ལྔ་བདུད་རྩི་ལྔ་སྦྱངས་རྟོགས་
+སྦར་གསུམ་བཅས་པ་ལས་བྱུང་བའི་གཏོར་མ་ཟག་པ་མེད་པའི་ཡེ་ཤེས་ཀྱི་བདུད་རྩིའི་རྒྱ་མཚོ་
+ཆེན་པོར་གྱུར། ཨོཾ་ཨཱཿཧཱུཾ། ལན་གསུམ་བརྗོད། དམ་ཚིག་པ་ཐུན་མོང་དུ་བསྐྱེད་པ་ནི། ཧཱུཾ་རང་གི་
+མདུན་དུ་ཆོས་ཀྱི་འབྱུང་གནས་ནི། །ཁྲག་ཞག་རྒྱ་མཚོའི་རྦ་ཀློང་འཁྲུགས་པའི་དབུས། །
+འདབ་སྟོང་[པདྨའི་]ལྟེ་བར་ཉི་མའི་སྟེང་། །དངོས་གྲུབ་འབྱུང་གནས་རྩ་རྒྱུད་བླ་མ་དང་། །ཡི་དམ་

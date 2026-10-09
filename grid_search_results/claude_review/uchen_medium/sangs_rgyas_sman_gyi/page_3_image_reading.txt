@@ -1,0 +1,11 @@
+# source_image: page_3_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 90
+# leaned_on_memory: some — seven-branch offering phrasing helped confirm a few worn stacks
+# notes: large-type verse, pale grey streaky impression but letters well formed; yig-mgo and a wide gap open line 1; rotated folio label in the left margin beside line 3 (not transcribed)
+༄༅། །བཞུགས། །འཇམ་པའི་དབྱངས་དང་ཞི་བ་འཚོ་ལ་སོགས།
+དངོས་བརྒྱུད་བླ་མ་རྣམས་ལ་ཕྱག་འཚལ་ཞིང་། །བདེ་གཤེགས་
+བདུན་དང་ཐུབ་དབང་དམ་པའི་ཆོས། །འཇམ་དཔལ་སྐྱབས་གྲོལ་
+སོགས་ལ་བདག་ཕྱག་འཚལ། །དངོས་བཤམས་གཟུངས་རིག་
+མོས་སྟོབས་ཀྱིས་སྤྲུལ་པའི། །མཆོད་ཚོགས་ཀུན་འབུལ་སྡིག་

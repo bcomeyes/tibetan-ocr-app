@@ -1,0 +1,12 @@
+# source: page_3_rank1_Woodblock_q58.9_c8599.4.txt
+# as_is: 55
+# recoverable_guess: 72
+# identified_as: Vasudhārā-dhāraṇī sutra: Sucandra's question (how do sons and daughters of good family become free of poverty and illness); the Buddha, knowing, replies
+# notes: first and last lines are long junk runs that do not fit the sequence (page 2 runs straight into line 2, line 6 runs into page 4); lines 2-4 good, lines 5-6 heavily damaged by letter swaps and splitting
+[junk]
+བཟང་པོས། །བཅོམ་ལྡན་འདས་ལེགས་སོ་ཞེས་གསོལ་ནས། བཅོམ་ལྡན་འདས་ཀྱི་ལྟར་[?]
+[ཉན་པ]། །བཅོམ་ལྡན་འདས་ལ་འདི་སྐད་ཅེས་གསོལ་ཏོ། །བཅོམ་ལྡན་འདས་
+རིགས་ཀྱི་བུའམ། །རིགས་ཀྱི་བུ་མོ་ཇི་ལྟར་དབུལ་བ་མ་མཆིས་པར་འགྱུར་ཞིང་། བྲོ་
+ནད་ཀྱིས་[ཐེབས་པ་]རྣམས་[ནི་]བྲོ་ནད་མ་མཆིས་པར་འགྱུར་བ་ལགས། །དེ་ནས་བཅོམ་ལྡན་
+འདས་ཀྱིས་[མཁྱེན་]བཞིན་དུ། ཁྱིམ་བདག་ཟླ་བ་བཟང་པོ་ལ་འདི་སྐད་ཅེས་བཀའ་
+[junk]

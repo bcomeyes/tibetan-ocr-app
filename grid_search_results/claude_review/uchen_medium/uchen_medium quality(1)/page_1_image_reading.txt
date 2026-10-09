@@ -1,0 +1,11 @@
+# source_image: page_1_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 93
+# leaned_on_memory: some — formulaic sutra phrasing (bcom ldan 'das / khyim bdag zla ba bzang po) helped confirm worn letters
+# notes: clear dark block print in a frame, 5 lines; a small mark in the left margin; last two syllables of line 5 faint; dotted line-fillers at the ends of lines 1-2
+སོང་སྟེ་ཕྱིན་ནས། བཅོམ་ལྡན་འདས་ཀྱི་ཞབས་ལ་མགོ་བོས་ཕྱག་འཚལ་ཏེ། ལན་
+འབུམ་ཕྲག་དུ་མར་བསྐོར་བ་བྱས་ནས། ཕྱོགས་གཅིག་ཏུ་འདུག་གོ །ཕྱོགས་
+གཅིག་ཏུ་འདུག་ནས། ཁྱིམ་བདག་ཟླ་བ་བཟང་པོས། བཅོམ་ལྡན་འདས་ལ་འདི་སྐད་
+ཅེས་གསོལ་ཏོ། །གལ་ཏེ་ཞུས་ནས་ཞུ་བ་ལུང་བསྟན་པའི་སླད་དུ་བཅོམ་ལྡན་འདས་
+ཀྱིས་བདག་ལ་སྐབས་ཕྱེ་ན། བཅོམ་ལྡན་འདས་དེ་བཞིན་གཤེགས་པ་དགྲ་བཅོམ་[པ་ཡང་]

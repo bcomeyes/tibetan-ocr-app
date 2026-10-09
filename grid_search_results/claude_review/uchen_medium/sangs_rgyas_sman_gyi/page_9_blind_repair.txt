@@ -1,0 +1,14 @@
+# source: page_9_rank1_Woodblock-Stacks_q68.3_c5599.8.txt
+# as_is: 40
+# recoverable_guess: 55
+# identified_as: Medicine Buddha ritual: request verses to the protectors (pacify enemies, harm, illness, quarrels; increase wealth, grain, lifespan; fulfil wishes; protect always)
+# notes: line 1 is a run of repeated ma/sa letters (junk); tsheg splitting and wrong letters elsewhere; lines 6-7 good, lines 3-5 partly guessed from the list-of-benefits pattern
+[junk]
+[junk]
+[?]། །སྔོན་ཚེ་[སྨོན་པའི་སྨོན་ལམ་]
+[?]། །དགྲ་དང་གནོད་པ་ནད་[རིམས་འཁྲུག་པ་]དང་། །
+འཐབ་རྩོད་ཀུན་[ཞི་ལུས་]སེམས་བདེ་བ་རྒྱས། །ལོངས་སྤྱོད་དབ[ང་]
+ཕྱུག་ནོར་འབྲུ་ཚེ་འཕེལ་ཞིང་། །བསམ་པའི་དོན་རྣམས་ཡིད་བཞི[ན་]
+[འགྲུབ་པ་]དང་། །[རྟག་]ཏུ་བསྲུང་སྐྱོབ་[གཡེལ་]བ་མེད་པར་[མཛོད]།
+[junk]
+[junk]

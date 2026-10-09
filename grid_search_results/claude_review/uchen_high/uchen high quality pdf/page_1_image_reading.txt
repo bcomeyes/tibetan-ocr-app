@@ -1,0 +1,9 @@
+# source_image: page_1_original.jpg
+# page_type: metadata
+# printed_lines: 3
+# reading_confidence: 90
+# leaned_on_memory: some — the letterhead and catalogue title are standard phrases; the romanised lines beside them (bka' 'gyur (sde dge); si tu paN chen chos kyi 'byung gnas) confirm two of the three
+# notes: English "Text Scan Input Form - Title Page" of the Tibetan Buddhist Resource Center (W22084, vol. 886); only three short Tibetan strings in a small bitmap computer font: letterhead, Title field, Author field. Everything else is English and is not transcribed. Not a pecha page.
+༄༅། །བོད་ཀྱི་ནང་བསྟན་དཔེ་[ཚོགས་]ལྟེ་བ། །
+བཀའ་འགྱུར་སྡེ་དགེ་པར་མ
+སི་ཏུ་པཎ་ཆེན་ཆོས་ཀྱི་འབྱུང་གནས་ཀྱི་ཕྱོགས་སྒྲིགས་

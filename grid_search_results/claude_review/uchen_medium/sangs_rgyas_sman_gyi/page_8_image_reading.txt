@@ -1,0 +1,11 @@
+# source_image: page_8_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 85
+# leaned_on_memory: some — verse metre and stock aspiration phrases helped; two syllables the print does not settle are bracketed
+# notes: large-type verse, pale grey streaky impression, generally well formed; last syllable of lines 2 and 3 cramped against the frame; dotted filler at the end of line 4. No margin label visible.
+ལུས་པ། །རྒྱལ་བའི་དགོངས་པ་ཇི་བཞིན་སྒྲུབ་པར་ཤོག །འཇམ་
+དཔལ་སྐྱབས་གྲོལ་ཕྱག་ན་རྡོ་རྗེ་སོགས། །བདེ་གཤེགས་སྲས་པོ་སུམ་
+ཁྲི་དྲུག་སྟོང་གིས། །རྒྱལ་བའི་ཐུགས་དམ་བསྐུལ་ཞིང་སྒྲིབ་སྦྱངས་
+ནས། །[མདོ་]སྡེའི་ཕན་ཡོན་ཇི་སྐད་གསུངས་པ་རྣམས། །དེ་ལྟར་
+བདག་ལ་[མངོན་]དུ་འགྱུར་བར་མཛོད། །འཇིག་རྟེན་སྐྱོང་བ་སྡེ་དཔོན་

@@ -1,0 +1,13 @@
+# source: page_6_rank1_Woodblock_q54.9_c5599.8.txt
+# as_is: 25
+# recoverable_guess: 30
+# identified_as: Medicine Buddha ritual: prayer verses asking for outer harms and inner afflictions to be pacified and for rebirth from a lotus after death; seven Sugatas
+# notes: half the lines are Latin/Sanskrit-looking garble (wrong letter classes, '+' and 'H' characters); only lines 5-6 read as Tibetan; lines 3-4 are partial guesses
+[?]
+[junk]
+[?]རྣམས་[?]དང་[འབྱུང་བ་]ལ་སོགས་ཕྱིའི་གནོད་པ།
+[འཁྲུགས་][?]པའི་ཉེར་འཚེ་
+ཞི་བར་མཛོད། །འདི་ནས་ཤི་[འཕོས་]གྱུར་ཚེ་[བདེ་གཤེགས་][?]བདུན་[?]
+[?]པདྨོ་ལས་སྐྱེས་ཡོན་ཏན་རྫོགས། །བདེ་གཤེགས་བདུན་གྱི་བཀའ་
+[?]
+[?]

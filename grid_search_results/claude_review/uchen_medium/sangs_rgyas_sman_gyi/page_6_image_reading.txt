@@ -1,0 +1,11 @@
+# source_image: page_6_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 80
+# leaned_on_memory: some — verse metre (nine syllables) and stock aspiration phrases guided several worn syllables; doubtful ones are bracketed
+# notes: large-type verse, pale grey streaky impression; dark ink smear at the top-right corner; left end of line 2 is over-inked and blurred; last syllable of lines 3 and 4 cramped against the frame.
+བའི་[སྐྱོན་]རྣམས་དང་། །བདུད་དང་[རྒྱལ་]པོ་ལ་སོགས་ཕྱིའི་གནོད་པ། །
+མ་རུངས་པ་[ཡི་རྐུན་]པོ་དགྲ་རྣམས་དང་། །ནད་ལ་སོགས་པའི་ནང་གི་འཚེ་
+བ་ཞི་བར་མཛོད། །འདི་ནས་ཤི་འཕོས་གྱུར་ཚེ་བདེ་གཤེགས་བདུན། །[ཞིང་]
+དུ་པདྨོ་[ལས་]སྐྱེས་ཡོན་ཏན་རྫོགས། །བདེ་གཤེགས་བདུན་གྱི་[སྤྱན་སྔར་]
+ལུང་བསྟན་ཅིང་། །དམ་ཆོས་འཛིན་རྣམས་མཉེས་པར་བྱེད་གྱུར་ཅིག །

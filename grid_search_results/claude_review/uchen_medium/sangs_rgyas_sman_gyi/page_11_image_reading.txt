@@ -1,0 +1,11 @@
+# source_image: page_11_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 72
+# leaned_on_memory: some — colophon conventions helped with titles and common names; proper names and the phrases I could not settle are bracketed
+# notes: colophon in medium-size type, pale grey broken impression. Smudge after the opening yig-mgo; ink smears under line 5 touching two descenders. The first phrase of line 1 (about five syllables) could not be read with any confidence. Proper names in lines 2-5 are the weak points. Folio labels in the left margin beside lines 2-3 and 5 (not transcribed).
+༄༅། །[illegible]ཤིང་། ཤིས་པ་བརྗོད་དོ། །ཞེས་སྨན་གྱི་བླ་མཆེད་བདུན་ཐུབ་
+དབང་པོ་དང་བཅས་པ་ལ་[བསྙེན་]པའི་མཆོད་པ་མདོར་བསྡུས་པ་འདི་ནི། འཇམ་དབྱངས་གོང་མ་ཆེན་[མོའི་ཞེ་ཧོད་]ཀྱི་ཕོ་
+བྲང་གི་གཙུག་ལག་ཁང་དུ་འཁོད་པའི། [ཐེར་ཀུན་དྲ་]བླ་མ་དགེ་སློང་བློ་བཟང་བསམ་འགྲུབ་ཀྱིས་བསྐུལ་བ་
+ལྟར། [ཤར་]ཙོང་ཁ་པའི་ལུགས་འདི་[སྐུ་ཚེས་སུ་བགྱི་དང་སྣང་ཡས།] བསྐུལ་བ་པོའི་བློ་དང་བསྟུན།
+རྗེ་ཆོས་ཀྱི་རྒྱལ་[པོ་ཙོང་ཁ་པ་]དང་ཀུན་གཟིགས་ལྔ་པ་ཆེན་པོས་མཛད་པའི་ཆོ་ག་རྣམས་ལས་སྙིང་པོར་བསྡུས་

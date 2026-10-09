@@ -1,0 +1,21 @@
+# source: page_10_rank1_Woodblock_q42.0_c6000.3.txt
+# as_is: 10
+# recoverable_guess: 12
+# identified_as: Medicine Buddha ritual: probably dhāraṇī/mantra passage (transliterated Sanskrit), followed by concluding instructions (recite the dhāraṇī, brief offering, request forbearance, long-life/stability request if there is an image)
+# notes: almost everything is garble in Sanskrit-transliteration letters, cannot tell which mantra; only the last two instruction lines yield Tibetan; many stacked letters on the true page are the likely cause
+[?]
+[?]
+
+
+[?]
+
+[?]
+[?]
+[?]
+[?] ཞེས་[?]
+
+
+[?] ཞེས་གཟུངས་[ཅི་ནུས་]བཟླ་བར་བྱའོ། །
+[?]དང་། མཆོད་པ་[མདོར་བསྡུས་]བྱས་ཏེ་[?]བཟོད་པར་གསོལ་ཏེ། རྟེན་ཡོད་ན་བརྟན་བཞུགས་དང་།
+[junk]
+[?]

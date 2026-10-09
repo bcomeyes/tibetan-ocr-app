@@ -1,0 +1,13 @@
+# source: page_11_rank1_Woodblock-Stacks_q67.8_c8200.2.txt
+# as_is: 50
+# recoverable_guess: 60
+# identified_as: colophon of the condensed Medicine Buddha offering ritual: composed at a temple in the Manchu emperor's town of Jehol at the request of a lama-monk Lobzang Samdrub, condensing the rituals of Panchen Chökyi Gyaltsen and the Fifth Dalai Lama
+# notes: tsheg splitting, wrong vowels; proper names and titles are the weak points (Jehol, the requester's title, "rgyal mtshan" are bracketed); line 5 mostly unrecovered
+[junk]
+[?]ཤིང་། ཤིས་པ་བརྗོད་དོ། །ཞེས་སྨན་གྱི་བླ་མཆེད་བདུན་ཐུབ་
+དབང་པོ་དང་བཅས་པ་ལ་[?]བའི་མཆོད་པ་མདོར་བསྡུས་པ་འདི་ནི་འཇམ་དབྱངས་གོང་མ་ཆེན་པོའི་[ཞེ་ཧོལ་]གྱི་གྲོ[ང་]
+[ཁྱེར་]གྱི་གཙུག་ལག་ཁང་དུ་འཁོད་པའི་[ཐེན་ཀུན་ཏཱ་]བླ་མ་དགེ་སློང་བློ་བཟང་བསམ་འགྲུབ་ཀྱིས་[བསྐུལ་]བ་
+[ལྟར]། [རབ་ཏུ་བསྡུས་པའི་]ལུགས་འདི་[?]། །[?]དང་[?]།
+[junk]
+[junk]
+རྗེ་ཆོས་ཀྱི་རྒྱལ་[མཚན་]དང་ཀུན་གཟིགས་ལྔ་པ་ཆེན་པོ[འི་]མཆོད་པའི་[ཆོ་ག་]རྣམས་ལས་སྙིང་པོ་བསྡུས་[པ]།

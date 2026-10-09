@@ -1,0 +1,11 @@
+# source_image: page_7_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 85
+# leaned_on_memory: some — the Dharma-jewel homage verse in lines 1-3 is a stock one and helped with the worn first two syllables, which are bracketed
+# notes: large-type verse, pale grey streaky impression; yig-mgo and a gap open line 1; first two syllables of line 1 are worn (the first seems to carry a vowel sign that may be a flaw); last glyph of line 2 and of line 4 cramped against the frame; folio label in the left margin (not transcribed).
+༄༅། །[མ་རིག་]མུན་སེལ་སྒྲོན་མེའི་མཆོག །སྡུག་བསྔལ་ནད་
+སེལ་སྨན་གྱི་ཕུལ། །དམ་ཆོས་དཀོན་མཆོག་ཐམས་ཅད་ལ། །ཕྱག་
+འཚལ་མཆོད་ཅིང་སྐྱབས་སུ་མཆི། །དངོས་བཤམས་ནས་བསྔོ། །
+དམ་ཆོས་དཀོན་མཆོག་བདེན་པའི་བྱིན་རླབས་ཀྱིས། །བདག་སོགས་
+དེང་ནས་ཚེ་རབས་ཐམས་ཅད་དུ། །རྒྱལ་བ་[བདུན་]གྱི་དམ་ཆོས་མ་

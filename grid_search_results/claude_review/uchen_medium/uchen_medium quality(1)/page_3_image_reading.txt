@@ -1,0 +1,11 @@
+# source_image: page_3_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 92
+# leaned_on_memory: some — formulaic sutra phrasing helped confirm lightly printed letters
+# notes: lighter, speckled impression than the other pages of this file but legible; first syllable of line 1 faint; small mark in the left margin; dotted fillers at the ends of lines 2 and 5
+[བ་]བཟང་པོས། །བཅོམ་ལྡན་འདས་ལེགས་སོ་ཞེས་གསོལ་ནས། བཅོམ་ལྡན་འདས་ཀྱི་ལྟར་
+མཉན་ནས། །བཅོམ་ལྡན་འདས་ལ་འདི་སྐད་ཅེས་གསོལ་ཏོ། །བཅོམ་ལྡན་འདས་
+རིགས་ཀྱི་བུ་འམ། །རིགས་ཀྱི་བུ་མོ་ཇི་ལྟར་དབུལ་བ་མ་མཆིས་པར་འགྱུར་ཞིང་། བྲོ་
+ནད་[ཀྱིས་]ཐེབས་པ་རྣམས་བྲོ་ནད་མ་མཆིས་པར་འགྱུར་བ་ལགས། །དེ་ནས་བཅོམ་ལྡན་
+འདས་ཀྱིས་མཁྱེན་བཞིན་དུ། ཁྱིམ་བདག་ཟླ་བ་བཟང་པོ་ལ་འདི་སྐད་ཅེས་བཀའ་

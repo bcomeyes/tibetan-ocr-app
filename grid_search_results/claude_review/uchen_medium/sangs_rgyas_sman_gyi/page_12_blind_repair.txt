@@ -1,0 +1,14 @@
+# source: page_12_rank1_Woodblock-Stacks_q69.4_c3400.1.txt
+# as_is: 45
+# recoverable_guess: 60
+# identified_as: end of colophon: composed by the Shakya monk Lobzang Palden Yeshe (Sixth/Third Panchen Lama), scribe named; printing note that the blocks are kept at Ganden Damchö Ling
+# notes: last page, short; tsheg splitting and letter confusion; scribe's name not recovered; several tsheg-only and fragment lines
+[junk]
+ཤཱཀྱའི་དགེ་སློང་བློ་བཟང་དཔལ་ལྡན་ཡེ་ཤེས་ཀྱིས་སྦྱར་བའི་ཡི་གེ་པ་[ནི་][?]།
+[?]བློ་བཟང་[?][མཆོག་]གོ། །
+[?]
+[སྤར་]འདི་དགའ་ལྡན་དམ་ཆོས་གླིང་དུ་བཞུགས་སོ། །
+[?]
+[junk]
+སྭཱ་[?]
+[junk]

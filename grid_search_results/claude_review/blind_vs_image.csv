@@ -1,0 +1,41 @@
+tier,pdf,page,page_type,q,as_is,recoverable_guess,page_syllables,unsure_in_reading,ocr_acc,repair_acc,conf_wrong,reading_confidence,leaned_on_memory
+uchen_high,uchen high quality pdf,1,metadata,68.4,15,20,25,1,54.2,54.2,0.0,90,some
+uchen_high,uchen high quality pdf,2,metadata,65.2,0,0,0,0,,,,100,none
+uchen_high,uchen high quality pdf,4,body,74.0,90,93,157,8,100.0,100.0,1.3,93,some
+uchen_high,uchen high quality pdf,5,body,79.3,88,93,301,6,93.2,99.0,2.1,91,some
+uchen_high,uchen high quality pdf,6,body,81.8,80,86,392,12,81.3,98.4,3.7,90,some
+uchen_high,uchen high quality pdf,7,body,89.2,95,97,404,6,99.7,99.7,0.7,91,some
+uchen_high,uchen high quality pdf,8,body,87.2,94,97,389,14,98.9,99.7,1.3,91,some
+uchen_high,uchen high quality pdf,9,body,77.0,93,95,378,8,99.2,99.7,0.5,89,some
+uchen_high,uchen high quality pdf,10,body,76.1,78,85,393,5,78.9,96.1,1.3,89,some
+uchen_high,uchen_high_quality_,1,title,60.0,5,10,5,0,0.0,40.0,,97,none
+uchen_high,uchen_high_quality_,2,body,80.3,85,95,157,6,94.0,100.0,0.0,94,some
+uchen_high,uchen_high_quality_,3,body,78.8,90,96,304,3,96.7,100.0,0.7,95,some
+uchen_high,uchen_high_quality_pdf,1,body,88.3,72,85,217,6,87.2,98.6,1.0,95,none
+uchen_high,uchen_high_quality_pdf,2,body,86.4,82,90,293,5,95.5,97.2,1.1,95,none
+uchen_high,uchen_high_quality_pdf,3,body,86.7,87,93,312,2,97.7,98.4,0.0,95,none
+uchen_medium,sangs_rgyas_sman_gyi,1,title,73.9,15,35,12,0,16.7,83.3,0.0,90,none
+uchen_medium,sangs_rgyas_sman_gyi,2,body,73.3,40,45,69,5,37.5,65.6,11.6,84,some
+uchen_medium,sangs_rgyas_sman_gyi,3,body,68.1,50,70,51,0,21.6,88.2,8.9,90,some
+uchen_medium,sangs_rgyas_sman_gyi,4,body,73.5,50,65,67,8,50.8,94.9,7.5,82,some
+uchen_medium,sangs_rgyas_sman_gyi,5,body,68.4,40,60,63,10,9.4,83.0,0.0,80,some
+uchen_medium,sangs_rgyas_sman_gyi,6,body,54.9,25,30,68,8,28.3,50.0,6.7,80,some
+uchen_medium,sangs_rgyas_sman_gyi,7,body,77.6,65,85,57,3,57.4,98.1,5.6,85,some
+uchen_medium,sangs_rgyas_sman_gyi,8,body,62.1,25,30,62,2,28.3,43.3,12.0,85,some
+uchen_medium,sangs_rgyas_sman_gyi,9,body,68.3,40,55,57,10,46.8,87.2,10.8,80,some
+uchen_medium,sangs_rgyas_sman_gyi,10,body,42.0,10,12,99,9,10.0,18.9,28.6,68,heavy
+uchen_medium,sangs_rgyas_sman_gyi,11,body,67.8,50,60,103,19,52.4,81.0,11.1,72,some
+uchen_medium,sangs_rgyas_sman_gyi,12,body,69.4,45,60,37,11,34.6,92.3,17.9,60,some
+uchen_medium,uchen_medium quality,1,title,66.7,30,75,13,2,18.2,100.0,0.0,85,some
+uchen_medium,uchen_medium quality,2,body,84.0,55,85,24,7,52.9,88.2,7.1,80,some
+uchen_medium,uchen_medium quality,3,body,65.7,35,60,24,0,25.0,100.0,0.0,90,some
+uchen_medium,uchen_medium quality(1),1,body,63.9,75,80,80,2,91.0,100.0,0.0,93,some
+uchen_medium,uchen_medium quality(1),2,body,67.9,65,88,75,0,45.3,94.7,4.2,93,some
+uchen_medium,uchen_medium quality(1),3,body,58.9,55,72,81,2,59.5,94.9,1.4,92,some
+uchen_medium,uchen_medium quality(1),4,body,57.1,40,50,79,1,35.9,65.4,4.3,92,some
+uchen_poor,uchen_poor quality,1,body,68.2,68,85,135,11,76.6,94.4,3.5,90,some
+uchen_poor,uchen_poor quality,2,body,80.5,72,85,134,8,81.7,94.4,2.6,88,some
+uchen_poor,uchen_poor quality,3,body,69.8,50,75,122,4,55.1,86.4,5.3,90,some
+uchen_poor,uchen_poor quality(1),2,body,75.4,65,75,375,21,82.8,86.7,4.2,82,some
+uchen_poor,uchen_poor quality(1),3,body,78.9,45,65,388,14,38.2,81.3,5.8,88,some
+uchen_poor,uchen_poor quality(1),4,body,71.2,40,55,391,23,59.0,78.3,6.3,85,some

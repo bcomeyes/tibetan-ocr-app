@@ -1,0 +1,11 @@
+# source: page_2_rank1_Woodblock-Stacks_q67.9_c5700.2.txt
+# as_is: 65
+# recoverable_guess: 88
+# identified_as: Vasudhārā-dhāraṇī sutra: Sucandra asks permission; the Buddha invites him to ask whatever he wishes and promises to satisfy his mind
+# notes: tsheg splitting and look-alike letter swaps (bya/khya, pa/ba, tya/ca); stock sutra dialogue so most fixes are secure; the middle of line 5 is the least certain
+[junk]
+དག་པར་རྫོགས་པའི་སངས་རྒྱས་ལ་བདག་ཕྱོགས་འགའ་[ཞིག་]
+ཞུ་ལགས་སོ། །དེ་སྐད་ཅེས་གསོལ་པ་དང་། །བཅོམ་ལྡན་འདས་[ཀྱིས་]ཁྱིམ་
+བདག་ཟླ་བ་བཟང་པོ་ལ་འདི་སྐད་ཅེས་བཀའ་སྩལ་ཏོ། །ཁྱིམ་བདག་ཁྱོད་ཅི་དང་
+ཅི་འདོད་པ་དྲིས་[ཤིག་དང]། །ཁྱོད་ཀྱིས་ཇི་སྐད་དྲིས་པ་དེ་[དང་དེ་]ལུང་བསྟན་པས་ངས། ཁྱོད་
+ཀྱི་སེམས་རངས་པར་བྱ[འོ]། །དེ་སྐད་ཅེས་བཀའ་སྩལ་པ་དང་། །ཁྱིམ་བདག་ཟླ་

@@ -30,6 +30,9 @@ grid_search_results/temp_images/
 grid_search_results/review_export/
 grid_search_results/**/*.txt
 grid_search_results/**/*.jpg
+# Claude's blind repairs and image readings (2026-10-09): small, and the only
+# record of that experiment, so they are tracked.
+!grid_search_results/claude_review/**/*.txt
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 .DS_Store

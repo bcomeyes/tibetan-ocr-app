@@ -1,0 +1,11 @@
+# source_image: page_10_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 68
+# leaned_on_memory: heavy — lines 1-4 are the Medicine Buddha dharani (long form, then short form) in Tibetan-letter Sanskrit. I recognised it, and that recognition, not the print alone, settles many of the stacks, long-vowel marks and anusvaras. Treat lines 1-4 as "consistent with the image", not as an independent letter-by-letter reading. The small-type Tibetan was read from the image.
+# notes: lines 1-3 and the first half of line 4 are large-type mantra with dense stacks, pale and streaky; tshegs inside the mantra are mostly invisible and are supplied by convention. Small-type Tibetan instructions sit inline at the ends of lines 3 and 4 and fill line 5; line 5's first half is worn. Dark smear at the top-right corner. The glyph before the first shad of line 1 is unclear.
+[ཀཱ།] ཨོཾ་ན་མོ་བྷ་ག་ཝ་ཏེ། བྷཻ་ཥ་ཛྱེ་གུ་རུ་བཻ་ཌཱུརྱ་པྲ་བྷ་རཱ་ཛཱ་ཡ། ཏ་
+ཐཱ་ག་ཏཱ་ཡ། ཨརྷ་ཏེ་[སམྱཀྶཾ་བུདྡྷཱ་]ཡ། ཏདྱ་ཐཱ། ཨོཾ་བྷཻ་ཥ་ཛྱེ་བྷཻ་ཥ་ཛྱེ་
+མ་ཧཱ་བྷཻ་ཥ་ཛྱེ་བྷཻ་ཥ་ཛྱེ། རཱ་ཛ་ས་མུདྒ་ཏེ་སྭཱ་ཧཱ། ཞེས་གཟུངས་རིང་དང་། ཡང་ན།
+ཏདྱ་ཐཱ། ཨོཾ་བྷཻ་ཥ་ཛྱེ་ནས། ས་མུདྒ་ཏེ་སྭཱ་ཧཱ། ཞེས་གཟུངས་ཐུང་ཅི་ནུས་བཟླས་[ཤིང་།]
+མཇུག་ཏུ་[གཏང་རག་གི་]མཆོད་པ་[མདོར་བསྡུས་]བྱས་ཏེ་བཟོད་པར་གསོལ། རྟེན་ཡོད་ན་བརྟན་བཞུགས་དང་།

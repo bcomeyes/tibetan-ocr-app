@@ -1,0 +1,15 @@
+# source: page_1_rank1_Modern_q68.4_c1300.0.txt
+# as_is: 15
+# recoverable_guess: 20
+# identified_as: cover / catalogue sheet (not body text); one line names a compilation by Situ Panchen Chokyi Jungne
+# notes: looks like a cover or metadata sheet, probably mostly non-Tibetan print misread as Tibetan letters and digits; only line 5 is real Tibetan
+[ལྟེ་བ།]
+[junk]
+[junk]
+[junk]
+སི་ཏུ་པཎ་ཆེན་ཆོས་ཀྱི་འབྱུང་གནས་ཀྱི་ཕྱོགས་[སྒྲིགས།]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]

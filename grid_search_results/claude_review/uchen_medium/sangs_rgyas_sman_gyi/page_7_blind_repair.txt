@@ -1,0 +1,11 @@
+# source: page_7_rank1_Woodblock_q77.6_c5199.9.txt
+# as_is: 65
+# recoverable_guess: 85
+# identified_as: Medicine Buddha ritual: homage verse to the Dharma Jewel (lamp dispelling ignorance, medicine removing suffering), then aspiration verse by the truth of the Dharma Jewel
+# notes: tsheg splitting and a few wrong letters; well-known verse so most fixes are secure; first four syllables of line 1 rest on the known verse more than on the OCR letters
+[མ་རིག་མུན་སེལ་]སྒྲོན་མེ་ཡི་མཆོག །སྡུག་བསྔལ་ནད་
+སེལ་སྨན་གྱི་ཕུལ། །དམ་ཆོས་དཀོན་མཆོག་ཐམས་ཅད་ལ། །ཕྱག་
+འཚལ་མཆོད་ཅིང་སྐྱབས་སུ་མཆི། །དངོས་བཤམས་ནས་བསྔོ། །
+
+དམ་ཆོས་དཀོན་མཆོག་བདེན་པའི་བྱིན་རླབས་ཀྱིས། །བདག་སོགས་
+དེང་ནས་[ཀྱི་]ཚེ་རབས་ཐམས་ཅད་དུ། །རྒྱལ་བ་ཀུན་གྱི་དམ་ཆོས་མ་

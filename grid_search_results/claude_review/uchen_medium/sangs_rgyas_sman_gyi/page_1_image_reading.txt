@@ -1,0 +1,7 @@
+# source_image: page_1_original.jpg
+# page_type: title
+# printed_lines: 1
+# reading_confidence: 90
+# leaned_on_memory: none
+# notes: title leaf: one printed line in a narrow frame, compressed and smudged. A pasted paper label covers the right end of the frame, so anything printed after the last syllable read here is hidden. The label carries handwritten shelf numbers and two Tibetan syllables (a short form of the title); a red Cyrillic (Mongolian) library stamp sits at the left edge; show-through from the reverse. None of those are transcribed.
+༄༅། །སངས་རྒྱས་སྨན་གྱི་བླའི་མདོ་ཆོག་ཤིན་ཏུ་བསྡུས་པ་བཞུགས།

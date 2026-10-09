@@ -1,0 +1,10 @@
+# source: page_4_rank1_Woodblock_q57.1_c5599.7.txt
+# as_is: 40
+# recoverable_guess: 50
+# identified_as: Vasudhārā-dhāraṇī sutra: the Buddha asks why Sucandra asks on behalf of the poor; Sucandra begins his answer (he is poor with many dependants)
+# notes: quality falls off down the page: lines 1-2 recoverable, line 3 half, lines 4-5 are garble with '+' marks and Sanskrit-letter confusions; line 3's second half leans on the known sutra wording
+སྩལ་ཏོ། །ཁྱིམ་བདག་ཁྱོད་ཅིའི་ཕྱིར་དབུལ་པོའི་དོན་དུ་འདྲི།
+སྐད་ཅེས་བཀའ་སྩལ་པ་དང་། ཁྱིམ་བདག་ཟླ་བ་བཟང་པོས་བཅོམ་ལྡན་འདས་ལ་
+འདི་སྐད་ཅེས་གསོལ་ཏོ། །བཅོམ་ལྡན་འདས་བདག་[ནི་དབུལ་པོ་]གསོ་བ་[མང་བ]།
+[?]མང་པོ་དང་[?]ལགས་ན། དེ[འི་སླད་དུ་][?]
+[?]པར་འགྱུར་[?]

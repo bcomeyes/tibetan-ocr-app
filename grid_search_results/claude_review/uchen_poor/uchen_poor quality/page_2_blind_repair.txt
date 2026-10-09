@@ -1,0 +1,12 @@
+# source: page_2_rank1_Woodblock-Stacks_q80.5_c9900.3.txt
+# as_is: 72
+# recoverable_guess: 85
+# identified_as: same tantric ritual manual - blessing of the torma, then generation of the samaya being in 9-syllable verse; exact text unknown
+# notes: first line largely lost (top-of-page damage?); elsewhere spurious tsheg, a few wrong consonants and vowels; verse metre helps repair
+བ་དང་།དེ་ནས་[གཏོར་མ་]བྱིན་[གྱིས་བརླབ་པ་ནི།][?]ལས་[?][ཡཾ་ལས་]
+རླུང་།རཾ་ལས་མེ།[ཨཱཿ]ལས་མི་མགོའི་[སྒྱེད་པུ་]གསུམ་གྱི་སྟེང་དུ་[ཨཱཿ]ལས་བྱུང་བའི་ཐོད་པ་
+ཕྱི་དཀར་ལ་ནང་དམར་བ་ཡངས་ཤིང་རྒྱ་ཆེ་བ་རྣམས་ཀྱི་ནང་དུ་ཤ་ལྔ་བདུད་རྩི་ལྔ་སྦྱངས་རྟོགས་
+སྦར་གསུམ་[བྱས་པ་]ལས་བྱུང་བའི་གཏོར་མ་ཟག་པ་མེད་པའི་ཡེ་ཤེས་ཀྱི་བདུད་རྩིའི་རྒྱ་མཚོ་
+ཆེན་པོར་གྱུར།ཨོཾ་ཨཱཿཧཱུཾ།ལན་གསུམ་བརྗོད།དམ་ཚིག་པ་ཐུན་མོང་དུ་བསྐྱེད་པ་ནི།ཧཱུཾ་རང་གི་
+མདུན་དུ་ཆོས་ཀྱི་འབྱུང་གནས་ནི།།ཁྲག་ཞག་རྒྱ་མཚོའི་རྦ་ཀློང་འཁྲུགས་པའི་དབུས།།
+འདབ་སྟོང་པདྨའི་ལྟེ་བར་ཉི་མའི་[སྟེང་།།]དངོས་གྲུབ་[ལྔ་]འབྱུང་གནས་རྩ་བརྒྱུད་བླ་མ་དང་།།ཡི་[དམ་]

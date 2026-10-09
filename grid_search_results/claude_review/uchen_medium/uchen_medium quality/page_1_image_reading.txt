@@ -1,0 +1,7 @@
+# source_image: page_1_original.jpg
+# page_type: title
+# printed_lines: 1
+# reading_confidence: 85
+# leaned_on_memory: some — the title is a well-known one; the smudged word is bracketed
+# notes: handwritten manuscript title leaf (not block print), one line in alternating red and black ink on tan paper, red parts faded; a grey smudge/overwriting covers one word near the end; pencil scribbles below the start of the line (not transcribed)
+༄༅༅། །འཕགས་པ་འཇམ་དཔལ་གྱི་མཚན་ཡང་དག་པར་[བརྗོད་པ་]བཞུགས་སོ།།

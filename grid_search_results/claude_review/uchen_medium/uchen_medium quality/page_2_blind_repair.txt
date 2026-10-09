@@ -1,0 +1,7 @@
+# source: page_2_rank1_Woodblock-Stacks_q84.0_c2100.0.txt
+# as_is: 55
+# recoverable_guess: 85
+# identified_as: opening of the Mañjuśrī-nāma-saṃgīti: Sanskrit title, then start of the Tibetan title
+# notes: two lines; line 2 nearly clean, line 1 (opening mark, "rgya gar skad du", transliterated Sanskrit title) badly garbled and restored from the standard title formula
+༄༅། །རྒྱ་[གར་སྐད་དུ]། [ཨཱརྱ་]མཉྫུ་ཤྲཱི་[ནཱ་མ་སཾ་གཱི་ཏི]། [བོད་]
+སྐད་དུ། འཕགས་པ་འཇམ་དཔལ་གྱི་མཚན་ཡང་དག་པར།

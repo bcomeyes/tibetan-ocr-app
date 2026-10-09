@@ -1,0 +1,11 @@
+# source_image: page_5_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 80
+# leaned_on_memory: some — the tathagata epithet formula in lines 1-3 is stock phrasing and helped; lines 4-5 were read from the image and the unsettled spans are bracketed
+# notes: large type, pale grey impression; dark ink smear at the top-right corner touching the end of line 1; the short phrase in the middle of line 4 and two syllables in the second half of line 5 are broken; last glyph of line 4 is cramped against the frame. Folio label in the left margin (not transcribed).
+༄༅། །བསྟན་དུ་གསོལ། །བཅོམ་ལྡན་འདས་དེ་བཞིན་གཤེགས་པ་
+དགྲ་བཅོམ་པ་ཡང་དག་པར་རྫོགས་པའི་སངས་རྒྱས་བདེ་བར་གཤེགས་[པ་]
+པ་མཆེད་བདུན་[ལྷའི་]རྒྱལ་པོ་དང་བཅས་པ་ལ་ཕྱག་འཚལ་ལོ། །
+མཆོད་དོ་སྐྱབས་སུ་མཆིའོ། །[དངོས་བཤམས་ནས་བསྔོ།] །བདེ་གཤེགས་[བརྒྱད་]
+རྣམས་ཀྱི་མཚན་བརྗོད་དྲན་པའི་མཐུས། །ཤེས་ཉོན་[ཅ་དང་གི་]སྒྲིབ་པ་

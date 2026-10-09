@@ -1,0 +1,9 @@
+# source_image: page_12_original.jpg
+# page_type: body
+# printed_lines: 3
+# reading_confidence: 60
+# leaned_on_memory: some — colophon formulae (author / scribe / where the blocks are kept) guided the reading of worn words; the personal names are bracketed
+# notes: final colophon leaf, pale grey impression; lower half of the frame is blank with smudges. Line 1: the first one or two glyphs are almost gone, and the personal names are broken. Line 2 is short, with a separate auspicious word set far to the right. Line 3 is a smaller-type note on the printing blocks, indented, opening with a small ornamental mark.
+[illegible] ཤཱཀྱའི་དགེ་སློང་[ངག་དབང་བློ་]ཡེ་ཤེས་ཀྱིས་སྦྱར་བའི་ཡི་གེ་པ་ནི་[གཞོན་རབ་རྒྱས་སོ།]
+[དཔོན་སློབ་བཟང་བསམ་]མཆོག་གོ །། མངྒ་ལཾ།
+༈ སྤར་འདི་དགའ་ལྡན་དམ་ཆོས་གླིང་དུ་བཞུགས་སོ།།

@@ -1,0 +1,8 @@
+# source_image: page_3_original.jpg
+# page_type: body
+# printed_lines: 2
+# reading_confidence: 90
+# leaned_on_memory: some — well-known opening verse; all syllables were also visible
+# notes: handwritten manuscript, 2 lines, black ink with a red-ink stretch in the first half of line 2; gter-tsheg style double marks after the first syllable of line 2; folio label in left margin panel and faint marks in right panel (not transcribed)
+༄༅༅། །བརྗོད་པ། འཇམ་དཔལ་གཞོན་ནུར་གྱུར་པ་ལ་ཕྱག་འཚལ་
+ལོ༔ ༔དེ་ནས་དཔལ་ལྡན་རྡོ་རྗེ་འཆང་། །གདུལ་དཀའ་འདུལ་བ་རྣམས་

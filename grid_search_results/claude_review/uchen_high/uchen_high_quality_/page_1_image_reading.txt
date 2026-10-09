@@ -1,0 +1,7 @@
+# source_image: page_1_original.jpg
+# page_type: title
+# printed_lines: 1
+# reading_confidence: 97
+# leaned_on_memory: none
+# notes: red print, one short title line inside a decorative frame, large and clear; a faint square stamp (not Tibetan, unread) in the left margin; no body text
+༄༅། །འདུལ་བ་ཀ་བཞུགས་སོ། །

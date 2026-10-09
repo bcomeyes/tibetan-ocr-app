@@ -1,0 +1,13 @@
+# source: page_3_rank1_Woodblock-Stacks_q69.8_c9699.4.txt
+# as_is: 50
+# recoverable_guess: 75
+# identified_as: same tantric ritual manual - samaya-being verses, then invitation of the wisdom beings (lamas, yidams, Yamantaka, Six-Armed Mahakala); exact text unknown
+# notes: heavy spurious tsheg and wrong stacks; line 5 (a verse end plus a Sanskrit mantra) mostly lost; line 1 is a stray fragment, probably marginal text and not body text
+[བྱར་བྱ།།]
+དཀྱིལ་འཁོར་ལྷ་ཚོགས་[ཐམས་ཅད་]དང་།།ཁྱད་པར་ཁྲོ་བོ་ཆེན་པོ་གཤིན་རྗེའི་
+གཤེད།།[བརྟེན་]ཅིང་མཆོད་པའི་སྲུང་མ་མ་ལུས་པ།།འཁོར་ཚོགས་[རྒྱ་མཚོས་]བསྐོར་ནས་
+བཞུགས་གྱུར་པའི།།ཐུགས་ཀའི་[ཧཱུཾ་]ཡིག་འོད་ཟེར་[འཕྲོས་པ་]ཡིས།།[གར་]བཞུགས་རྡོ་རྗེའི་
+[ཕོ་བྲང་][?]།།[?][བཛྲ་ས་མཱ་ཛཿ]།།ཡེ་ཤེས་པ་སྤྱན་དྲངས་པ་ནི།
+[ཧཱུཾ།]ལྷུན་གྲུབ་བདེ་སྟོང་ཡེ་ཤེས་རོལ་པ་ལས།།རྩ་བརྒྱུད་བླ་མ་ཡི་དམ་ལྷ་ཚོགས་དང་།།ཁྱད་པར་
+ཁྲོ་བོ་ཆེན་པོ་གཤིན་རྗེའི་གཤེད།།འཁོར་བཅས་ཐོགས་པ་མེད་པར་གཤེགས་སུ་གསོལ།།
+འཇིགས་རུང་[བསིལ་བའི་]ཚལ་གྱི་དུར་ཁྲོད་ནས།།དཔལ་ལྡན་ཡེ་ཤེས་མགོན་པོ་ཕྱག་[དྲུག་]

@@ -1,0 +1,13 @@
+# source_image: page_1_original.jpg
+# page_type: body
+# printed_lines: 7
+# reading_confidence: 90
+# leaned_on_memory: some — standard offering-blessing liturgy (offering list, ཨརྒྷཾ ... ཤཔྟ mantras); mantra syllables on the torn bottom line are bracketed where the image does not confirm them
+# notes: colour photograph of a woodblock folio, large bold print, clear; brown stain through lines 2-5 near the left; bottom edge torn, cutting the lower parts of line 7 and its right end; left margin has a vertical caption (not transcribed).
+༄༅། །འཁོར་སྔོན་པོའི་ཞེས་པ་ནས་[སྦར་]ཞིང་སྤེལ་བར་གྱུར། ཨོཾ་ཨཱཿཧཱུཾ། ལན་གསུམ་བརྗོད།
+དེ་ནས་མཆོད་པ་བྱིན་གྱིས་རླབས་པ་ནི། ཧྲཱིཿ[ཥྚྲཱིཿ]ས་བསངས་སྦྱངས། སྟོང་པའི་ངང་ལས་[ཨཱཿ]ལས་བྱུང་བའི་
+ཐོད་པ་ཡངས་ཤིང་རྒྱ་ཆེ་བ་རྣམས་ཀྱི་ནང་དུ་ཧཱུཾ་[ཧཱུཾ་]ཞུ་བ་ལས་བྱུང་བའི་མཆོད་ཡོན། ཞབས་བསིལ།
+མེ་ཏོག །བདུག་སྤོས། སྣང་གསལ། དྲི་ཆབ། ཞལ་ཟས། རོལ་མོ་ལ་སོགས་པ་རྣམས་རང་
+བཞིན་བདེ་སྟོང་རྣམ་པ་མཆོད་རྫས་བྱེད་ལས་དབང་པོའི་དྲུག་གི་སྤྱོད་ཡུལ་དུ་ཟག་པ་མེད་པའི་
+བདེ་བ་ཁྱད་པར་ཅན་བསྐྱེད་པར་གྱུར། ཨོཾ་ཨརྒྷཾ་ཨཱཿཧཱུཾ། དེ་བཞིན་དུ་སྦྱར་ཏེ། པདྱཾ། པུཥྤེ། [དྷཱུ་པེ།]
+ཨཱ་ལོ་ཀེ། གནྡྷེ། ནཻ་ཝི་དྱེ། ཤཔྟ་ཨཱཿཧཱུཾ། ཨོཾ་[རཱུ་པ།] ཤཔྟ། [གནྡྷེ།] ར་ས། [སྤརྴེ་ཨཱཿཧཱུཾ།]

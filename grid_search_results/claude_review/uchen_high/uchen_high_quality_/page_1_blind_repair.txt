@@ -1,0 +1,6 @@
+# source: page_1_rank1_Woodblock_q60.0_c600.0.txt
+# as_is: 5
+# recoverable_guess: 10
+# identified_as: unknown; probably a title page / marginal caption (possibly a Vinaya volume title with a Sanskrit homage), guessed mainly from the "འདུ" and "དྡྷཱ" traces
+# notes: one short line of fragments, almost nothing recoverable; looks like a title page or decorative caption, not body text; every syllable below is a guess
+[?] [འདུལ་བ་] [བུདྡྷཱ་ཡ།] [?]

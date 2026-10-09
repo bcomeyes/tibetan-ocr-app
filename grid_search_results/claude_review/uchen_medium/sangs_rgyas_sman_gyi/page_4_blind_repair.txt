@@ -1,0 +1,20 @@
+# source: page_4_rank1_Woodblock-Stacks_q73.5_c6099.7.txt
+# as_is: 50
+# recoverable_guess: 65
+# identified_as: Medicine Buddha ritual: end of seven-limb verse (confession, rejoicing, requesting, dedication) and the appeal to the seven Sugatas' former prayers
+# notes: tsheg splitting, wrong vowels/stacks; several tsheg-only lines; last three short lines are fragments I could not read
+[junk]
+[junk]
+[junk]
+[junk]
+ལྟུང་ཐམས་ཅད་བཤགས། །དགེ་ལ་ཡི་རང་བསྐུལ་ཞིང་གསོལ་བ་འ[དེབས]།
+འདི་ལ་མཚོན་དགེ་བ་བྱང་ཆུབ་ཆེན་པོར་བསྔོ། །[བཅོམ་ལྡན་འདས་ཐུགས་རྗེ་]
+ཆེན་པོ་དགོངས་སུ་གསོལ། །བདེ་གཤེགས་བདུན་གྱི་སྔོན་གྱི་སྨོན།
+[junk]
+ལམ་[དག] །ཤཱཀྱའི་བསྟན་པ་ལྔ་བརྒྱའི་ཐ་མ་ལ། །འགྲུབ་པར་འགྱུར་བ།
+[junk]
+[ཞལ་གྱིས་བཞེས་པ་བཞིན]། །
+བདག་ལ་བདེན་པ་མངོན་[སུམ་]
+[?]
+[?]
+[junk]

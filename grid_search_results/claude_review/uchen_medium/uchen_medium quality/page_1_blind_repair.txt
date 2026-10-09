@@ -1,0 +1,6 @@
+# source: page_1_rank1_Woodblock_q66.7_c1200.1.txt
+# as_is: 30
+# recoverable_guess: 75
+# identified_as: title page of the Mañjuśrī-nāma-saṃgīti ('phags pa 'jam dpal gyi mtshan yang dag par brjod pa)
+# notes: looks like a title page, one line; letters confused with retroflex/Sanskrit forms, '+' mark; title recoverable because it is a famous one; opening mark and closing "bzhugs so" are guesses
+[?] འཕགས་པ་འཇམ་དཔལ་གྱི་མཚན་ཡང་དག་པར་བརྗོད་[པ་བཞུགས་སོ]། །

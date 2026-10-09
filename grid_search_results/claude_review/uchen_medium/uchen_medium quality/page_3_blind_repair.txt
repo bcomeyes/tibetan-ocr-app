@@ -1,0 +1,7 @@
+# source: page_3_rank1_Woodblock_q65.7_c2299.8.txt
+# as_is: 35
+# recoverable_guess: 60
+# identified_as: Mañjuśrī-nāma-saṃgīti: end of title, translator's homage to Mañjuśrī Kumārabhūta, first verse (Vajradhara, tamer of the hard to tame)
+# notes: line 1 mostly readable; line 2 is retroflex-letter garble with only faint traces (rdo rje 'chang, gdul dka'), restored largely from the known first verse, so heavily bracketed
+[?] བརྗོད་པ། འཇམ་དཔལ་གཞོན་ནུར་གྱུར་པ་ལ་ཕྱག་འཚལ་
+[ལོ། །དེ་ནས་དཔལ་ལྡན་]རྡོ་རྗེ་འཆང་། །གདུལ་དཀའ་[འདུལ་བ་རྣམས་][?]

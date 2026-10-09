@@ -1,0 +1,13 @@
+# source: page_3_rank1_Woodblock-Stacks_q68.1_c4900.3.txt
+# as_is: 50
+# recoverable_guess: 70
+# identified_as: Medicine Buddha ritual: homage verse to lineage lamas, seven Sugatas, Shakyamuni, Dharma, Manjushri, Trāṇamukta (skyabs grol); start of seven-limb offering
+# notes: heavy tsheg splitting inside words, some wrong letters; verse metre makes most of it recoverable
+བཞུགས། །འཇམ་པའི་དབྱངས་[ལ་ཕྱག་]འཚལ་ལོ། །
+དངོས་བརྒྱུད་བླ་མ་རྣམས་ལ་ཕྱག་འཚལ་[ཞིང་]། །བདེ་གཤེགས་
+བདུན་དང་ཐུབ་དབང་དམ་པའི་ཆོས། །འཇམ་དཔལ་སྐྱབས་གྲོལ་
+སོགས་ལ་བདག་ཕྱག་འཚལ། །
+དངོས་བཤམས་གཟུངས་[རིག་]
+མོས་པའི་[སྟོབས་]ཀྱིས་སྤྲུལ་བའི། །མཆོད་ཚོགས་ཀུན་འབུལ་སྡིག་
+[junk]
+[junk]

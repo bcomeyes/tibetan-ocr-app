@@ -1,0 +1,11 @@
+# source_image: page_4_original.jpg
+# page_type: body
+# printed_lines: 5
+# reading_confidence: 82
+# leaned_on_memory: some — seven-branch and aspiration phrasing helped; the two spans the print would not settle are bracketed rather than filled
+# notes: large-type verse, pale grey streaky impression. Weakest spots: the right end of line 2 and the start of line 3 (stacks broken, letters run together), and the first word after the shad in line 4. Dotted filler at the end of line 5.
+ལྟུང་ཐམས་ཅད་བཤགས། །དགེ་ལ་ཡི་རང་བསྐུལ་ཞིང་གསོལ་བ་འདེབས། །
+འདིས་མཚོན་དགེ་བ་བྱང་ཆུབ་ཆེན་པོར་བསྔོ། །བཅོམ་ལྡན་[འཁོར་བཅས་ཐུགས་རྗེ་]
+ཆེན་པོ་[དེ་དག་དགོངས་]སུ་གསོལ། །བདེ་གཤེགས་བདུན་གྱི་སྔོན་གྱི་སྨོན་
+ལམ་དག །[ཤཱཀྱའི་]བསྟན་པ་ལྔ་བརྒྱའི་ཐ་མ་ལ། །འགྲུབ་པར་འགྱུར་བར་
+ཞལ་གྱིས་བཞེས་པ་བཞིན། །བདག་ལ་བདེན་པ་མངོན་སུམ་

@@ -1,0 +1,19 @@
+# source: page_2_rank1_Modern_q65.2_c3000.1.txt
+# as_is: 0
+# recoverable_guess: 0
+# identified_as: unknown; almost certainly a non-Tibetan (English/roman) metadata or cover sheet
+# notes: every line is Tibetan digits mixed with stray letters, the signature of roman text forced through a Tibetan model; nothing recoverable
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]
+[junk]

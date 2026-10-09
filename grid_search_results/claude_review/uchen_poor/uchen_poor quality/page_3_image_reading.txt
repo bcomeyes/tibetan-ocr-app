@@ -1,0 +1,13 @@
+# source_image: page_3_original.jpg
+# page_type: body
+# printed_lines: 7
+# reading_confidence: 90
+# leaned_on_memory: some — familiar invitation verses (Yamantaka / six-armed Mahakala liturgy) helped confirm stacked letters; no gaps needed filling
+# notes: colour photograph, bold clear woodblock print, page intact apart from light staining; a stray ink stroke crosses the end of the first phrase in line 2; vertical captions in the left margin (not transcribed).
+༄༅། །དཀྱིལ་འཁོར་ལྷ་ཚོགས་ཐམས་ཅད་དང་། །ཁྱད་པར་ཁྲོ་བོ་ཆེན་པོའི་གཤིན་རྗེའི་
+གཤེད། །བརྟེན་ཅིང་མཆོད་པའི་[བསྲུང་མའི་]མ་ལུས་པ། །འཁོར་ཚོགས་རྒྱ་མཚོའི་བསྐོར་ནས་
+བཞུགས་གྱུར་པའི། །ཐུགས་ཀའི་ཧཱུཾ་ཡིག་འོད་ཟེར་འབར་བ་ཡིས། །གར་བཞུགས་རྡོ་རྗེའི་
+ཕོ་བྲང་[སོ་སོའི་]ནས། །ཡེ་ཤེས་པ་རྣམས་སྐད་ཅིག་གིས་སྤྱན་དྲངས། །ཡེ་ཤེས་པ་སྤྱན་དྲངས་པ་ནི།
+ཧཱུཾ་ལྷུན་གྲུབ་བདེ་སྟོང་ཡེ་ཤེས་རོལ་པ་ལས། །རྩ་རྒྱུད་བླ་མ་ཡི་དམ་ལྷ་ཚོགས་དང་། །ཁྱད་པར་
+ཁྲོ་བོ་ཆེན་པོའི་གཤིན་རྗེའི་གཤེད། །འཁོར་བཅས་ཐོགས་པ་མེད་པར་གཤེགས་སུ་གསོལ། །
+འཇིགས་རུང་བསིལ་བའི་ཚལ་གྱི་དུར་ཁྲོད་ནས། །དཔལ་ལྡན་ཡེ་ཤེས་མགོན་པོ་ཕྱག་དྲུག་
