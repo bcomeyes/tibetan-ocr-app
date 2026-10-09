@@ -1086,10 +1086,14 @@ Done on Matt's instruction, 2026-10-09. The Drive project folder now holds:
 The 40 `page_N_claude_revision.txt` files were added to Drive later on
 2026-10-09 (`rclone copy`, verified with `rclone check`: 200 files).
 A draft letter to Nyima with a checking guide is at
-`letter_to_nyima_2026-10-09.md` / `.pdf` (untracked). **Matt is editing
+`letter_to_nyima_2026-10-09.md` / `.pdf` / `.html` (untracked; the
+`.html` is the one that pastes cleanly into an email). **Matt is editing
 and sending it himself**; check with him before assuming Nyima has it.
-The draft asks him to save corrections as `page_N_nyima.txt` and to start
-with `sangs_rgyas_sman_gyi` pages 2-12.
+The draft asks for a **complete review of all 35 body pages** (Matt's
+standing rule: everything in the set, not a sample), saving corrections
+as `page_N_nyima.txt`.
+It includes a folder diagram of the Drive layout and the list of five
+cover and title pages to skip.
 
 Matt's rule for that folder: the three Uchen tiers in one consistent
 format, and anything else archived. What is there is the **whole** export,
