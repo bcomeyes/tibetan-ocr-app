@@ -30,9 +30,12 @@ BASE_DIR = Path.home() / "Documents" / "tibetan-ocr-app"
 OUTPUT_DIR = BASE_DIR / "grid_search_results"
 REVIEW_EXPORT = OUTPUT_DIR / "review_export"
 
-# page_1_Ume_Druma_q73.1_c1900.1.txt
+# page_1_rank2_Woodblock_q73.1_c1900.1.txt   (current, since 2026-10-08)
+# page_1_Ume_Druma_q73.1_c1900.1.txt         (older exports: no rank part)
+# The rank is optional so the archived Umeh exports still verify.
 EXPORT_RE = re.compile(
-    r"^(?P<page>page[_ ]?\d+)_(?P<model>.+?)_q(?P<q>[\d.]+)_c(?P<c>[\d.]+)\.txt$"
+    r"^(?P<page>page[_ ]?\d+)_(?:rank(?P<rank>\d+)_)?(?P<model>.+?)"
+    r"_q(?P<q>[\d.]+)_c(?P<c>[\d.]+)\.txt$"
 )
 
 SCORE_RE = re.compile(r"Quality Score:\s*([\d.]+)")

@@ -89,9 +89,13 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
   tilted scans, not curved ones.
 - The run took four days of calendar time for about 17 hours of computing:
   one laptop shutdown mid-run (2026-10-04), then the two memory stops.
-- **Next step:** filename collisions (Suggested order step 7), then export
-  and audit uchen_poor (`batch_export.py 7 8`, `audit_export_labels.py`).
-  Nothing from uchen_poor has been exported yet.
+- **Filename collisions fixed, and uchen_poor exported and audited,
+  2026-10-08.** Exports are now named `{page}_rank{N}_{model}_q.._c...txt`.
+  High and medium were re-exported under the new names. Audit: **168 files,
+  0 mislabelled; 120 of them Uchen** (high 45, medium 57, poor 18). See
+  *Track A leftovers*.
+- **Next step:** stale docs (Suggested order step 8), then the Claude
+  pre-screen (step 10).
 
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
@@ -276,9 +280,9 @@ from B on 2026-09-20 for exactly that reason.
 
 | Track | What it is | Status |
 |---|---|---|
-| **A. Export integrity** | Does the number on the file describe the text in the file? | **Done and verified.** 0/142 mislabelled. |
+| **A. Export integrity** | Does the number on the file describe the text in the file? | **Done and verified.** 0/168 mislabelled (2026-10-08). |
 | **B. OCR quality** | Is the text itself any good? | **Open.** Item 7 (TPS) crash fixed 2026-09-20; duplicated corner scaling measured 2026-10-08 and left as is. Nyima's findings otherwise untouched. |
-| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high, uchen_medium and uchen_poor run (poor finished 2026-10-07, not yet exported). pechas and standalone remain. |
+| **C. Corpus completion** | Running the Uchen categories not yet processed. | **Open.** uchen_high, uchen_medium and uchen_poor run, exported and audited (poor on 2026-10-08). pechas and standalone remain. |
 | **D. Scoring integrity** | Does the number mean what it claims to mean? | **Open, newly opened 2026-09-20.** Three concrete defects, none fixed. |
 
 Track A being finished does **not** improve a single character of OCR output. It
@@ -402,6 +406,33 @@ silently gets 1–2 options to compare instead of 3, with no indication anything
 is missing. Fix: add a discriminator. A rank index (`_1`/`_2`/`_3`) beats
 parameter values, since it also tells the reviewer which the pipeline ranked
 best. Re-export afterward; no OCR re-run needed.
+
+**Fixed 2026-10-08.** The export cell (now "v3") writes
+`{page}_rank{N}_{model}_q{q}_c{c}.txt`, where rank 1 is the version with
+the highest composite, that is the most valid words. Before writing a
+page's new files it removes that page's earlier exports, but only if it
+has verified results to replace them with. `audit_export_labels.py`
+accepts both the new names and the older rank-less ones, so the archived
+Umeh exports still verify.
+
+All Uchen targets were re-exported (1, 2, 3, 4, 5, 31) and uchen_poor was
+exported for the first time (7, 8). Counts after: uchen_high 45 (was 40),
+uchen_medium 57 (was 54), uchen_poor 18. Audit: 168 files, 0 mislabelled.
+The export folder as it stood before is kept at
+`grid_search_results/review_export.backup-2026-10-08/` (not tracked).
+
+Two other changes went into the same cell:
+
+- **`EXCLUDE_PAGES`**: title pages listed there are skipped and reported.
+  So far only `uchen_poor quality(1)` page 1. Add a page only after
+  looking at it. Other covers and title pages in high and medium are still
+  exported; they are to be dropped when the review set is assembled.
+- **Real JPEGs**: the page images for `uchen_poor quality(1)` are TIFF
+  data under a `.jpg` name. The reviewer's copy is now converted to a
+  genuine JPEG (quality 95); true JPEGs are copied untouched.
+
+**Still stale on Drive**: none of this has been pushed. Drive holds the old
+mislabelled files; see *Before clearing Google Drive*.
 
 ---
 
@@ -1115,14 +1146,14 @@ review. The previous order was built around Umeh failure rates and is void.
    on target 8; the code stays as it is. See Track B item 7.
 6. ~~Check whether the quality tiers mean anything.~~ **Done 2026-10-04.**
    They do separate; see Track C.
-7. Filename collisions — mechanical, re-export only (Track A leftover).
+7. ~~Filename collisions.~~ **Done 2026-10-08**; see Track A leftovers.
 8. Delete stale docs: `tibetan_ocr_workflow.pdf` and `grid_search_workflow.md`
    describe the pre-April interface. Fix the README's false `class_threshold`
    finding (lines 134/141/147), its stale `class_threshold` grid (line 117), and
    its outdated uchen_high numbers. Strip Umeh claims while in there.
 9. ~~uchen_poor (Track C), targets 7 and 8 only.~~ **Run 2026-10-07**, full
-   grid on all 7 pages. **Not yet exported or audited**: do step 7 first so
-   it is exported once, then `batch_export.py 7 8` and the audit.
+   grid on all 7 pages. **Exported and audited 2026-10-08**: 18 files, 0
+   mislabelled (6 body pages; target 8's title page is excluded).
 10. **Claude API pre-screen script.** Judge OCR quality independently and
     compare it with `q`. See Trajectory.
 11. **Assemble the calibration review set**: high, medium and poor, spanning
