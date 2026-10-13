@@ -110,9 +110,10 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
 - Matt's vocabulary, agreed this session: the corrected text is a
   **revision** (not a "reading"); the **blind repair** is the experiment of
   fixing OCR text without seeing the page.
-- **Next step:** wait for Nyima's corrections (`page_N_nyima.txt` on
-  Drive), then score Claude's revisions against them. Not yet done, and
-  not asked for: scoring the rank 2 and rank 3 texts.
+- ~~**Next step:** wait for Nyima's corrections (`page_N_nyima.txt` on
+  Drive), then score Claude's revisions against them.~~ **Superseded
+  2026-10-13:** Nyima is not asked to correct anything. See *Nyima's task
+  reset* in that session's block.
 
 #### Session of 2026-10-13: dry run of the letter, as Nyima
 
@@ -151,6 +152,117 @@ export, the summary CSVs and Drive itself.
 - Lesson worth keeping: a gap in page numbers is invisible to the audit,
   which only checks files that exist. A reader following instructions
   found it in one step.
+
+#### Same day, later: Nyima's task reset (Matt's decisions)
+
+**Read this before touching the letter, the Drive folder or anything
+Nyima will see.** The letter drafted on 2026-10-09 asked for the wrong
+thing. It is superseded, and so are the lines elsewhere in this file that
+describe it.
+
+**What went wrong.** Claude designed a task in which Nyima corrects every
+syllable of 35 AI texts and saves `page_N_nyima.txt` files, and recorded
+"review everything in the set, not a sample" as Matt's standing rule.
+**Neither was Matt's.** He never asked for Nyima to correct pages. Claude
+also put the wrong AI text in Nyima's folders (see below). Attribution
+in this file was Claude's wording throughout; where a line says "Matt's
+rule", check with him before relying on it.
+
+**What Matt wants from Nyima: one thing.** Does the OCR work well enough,
+judged by a reader? **Nothing AI is in his task at all**: no AI text, no
+AI score. Restated to Matt and confirmed by him before being written
+here. For each page he sees the image and three OCR files with their
+machine scores, and answers:
+
+1. Which of the three is best?
+2. What score would you give that one, from 0 to 100? (The five-row table
+   already in the letter: 90-100 reads like the page ... 0-29 mostly
+   unreadable.)
+3. Any notes (optional).
+
+The two questions are asked separately and in that order, so there is no
+doubt which file his score belongs to. No Tibetan typed, no files saved,
+no corrections. Skimming is enough. 35 pages.
+
+**Why "pick one" and not "grade rank 1".** A file can show a higher score
+and a lower rank (`sangs_rgyas_sman_gyi` page 3: rank 1 is q68.1, rank 3
+is q84.5; all three have 49 accepted words). Rank follows the count of
+accepted words; `q` is the percent accepted. Matt's point, which stands:
+to a person, high score with low rank reads as a mistake, and no wording
+fixes that. So the letter says it plainly up front, and his pick tells us
+whether rank or score was the better guide. Measured: on 14 of 40 pages
+rank 1 and rank 2 have the same count, so their order is arbitrary; on 10
+of 40 all three versions are over 97% alike.
+
+**Two machine numbers are shown to him beside each OCR text**, and
+nothing else:
+
+- the machine score: `q`, percent of words the dictionary accepts;
+- the machine count: accepted words, as a plain number (`c` / 100).
+
+**How he gets it: a spreadsheet** (Matt's idea, like the one Nyima made
+himself in July). **One row per page**: folder, page, a link to the
+image, links to the three OCR texts each with its two machine numbers,
+then three empty boxes: best one, your score, notes. Not built yet.
+Claude suggested, and Matt agreed: one row per page rather than one per
+file, and a line telling him "if you see no real difference between the
+three, pick any and say so in the notes".
+
+**All AI work is out of Nyima's task. Matt's decision.** That means the
+AI repair, the AI reading and the AI (LLM) score. They belong to the
+transformer project, not to OCR evaluation, and would muddy this review.
+Claude at first kept the LLM score in the spreadsheet and wrote that here
+as settled; Matt corrected it. A copy of all the AI work, with a handoff
+note, is in
+`/home/matt/Documents/masked_transformer_model/claude_ocr_repair_2026-10-09/`.
+The originals stay in `grid_search_results/claude_review/` (tracked). What that project is, in Matt's words: a transformer or masked
+model trained on clean text that repairs OCR output, with the question
+being whether Claude can do the same job. For the record, the two AI
+texts made on 2026-10-09 are different things:
+
+- `*_blind_repair.txt`: fixes the OCR text **without** the image. This is
+  "correction" in Matt's sense, and the one the transformer work cares
+  about.
+- `*_image_reading.txt`: reads the page image, never sees the OCR. It was
+  only meant as a check on the repair. Matt did not intend "can Claude
+  replace OCR by reading the image" as a goal.
+
+The files on Drive named `page_N_claude_revision.txt` are the **image
+readings**, not the repairs. They are to come out of Nyima's folders
+(move them to an archive folder on Drive; do not delete). Not done yet.
+
+**Contact and pay, Matt's plan:**
+
+- First a short personal note only: how are you, how was the move, do you
+  have time to continue. No project detail.
+- Then, if he says yes, the project letter with the spreadsheet.
+- A flat fee, $100 to $150, from Matt's own funds, not $35 an hour.
+  Claude suggested pairing it with a time limit ("about four hours, then
+  stop"); Matt has not confirmed that.
+- Nyima now has edit access to the Drive folder (Matt fixed it today).
+
+**To do, in order.** Nothing here has been started:
+
+1. Build the spreadsheet with working links.
+2. Move the `claude_revision` files out of `review_export` on Drive.
+3. Rewrite the project letter: no correcting, no AI, flat fee, rank and
+   score explained in two sentences.
+4. Draft the short first note.
+
+**Working rule from this session:** before writing a decision into this
+file, say back to Matt what was understood and wait for his yes. Twice
+today a misunderstanding was written here as settled.
+
+Matt sees all of it before anything goes to Drive or to Nyima.
+
+**For the next export, not now** (changing names now would rename files
+he is about to open): show the count in the file name in plain form, for
+example `297of333words`, so rank and the visible number agree; break ties
+by higher `q` (matches Nyima's "cleaner over longer"); write a per-folder
+list of included and skipped pages; have the audit check each page has
+its full set of files. Also worth a README line: "medium" and "poor"
+describe the scan, not OCR difficulty (raw OCR was about 41% right on
+medium pages and 68% on poor).
 
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
@@ -208,7 +320,9 @@ not a baseline.
 - **Fix what he sees before he sees it**: Track D defect 1 (a 20-character
   fragment showing q83.3) and the filename collisions (silently missing
   comparison options).
-- Have him review everything in the set, not a sample.
+- Have him review everything in the set, not a sample. *(Claude's
+  wording, not confirmed as Matt's. As of 2026-10-13 "review" means a
+  skim and one number per page, not correction.)*
 
 ### Pre-screen with Claude before using his time
 
@@ -1127,9 +1241,10 @@ A draft letter to Nyima with a checking guide is at
 `letter_to_nyima_2026-10-09.md` / `.pdf` / `.html` (untracked; the
 `.html` is the one that pastes cleanly into an email). **Matt is editing
 and sending it himself**; check with him before assuming Nyima has it.
-The draft asks for a **complete review of all 35 body pages** (Matt's
-standing rule: everything in the set, not a sample), saving corrections
-as `page_N_nyima.txt`.
+**That draft is superseded as of 2026-10-13** and must be rewritten
+before it is sent: it asks Nyima to correct all 35 pages and save
+`page_N_nyima.txt` files, which Matt never asked for. See *Nyima's task
+reset* in the 2026-10-13 session block for what he is actually asked.
 It includes a folder diagram of the Drive layout and the list of five
 cover and title pages to skip. Since 2026-10-13 it also carries a direct
 link to `review_export` and a note on the two page numbers that are
