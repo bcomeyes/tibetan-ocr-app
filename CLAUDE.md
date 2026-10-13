@@ -228,8 +228,8 @@ texts made on 2026-10-09 are different things:
   replace OCR by reading the image" as a goal.
 
 The files on Drive named `page_N_claude_revision.txt` are the **image
-readings**, not the repairs. They are to come out of Nyima's folders
-(move them to an archive folder on Drive; do not delete). Not done yet.
+readings**, not the repairs. They were moved out of Nyima's folders into an archive folder on
+Drive the same day (see *Done 2026-10-13* below).
 
 **Contact and pay, Matt's plan:**
 
@@ -241,13 +241,36 @@ readings**, not the repairs. They are to come out of Nyima's folders
   stop"); Matt has not confirmed that.
 - Nyima now has edit access to the Drive folder (Matt fixed it today).
 
-**To do, in order.** Nothing here has been started:
+**Done 2026-10-13, on Matt's instruction ("do all the not-dones").** The
+short first note and the sending are Matt's and are not tracked here.
 
-1. Build the spreadsheet with working links.
-2. Move the `claude_revision` files out of `review_export` on Drive.
-3. Rewrite the project letter: no correcting, no AI, flat fee, rank and
-   score explained in two sentences.
-4. Draft the short first note.
+1. **Spreadsheet built and on Drive** as a Google Sheet, in
+   `review_export/`: "Nyima review sheet 2026-10-13",
+   `https://docs.google.com/spreadsheets/d/11l3zG5-MAaC9fAkNvTSRrCLkxEIbxNVNPB2AytIjqgQ/edit`.
+   Tab "How to" (steps, score table, the rank and score explanation) and
+   tab "Pages": 35 rows (high 12, medium 17, poor 6), each with links to
+   the image and the three OCR texts, each text's score % and words
+   accepted, and three yellow answer columns. Downloaded back and checked:
+   35 rows, links intact. Local copy:
+   `grid_search_results/review_export/nyima_review_sheet_2026-10-13.xlsx`
+   (not tracked). The links point at Drive file IDs, so **a re-export
+   that replaces files on Drive breaks them**; rebuild the sheet after
+   any re-push. The build script was a throwaway and is not in the repo.
+2. **AI reading files moved off Nyima's folders on Drive.** All 40
+   `page_N_claude_revision.txt` are now in
+   `review_export_archive_2026-10_ai_readings/` (moved, not deleted).
+   `review_export/` on Drive now holds 160 files plus the sheet: one image
+   and three OCR texts per page. The local `review_export/` still has the
+   revision files, so local and Drive differ by exactly those 40 and the
+   sheet.
+3. **Project letter rewritten**: `letter_to_nyima_2026-10-13.md` /
+   `.html` / `.pdf` (untracked; the `.html` pastes cleanly into an
+   email). No correcting, no AI, the sheet link, the rank and score
+   explanation. It has three `[MATT: ...]` notes to fill in or delete:
+   the July payment, the flat fee amount, and the optional time limit.
+   The old letter is in `letter_superseded/`; do not send it.
+
+Audit after: 168 files, 0 mislabelled.
 
 **Working rule from this session:** before writing a decision into this
 file, say back to Matt what was understood and wait for his yes. Twice
@@ -1238,7 +1261,8 @@ Done on Matt's instruction, 2026-10-09. The Drive project folder now holds:
 The 40 `page_N_claude_revision.txt` files were added to Drive later on
 2026-10-09 (`rclone copy`, verified with `rclone check`: 200 files).
 A draft letter to Nyima with a checking guide is at
-`letter_to_nyima_2026-10-09.md` / `.pdf` / `.html` (untracked; the
+`letter_superseded/letter_to_nyima_2026-10-09.md` / `.pdf` / `.html`
+(moved there 2026-10-13, replaced by `letter_to_nyima_2026-10-13.*`; the
 `.html` is the one that pastes cleanly into an email). **Matt is editing
 and sending it himself**; check with him before assuming Nyima has it.
 **That draft is superseded as of 2026-10-13** and must be rewritten
