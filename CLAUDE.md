@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Written 2026-09-20. Track A last verified 2026-10-04; everything else
+**Written 2026-09-20. Track A last verified 2026-10-13; everything else
 2026-08-06.** Verify before trusting any status claim here:
 
 ```bash
@@ -113,6 +113,44 @@ file; the affected sections have been rewritten, not patched. See *SCOPE*.
 - **Next step:** wait for Nyima's corrections (`page_N_nyima.txt` on
   Drive), then score Claude's revisions against them. Not yet done, and
   not asked for: scoring the rank 2 and rank 3 texts.
+
+#### Session of 2026-10-13: dry run of the letter, as Nyima
+
+Before sending, Matt had Claude.ai play Nyima: open the shared Drive
+folder read-only and follow the letter literally. It stopped at the first
+page and raised two things. Both were checked here against the local
+export, the summary CSVs and Drive itself.
+
+- **Page 3 of `uchen high quality pdf` is absent, on purpose, and the
+  letter did not say so.** It is the title page where all 36 runs failed
+  ("No valid lines after filtering"), so the export wrote nothing for it,
+  not even the image. Same kind of gap: `uchen_poor quality(1)` has no
+  page 1 (in `EXCLUDE_PAGES`). The counts hold: 40 exported pages, 5 on
+  the skip list, 35 to review. The letter's own "five files" example used
+  `page_3_...`, the one number missing from the first folder he opens.
+- **Identical scores on different texts are real ties, not the July
+  bug.** Page 7 of that file: three different runs each found 297 valid
+  words of 333, so the same `q` and `c`; the texts differ by a few marks
+  (rank 3 writes `༎` where the others write `།།`). Page 9, ranks 1 and 2:
+  228 of 296 each. On a tied page, which version is called rank 1 is
+  arbitrary. Do not "fix" this by re-ranking without a reason.
+- **Audit re-run: 168 files, 0 mislabelled** (Uchen 120).
+- **Drive checked directly, read-only:** `review_export` has 200 files,
+  none empty, and matches the local export exactly (`rclone check`: high
+  75, medium 95, poor 30, 0 differences).
+- **Letter updated, all three copies:** a direct link to the
+  `review_export` folder
+  (`https://drive.google.com/drive/folders/1f5mCG7hvE5246oMfuA7aH5R1oJQ74UdK`),
+  a note that those two page numbers are missing on purpose, and the
+  example changed to `page_4_...`. The `.pdf` was rebuilt from the `.html`
+  with headless Chrome (help box hidden, subject line added as a heading).
+- **Still Matt's, before sending:** the `[MATT: ...]` placeholder about
+  the July payment is still in the letter, and nobody has confirmed that
+  Nyima's account can open the link with **edit** access, which he needs
+  to save `page_N_nyima.txt`.
+- Lesson worth keeping: a gap in page numbers is invisible to the audit,
+  which only checks files that exist. A reader following instructions
+  found it in one step.
 
 **Findings, 2026-10-02 (folded into the sections below on 2026-10-04):**
 
@@ -1093,7 +1131,9 @@ The draft asks for a **complete review of all 35 body pages** (Matt's
 standing rule: everything in the set, not a sample), saving corrections
 as `page_N_nyima.txt`.
 It includes a folder diagram of the Drive layout and the list of five
-cover and title pages to skip.
+cover and title pages to skip. Since 2026-10-13 it also carries a direct
+link to `review_export` and a note on the two page numbers that are
+missing on purpose (see that session's block).
 
 Matt's rule for that folder: the three Uchen tiers in one consistent
 format, and anything else archived. What is there is the **whole** export,
